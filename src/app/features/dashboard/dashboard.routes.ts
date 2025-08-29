@@ -1,0 +1,28 @@
+import { Routes } from '@angular/router';
+import { DashboardComponent } from './dashboard.component';
+import { CalendarComponent } from '../calendar/calendar.component';
+import { MyPatientComponent } from '../my-patient/my-patient.component';
+import { MedicalVerificationComponent } from '../medical-verification/medical-verification.component';
+import { EstablishmentComponent } from '../establishment/establishment.component';
+import { ServicesComponent } from '../services/services.component';
+import { ProcedureComponent } from '../procedure/procedure.component';
+import { VideosComponent } from '../videos/videos.component';
+import { FaqComponent } from '../faq/faq.component';
+import { ProfileComponent } from '../profile/profile.component';
+import { ReviewsComponent } from '../reviews/reviews.component';
+import { SettingsComponent } from '../settings/settings.component';
+
+export const dashboardRoutes: Routes = [
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'calendar', component: CalendarComponent },
+  { path: 'my-patient', component: MyPatientComponent },
+  { path: 'medical-verification', component: MedicalVerificationComponent },
+  { path: 'establishment', component: EstablishmentComponent },
+  { path: 'services', component: ServicesComponent },
+  { path: 'procedure', component: ProcedureComponent },
+  { path: 'videos', component: VideosComponent },
+  { path: 'faq', component: FaqComponent },
+  { path: 'profile', component: ProfileComponent },
+  { path: 'reviews', component: ReviewsComponent },
+  { path: 'settings', component: SettingsComponent },
+];

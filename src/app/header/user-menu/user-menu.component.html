@@ -1,0 +1,12 @@
+<div class="user-menu">
+  <div class="user-info">
+    <span class="name">{{ doctorName }}</span>
+    <span class="phone">{{ phone }}</span>
+  </div>
+
+  <div class="menu-actions">
+    <button routerLink="/settings">Account Settings</button>
+    <button routerLink="/profile">View My Profile</button>
+    <button (click)="logout()">Log out</button>
+  </div>
+</div>

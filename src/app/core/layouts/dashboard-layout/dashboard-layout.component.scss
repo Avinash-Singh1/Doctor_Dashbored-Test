@@ -1,0 +1,29 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f9fa;
+
+  .sidebar {
+    width: 240px;
+    background: #1a237e;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+
+    .header {
+      background: #fff;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .page-content {
+      flex-grow: 1;
+      padding: 2rem;
+    }
+  }
+}

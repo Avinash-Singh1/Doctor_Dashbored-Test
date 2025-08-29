@@ -1,0 +1,10 @@
+<div class="dashboard-page">
+  <h2>Welcome to Doctor Dashboard</h2>
+
+  <div class="stats">
+    <div class="stat-card" *ngFor="let s of stats">
+      <h3>{{ s.value }}</h3>
+      <p>{{ s.label }}</p>
+    </div>
+  </div>
+</div>

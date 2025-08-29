@@ -1,0 +1,26 @@
+.profile-page {
+  max-width: 600px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  h2 {
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+  }
+
+  .profile-card {
+    line-height: 1.8;
+
+    p {
+      margin: 0.5rem 0;
+      font-size: 1rem;
+
+      strong {
+        color: #1976d2;
+      }
+    }
+  }
+}

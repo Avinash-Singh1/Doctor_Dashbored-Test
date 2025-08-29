@@ -1,0 +1,25 @@
+.sidebar-nav {
+  padding: 1rem;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      margin: 0.8rem 0;
+
+      a {
+        color: #fff;
+        text-decoration: none;
+        padding: 0.6rem 1rem;
+        display: block;
+        border-radius: 6px;
+
+        &:hover, &.active {
+          background: #3949ab;
+        }
+      }
+    }
+  }
+}

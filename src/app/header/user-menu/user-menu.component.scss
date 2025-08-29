@@ -1,0 +1,36 @@
+.user-menu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+
+    .name {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    .phone {
+      font-size: 0.9rem;
+      color: #555;
+    }
+  }
+
+  .menu-actions {
+    button {
+      margin-left: 0.5rem;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        background: #1565c0;
+      }
+    }
+  }
+}
