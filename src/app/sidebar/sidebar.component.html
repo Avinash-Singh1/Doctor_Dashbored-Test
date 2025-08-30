@@ -1,7 +1,14 @@
-<nav class="sidebar-nav">
-  <ul>
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h2>NectarPlus</h2>
+  </div>
+
+  <ul class="sidebar-menu">
     <li *ngFor="let item of menuItems">
-      <a [routerLink]="item.path" routerLinkActive="active">{{ item.label }}</a>
+      <a [routerLink]="item.path" routerLinkActive="active">
+        <!-- <span class="icon">📌</span> -->
+        <span class="label">{{ item.label }}</span>
+      </a>
     </li>
   </ul>
 </nav>

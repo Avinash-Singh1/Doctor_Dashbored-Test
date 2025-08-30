@@ -1,60 +1,184 @@
-.signup-container {
-  max-width: 500px;
-  margin: 80px auto;
+.signup-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f4f7fb, #e8efff);
+}
+
+.signup-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  width: 100%;
 
-  h2 {
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #2c3e50;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-
-    input {
-      width: 100%;
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-    }
-  }
-
-  button {
-    width: 100%;
-    padding: 0.7rem;
-    background: #43a047;
-    border: none;
-    border-radius: 8px;
+  .signup-info {
+    background: #1976d2;
     color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-    &:hover {
-      background: #388e3c;
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    img {
+      margin-top: 2rem;
+      max-width: 80%;
+      align-self: center;
     }
   }
 
-  .links {
-    text-align: center;
-    margin-top: 1rem;
+  .signup-form {
+    padding: 3rem;
 
-    a {
-      color: #43a047;
-      text-decoration: none;
+    .form-header {
+      text-align: center;
+      margin-bottom: 2rem;
 
-      &:hover {
-        text-decoration: underline;
+      h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+
+      p {
+        font-size: 0.9rem;
+        color: #666;
+
+        a {
+          color: #1976d2;
+          font-weight: 500;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
       }
     }
+
+    .form-row {
+      margin-bottom: 1.2rem;
+      position: relative;
+
+      &.two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+
+      &.three-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: border 0.3s;
+
+        &:focus {
+          border-color: #1976d2;
+          outline: none;
+          box-shadow: 0 0 4px rgba(25, 118, 210, 0.3);
+        }
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: #777;
+
+        &:hover {
+          color: #1976d2;
+        }
+      }
+
+      .radio-label {
+        margin-right: 1rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    .consent {
+      font-size: 0.9rem;
+
+      a {
+        color: #1976d2;
+      }
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 8px;
+      background: #1976d2;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+
+      &:hover {
+        background: #125ea9;
+      }
+    }
+  }
+}
+
+// 📱 Responsive
+@media (max-width: 992px) {
+  .signup-card {
+    grid-template-columns: 1fr;
+  }
+
+  .signup-info {
+    padding: 2rem;
+    text-align: center;
+
+    img {
+      max-width: 60%;
+    }
+  }
+
+  .signup-form {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .signup-form {
+    padding: 1.5rem;
+  }
+
+  .form-row.two-col,
+  .form-row.three-col {
+    grid-template-columns: 1fr;
   }
 }

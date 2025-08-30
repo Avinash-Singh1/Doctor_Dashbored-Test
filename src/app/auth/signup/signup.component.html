@@ -1,30 +1,191 @@
-<div class="signup-container">
-  <h2>Create Doctor Account</h2>
-  <form (ngSubmit)="onSubmit()">
-    <div class="form-group">
-      <label>Name</label>
-      <input type="text" [(ngModel)]="doctor.name" name="name" required />
+<div class="signup-page">
+  <div class="signup-card">
+    <!-- Left Side (Intro Text) -->
+    <div class="signup-info">
+      <h2>Join Our Network of Trusted Healthcare Facilities</h2>
+      <p>
+        Enhance your professional presence, streamline your practice, and
+        provide exceptional care to your patients. Start your journey today.
+      </p>
+      <img src="assets/images/doctor.png" alt="Doctor illustration" />
     </div>
 
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" [(ngModel)]="doctor.email" name="email" required />
+    <!-- Right Side (Form) -->
+    <div class="signup-form">
+      <div class="form-header">
+        <h3>Create Doctor Account</h3>
+        <p>
+          Already have an account?
+          <a routerLink="/auth/login">Login</a>
+        </p>
+      </div>
+
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+        <!-- Title & Full Name -->
+        <div class="form-row two-col">
+          <select class="form-control" formControlName="title">
+            <option value="" disabled selected>Title</option>
+            <option value="Dr.">Dr.</option>
+            <option value="Mr.">Mr.</option>
+            <option value="Ms.">Ms.</option>
+            <option value="Mrs.">Mrs.</option>
+          </select>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="name"
+            placeholder="Full Name*"
+          />
+        </div>
+
+        <!-- Gender -->
+        <div class="form-row">
+          <label class="radio-label"
+            ><input type="radio" formControlName="gender" value="male" />
+            Male</label
+          >
+          <label class="radio-label"
+            ><input type="radio" formControlName="gender" value="female" />
+            Female</label
+          >
+          <label class="radio-label"
+            ><input type="radio" formControlName="gender" value="other" />
+            Other</label
+          >
+        </div>
+
+        <!-- Specialization -->
+        <div class="form-row">
+          <select class="form-control" formControlName="specialization">
+            <option value="" disabled selected>Select Specialization</option>
+            <option *ngFor="let s of specializationList" [value]="s._id">
+              {{ s.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Education -->
+        <div formGroupName="education" class="form-row three-col">
+          <input
+            type="text"
+            class="form-control"
+            formControlName="degree"
+            placeholder="Degree*"
+          />
+          <input
+            type="text"
+            class="form-control"
+            formControlName="college"
+            placeholder="College*"
+          />
+          <input
+            type="text"
+            class="form-control"
+            formControlName="year"
+            placeholder="Year*"
+          />
+        </div>
+
+        <!-- Experience -->
+        <div class="form-row">
+          <select class="form-control" formControlName="yearsOfExperience">
+            <option value="" disabled selected>Select Experience</option>
+            <option *ngFor="let y of experinenceYear" [value]="y.value">
+              {{ y.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- State & City -->
+        <div class="form-row two-col">
+          <select
+            class="form-control"
+            formControlName="state"
+            (change)="onStateChange($event)"
+          >
+            <option value="" disabled selected>Select State</option>
+            <option *ngFor="let s of states" [value]="s.name">
+              {{ s.name }}
+            </option>
+          </select>
+          <select
+            class="form-control"
+            formControlName="city"
+            [disabled]="isCityDisabled"
+          >
+            <option value="" disabled selected>Select City</option>
+            <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+
+        <!-- Phone -->
+        <div class="form-row">
+          <input
+            type="text"
+            maxlength="10"
+            class="form-control"
+            formControlName="phoneNumber"
+            placeholder="Phone No*"
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-row">
+          <input
+            type="email"
+            class="form-control"
+            formControlName="emailAddress"
+            placeholder="Email*"
+          />
+        </div>
+
+        <!-- Passwords -->
+        <div class="form-row">
+          <input
+            [type]="isPasswordVisible1 ? 'text' : 'password'"
+            class="form-control"
+            formControlName="password"
+            placeholder="Password*"
+          />
+          <span class="toggle-password" (click)="togglePasswordVisibilityconfirm1()">👁️</span>
+        </div>
+
+        <div class="form-row">
+          <input
+            [type]="isPasswordVisible2 ? 'text' : 'password'"
+            class="form-control"
+            formControlName="confirmPassword"
+            placeholder="Confirm Password*"
+          />
+          <span class="toggle-password" (click)="togglePasswordVisibilityconfirm2()">👁️</span>
+        </div>
+
+        <!-- Consent -->
+        <div class="form-row consent">
+          <label>
+            <input type="checkbox" formControlName="consent" />
+            I agree to <a href="#">terms & conditions</a>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-submit">Sign Up</button>
+      </form>
     </div>
+  </div>
+</div>
 
-    <div class="form-group">
-      <label>Phone</label>
-      <input type="text" [(ngModel)]="doctor.phone" name="phone" required />
+<!-- OTP Modal -->
+<div id="otpModal" class="modal fade">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form [formGroup]="otpForm" (ngSubmit)="onVerifyOtp()">
+        <div class="modal-body">
+          <label>Enter OTP</label>
+          <input formControlName="otpCode" class="form-control" maxlength="6" />
+          <button type="submit" class="btn btn-primary mt-3">Verify</button>
+        </div>
+      </form>
     </div>
-
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" [(ngModel)]="doctor.password" name="password" required />
-    </div>
-
-    <button type="submit">Sign Up</button>
-  </form>
-
-  <div class="links">
-    <a routerLink="/auth/login">Already have an account? Login</a>
   </div>
 </div>

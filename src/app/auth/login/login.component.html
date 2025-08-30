@@ -1,21 +1,97 @@
-<div class="login-container">
-  <h2>Doctor Login</h2>
-  <form (ngSubmit)="onSubmit()">
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" [(ngModel)]="email" name="email" required />
+<div class="login-page">
+  <div class="login-card">
+    <!-- Left Section (Branding / Info) -->
+    <div class="login-info">
+      <h2>Welcome Back to NectarPlus.Health</h2>
+      <p>
+        Login to manage your profile, connect with patients, and access all
+        professional tools at your fingertips.
+      </p>
+      <img src="assets/images/doctor.png" alt="Doctor illustration" />
     </div>
 
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" [(ngModel)]="password" name="password" required />
+    <!-- Right Section (Form) -->
+    <div class="login-form">
+      <div class="form-header">
+        <h3>Doctor Login</h3>
+        <p>
+          Don’t have an account?
+          <a [routerLink]="['/auth/signup']">Sign up</a>
+        </p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        <!-- Email / Phone -->
+        <div class="form-row">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Mobile Number or Email*"
+            formControlName="phoneOrEmail"
+            autocomplete="off"
+          />
+          <div
+            *ngIf="loginForm.controls['phoneOrEmail'].invalid && loginForm.controls['phoneOrEmail'].touched"
+            class="text-danger"
+          >
+            Please enter a valid phone number or email.
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-row position-relative">
+          <input
+            [type]="isPasswordVisible ? 'text' : 'password'"
+            class="form-control"
+            placeholder="Password*"
+            formControlName="password"
+            autocomplete="off"
+          />
+          <span
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+          >👁️</span>
+          <div
+            *ngIf="loginForm.controls['password'].invalid && loginForm.controls['password'].touched"
+            class="text-danger"
+          >
+            Please enter your password.
+          </div>
+        </div>
+
+        <!-- Remember + Forgot -->
+        <div class="form-row between">
+          <label>
+            <input type="checkbox" /> Remember me
+          </label>
+          <a (click)="openModal('forgotPasswordModal')">Forgot Password?</a>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-submit">Login</button>
+      </form>
     </div>
+  </div>
+</div>
 
-    <button type="submit">Login</button>
-  </form>
-
-  <div class="links">
-    <a routerLink="/auth/signup">Create Account</a> |
-    <a routerLink="/auth/forgot-password">Forgot Password?</a>
+<!-- Forgot Password Modal -->
+<div id="forgotPasswordModal" class="modal fade">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Forgot Password</h5>
+        <button type="button" class="close" (click)="closeModal('forgotPasswordModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Enter your registered phone number or email to reset password.</p>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="updatedValue"
+          placeholder="Enter here..."
+        />
+        <button class="btn-submit mt-3">Send OTP</button>
+      </div>
+    </div>
   </div>
 </div>

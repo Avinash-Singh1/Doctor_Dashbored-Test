@@ -1,12 +1,17 @@
 <div class="user-menu">
+  <!-- User info section -->
   <div class="user-info">
-    <span class="name">{{ doctorName }}</span>
-    <span class="phone">{{ phone }}</span>
+    <div class="avatar">{{ doctorName.charAt(0) }}</div>
+    <div class="details">
+      <span class="name">{{ doctorName }}</span>
+      <span class="phone">{{ phone }}</span>
+    </div>
   </div>
 
+  <!-- Action buttons -->
   <div class="menu-actions">
-    <button routerLink="/settings">Account Settings</button>
-    <button routerLink="/profile">View My Profile</button>
-    <button (click)="logout()">Log out</button>
+    <button class="btn-secondary" routerLink="/settings">Account Settings</button>
+    <button class="btn-secondary" routerLink="/profile">View My Profile</button>
+    <button class="btn-danger" (click)="logout()">Log out</button>
   </div>
 </div>
