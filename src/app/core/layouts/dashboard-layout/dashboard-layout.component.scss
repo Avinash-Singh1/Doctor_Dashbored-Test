@@ -8,6 +8,7 @@
     background: #1a237e;
     color: #fff;
     flex-shrink: 0;
+    transition: transform 0.3s ease-in-out;
   }
 
   .main-content {
@@ -18,7 +19,22 @@
     .header {
       background: #fff;
       padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .mobile-toggle-btn {
+        display: none; // hidden on desktop
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        font-size: 1.4rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        cursor: pointer;
+      }
     }
 
     .page-content {
@@ -26,4 +42,40 @@
       padding: 2rem;
     }
   }
+
+  /* 📱 Mobile behavior */
+  @media (max-width: 768px) {
+    flex-direction: column;
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      transform: translateX(-100%); // hidden by default
+      z-index: 1000;
+    }
+
+    .sidebar.mobile-open {
+      transform: translateX(0); // slide in
+    }
+
+    .main-content {
+      width: 100%;
+
+      .header {
+        .mobile-toggle-btn {
+          display: inline-block; // show toggle on mobile
+        }
+      }
+    }
+  }
+}
+
+/* Backdrop when sidebar is open on mobile */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 900;
 }
