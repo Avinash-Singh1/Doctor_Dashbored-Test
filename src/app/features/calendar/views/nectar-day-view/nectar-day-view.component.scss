@@ -1,0 +1,23 @@
+.day-view {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.hour-slot {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed #eee;
+  padding: 6px 0;
+}
+
+.hour-label {
+  width: 60px;
+  font-weight: bold;
+  color: #555;
+}
+
+.hour-events {
+  flex: 1;
+  color: #999;
+}

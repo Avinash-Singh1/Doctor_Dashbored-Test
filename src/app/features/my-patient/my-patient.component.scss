@@ -1,0 +1,346 @@
+.my-patient-page {
+  padding: 20px;
+
+  .page-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+}
+
+/* Search Bar */
+.title-search {
+  .input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    overflow: hidden;
+
+    .form-control {
+      flex: 1;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}
+
+/* Table (desktop only) */
+.patient-table {
+  display: block;
+
+  @media (max-width: 992px) {
+    display: none;
+  }
+}
+
+.my-patient-list {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th,
+  td {
+    border: 1px solid #eee;
+    padding: 10px;
+    vertical-align: middle;
+  }
+
+  th {
+    background: #f9f9f9;
+    font-weight: 600;
+  }
+
+  .img-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-weight: 600;
+    background: rgba(70, 25, 124, 0.15);
+    color: #45197c;
+  }
+}
+
+/* Card view (mobile only) */
+.patient-cards {
+  display: none;
+
+  @media (max-width: 992px) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.patient-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .img-initial {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-weight: 600;
+      background: rgba(70, 25, 124, 0.15);
+      color: #45197c;
+      font-size: 18px;
+    }
+
+    .card-info {
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      p {
+        margin: 0;
+        font-size: 13px;
+        color: #555;
+      }
+    }
+  }
+
+  .card-body {
+    margin-top: 10px;
+
+    p {
+      margin: 4px 0;
+      font-size: 13px;
+      color: #333;
+
+      strong {
+        color: #45197c;
+      }
+    }
+  }
+
+  .card-footer {
+    margin-top: 10px;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+
+  &.badge-primary {
+    background: rgba(70, 25, 124, 0.15);
+    color: #45197c;
+  }
+}
+
+/* Buttons */
+.btn {
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  border: none;
+
+  &.btn-primary {
+    background: #45197c;
+    color: #fff;
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  &.btn-success {
+    background: rgba(0, 128, 0, 0.15);
+    color: #008000;
+  }
+
+  &.btn-danger {
+    background: rgba(229, 34, 99, 0.15);
+    color: #e52264;
+  }
+}
+
+/* Modal */
+.modal {
+  background: rgba(0, 0, 0, 0.5);
+
+  .modal-dialog {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+
+  .modal-content {
+    background: #fff;
+    border-radius: 6px;
+  }
+
+  .modal-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h5 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  }
+
+  .modal-body {
+    padding: 16px;
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #fafafa;
+      transition: box-shadow 0.2s, background 0.2s;
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        background: #fff;
+      }
+
+      .history-date {
+        flex: 0 0 70px; /* fixed width */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #45197c;
+        color: #fff;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-right: 20px;
+        text-align: center;
+
+        .day {
+          font-size: 20px;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .month {
+          font-size: 12px;
+          text-transform: uppercase;
+        }
+        .year {
+          font-size: 11px;
+          opacity: 0.8;
+        }
+      }
+
+      .history-details {
+        flex: 1;
+        min-width: 0; /* prevent overflow */
+        margin-right: 20px;
+
+        h4 {
+          margin: 0 0 6px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #333;
+        }
+        .time {
+          font-size: 13px;
+          color: #666;
+          margin: 0;
+        }
+      }
+
+      .history-status {
+        flex: 0 0 auto;
+        text-align: right;
+
+        .status-badge {
+          display: inline-block;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 600;
+          border-radius: 20px;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .status-complete {
+          background: rgba(0, 128, 0, 0.15);
+          color: #008000;
+        }
+
+        .status-cancel {
+          background: rgba(229, 34, 99, 0.15);
+          color: #e52264;
+        }
+      }
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 576px) {
+      .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+
+        .history-date {
+          flex: none;
+          flex-direction: row;
+          justify-content: flex-start;
+          margin-right: 0;
+          margin-bottom: 8px;
+          min-width: auto;
+        }
+
+        .history-details {
+          margin-right: 0;
+        }
+
+        .history-status {
+          align-self: flex-end;
+        }
+      }
+    }
+  }
+}

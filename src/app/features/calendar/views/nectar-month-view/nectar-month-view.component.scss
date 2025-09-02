@@ -1,0 +1,24 @@
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.day-header {
+  font-weight: bold;
+  background: #f1f1f1;
+  padding: 6px;
+}
+
+.day-cell {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.day-cell.today {
+  background: #45197c;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+}

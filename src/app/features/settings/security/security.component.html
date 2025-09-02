@@ -1,0 +1,78 @@
+<div class="main-content">
+  <div class="page-title">
+    <h2>Security Settings</h2>
+  </div>
+
+  <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()">
+    <div class="page-form change-password-screen">
+      <!-- Current Password -->
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="form-group position-relative">
+            <label class="required">Current Password</label>
+            <input
+              [type]="isPasswordVisible1 ? 'text' : 'password'"
+              formControlName="password"
+              class="form-control"
+              placeholder="Enter current password"
+            />
+            <div class="toggle-password" (click)="togglePasswordVisibility(1)">
+              <img
+                [src]="isPasswordVisible1 ? 'assets/images/svg/eye-open.svg' : 'assets/images/svg/eye-closed.svg'"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Password -->
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="form-group position-relative">
+            <label class="required">New Password</label>
+            <input
+              [type]="isPasswordVisible2 ? 'text' : 'password'"
+              formControlName="newPassword"
+              class="form-control"
+              placeholder="Enter new password"
+            />
+            <div class="toggle-password" (click)="togglePasswordVisibility(2)">
+              <img
+                [src]="isPasswordVisible2 ? 'assets/images/svg/eye-open.svg' : 'assets/images/svg/eye-closed.svg'"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="form-group position-relative">
+            <label class="required">Confirm Password</label>
+            <input
+              [type]="isPasswordVisible3 ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              class="form-control"
+              placeholder="Confirm new password"
+            />
+            <div class="toggle-password" (click)="togglePasswordVisibility(3)">
+              <img
+                [src]="isPasswordVisible3 ? 'assets/images/svg/eye-open.svg' : 'assets/images/svg/eye-closed.svg'"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="row">
+        <div class="col-lg-4">
+          <button type="submit" class="btn btn-primary submit-btn">
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,1 +1,122 @@
-<p>my-patient works!</p>
+<section class="my-patient-page">
+  <!-- Page title + search -->
+  <div class="page-title">
+    <h2>My Patients</h2>
+
+    <div class="title-search" *ngIf="!hideView">
+      <form>
+        <div class="input-group flex-nowrap">
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="filterPatients()"
+            name="searchQuery"
+            placeholder="Search patients by name or number"
+          />
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Patients Table (Desktop) -->
+  <div class="table-responsive patient-table" *ngIf="!hideView">
+    <table class="table my-patient-list">
+      <thead>
+        <tr>
+          <th class="text-center">Image</th>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th class="text-center">Gender</th>
+          <th>Email</th>
+          <th class="text-center">Age</th>
+          <th>Blood Group</th>
+          <th class="text-center">History</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of filteredPatientDetails">
+          <td class="text-center">
+            <span class="img-initial">{{ item.patientName.charAt(0) }}</span>
+          </td>
+          <td>{{ item.patientName }}</td>
+          <td>+91 {{ item.phone }}</td>
+          <td class="text-center">
+            <span class="badge badge-primary">
+              {{ genderList[item.gender] || "N/A" }}
+            </span>
+          </td>
+          <td>{{ item.email }}</td>
+          <td class="text-center">{{ item.dob || "N/A" }}</td>
+          <td>{{ bloodGroupList[item.bloodGroup] }}</td>
+          <td class="text-center">
+            <a class="btn btn-primary" (click)="getDetails(item)">View</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Patients Card View (Mobile) -->
+  <div class="patient-cards" *ngIf="!hideView">
+    <div class="patient-card" *ngFor="let item of filteredPatientDetails">
+      <div class="card-header">
+        <span class="img-initial">{{ item.patientName.charAt(0) }}</span>
+        <div class="card-info">
+          <h3>{{ item.patientName }}</h3>
+          <p>+91 {{ item.phone }}</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <p><strong>Gender:</strong> {{ genderList[item.gender] || "N/A" }}</p>
+        <p><strong>Email:</strong> {{ item.email }}</p>
+        <p><strong>Age:</strong> {{ item.dob || "N/A" }}</p>
+        <p><strong>Blood Group:</strong> {{ bloodGroupList[item.bloodGroup] }}</p>
+      </div>
+
+      <div class="card-footer">
+        <a class="btn btn-primary w-100" (click)="getDetails(item)">View History</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Patient History Modal -->
+<div class="modal fade" id="details" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>{{ currentName }} Appointment History</h5>
+        <button type="button" class="close" (click)="closeModal('details')">×</button>
+      </div>
+      <div class="modal-body">
+      <div class="history-item" *ngFor="let item of appointmentList">
+        <div class="history-date">
+          <span class="day">{{ item.date | date : "dd" }}</span>
+          <span class="month">{{ item.date | date : "MMM" }}</span>
+          <span class="year">{{ item.date | date : "yyyy" }}</span>
+        </div>
+
+        <div class="history-details">
+          <h4>Dr. {{ item.doctorName }}</h4>
+          <p class="time">{{ item.date | date : "hh:mm a" }} • {{ item.slotTime }} mins</p>
+        </div>
+
+        <div class="history-status">
+          <span
+            class="status-badge"
+            [ngClass]="{
+              'status-cancel': item.status < 0 || item.status == 2,
+              'status-complete': item.status == 0 || item.status == 1
+            }"
+          >
+            {{ getStatus(item.status) }}
+          </span>
+        </div>
+      </div>
+
+      </div>
+    </div>
+  </div>
+</div>

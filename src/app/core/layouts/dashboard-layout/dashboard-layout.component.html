@@ -1,19 +1,20 @@
 <div class="dashboard-layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
+  <!-- Sidebar wrapper -->
+  <aside class="sidebar" [class.mobile-open]="isMobileOpen">
     <app-sidebar></app-sidebar>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Header -->
     <header class="header">
+      <button class="mobile-toggle-btn" (click)="toggleSidebar()">☰</button>
       <app-user-menu></app-user-menu>
     </header>
 
-    <!-- Page Content -->
     <section class="page-content">
       <router-outlet></router-outlet>
     </section>
   </main>
+
+  <div class="sidebar-backdrop" *ngIf="isMobileOpen" (click)="closeSidebar()"></div>
 </div>

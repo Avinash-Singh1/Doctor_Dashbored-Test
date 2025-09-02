@@ -1,26 +1,90 @@
-.profile-page {
-  max-width: 600px;
+.main-content {
+  max-width: 900px;
   margin: 2rem auto;
   background: #fff;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-  h2 {
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
+  .page-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: #2c3e50;
+    }
+
+    .btn-primary {
+      background: #45197c;
+      border: none;
+    }
   }
 
-  .profile-card {
-    line-height: 1.8;
+  .profile-ident {
+    .card-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
 
-    p {
-      margin: 0.5rem 0;
-      font-size: 1rem;
-
-      strong {
-        color: #1976d2;
+      .pic-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
       }
+
+      .initial-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #45197c;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+      }
+    }
+  }
+
+  h3 {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .edit-link {
+      background: none;
+      border: none;
+      color: #45197c;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+  }
+
+  ul {
+    margin: 0.5rem 0 1rem 1.5rem;
+
+    li {
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+  }
+
+  .page-footer {
+    margin-top: 2rem;
+    text-align: right;
+
+    .btn-primary {
+      background: #45197c;
+      border: none;
+      padding: 0.5rem 1.5rem;
     }
   }
 }

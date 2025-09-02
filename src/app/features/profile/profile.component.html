@@ -1,11 +1,360 @@
-<div class="profile-page">
-  <h2>My Profile</h2>
+<div class="main-content">
+  <!-- Page Title -->
+  <div class="page-title">
+    <h2>
+      <!-- <div class="hamber">
+        <button class="svg-icon-button">
+          <img src="assets/images/svg/hamber.svg" alt="menu" />
+        </button>
+      </div> -->
+      Profile
+    </h2>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#editProfileModal"
+    >
+      Edit Profile
+    </button>
+  </div>
 
-  <div class="profile-card">
-    <p><strong>Name:</strong> {{ doctor.name }}</p>
-    <p><strong>Email:</strong> {{ doctor.email }}</p>
-    <p><strong>Phone:</strong> {{ doctor.phone }}</p>
-    <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
-    <p><strong>Experience:</strong> {{ doctor.experience }}</p>
+  <!-- Profile Display -->
+  <div class="page-form profile-screen">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="profile-ident">
+          <div class="card-info">
+            <img
+              *ngIf="doctor.profilePic"
+              alt="profilepic"
+              class="pic-circle"
+              [src]="doctor.profilePic"
+            />
+            <div *ngIf="!doctor.profilePic" class="initial-circle">
+              {{ doctor.name.charAt(0) }}
+            </div>
+            <div class="personal-info">
+              <h2>{{ doctor.name }}</h2>
+              <p>{{ doctor.specialization }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="row">
+      <div class="col-lg-12">
+        <h3>About Me*</h3>
+        <p style="white-space: pre-line;">{{ doctor.about }}</p>
+        <hr />
+      </div>
+    </div>
+
+    <!-- Education -->
+    <div class="row">
+      <div class="col-lg-12">
+        <h3>
+          Education
+          <button
+            type="button"
+            class="edit-link"
+            data-bs-toggle="modal"
+            data-bs-target="#educationModal"
+          >
+            Edit
+          </button>
+        </h3>
+        <ul>
+          <li *ngFor="let edu of doctor.education">
+            {{ edu.degree }} - {{ edu.college }}, {{ edu.year }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Awards -->
+    <div class="row">
+      <div class="col-lg-12">
+        <h3>
+          Awards and Recognitions
+          <button
+            type="button"
+            class="edit-link"
+            data-bs-toggle="modal"
+            data-bs-target="#awardsModal"
+          >
+            Edit
+          </button>
+        </h3>
+        <ul>
+          <li *ngFor="let award of doctor.awards">
+            {{ award.name }} - {{ award.year }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Membership -->
+    <div class="row">
+      <div class="col-lg-12">
+        <h3>
+          Membership
+          <button
+            type="button"
+            class="edit-link"
+            data-bs-toggle="modal"
+            data-bs-target="#membershipModal"
+          >
+            Edit
+          </button>
+        </h3>
+        <ul>
+          <li *ngFor="let member of doctor.memberships">{{ member }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="row">
+      <div class="col-lg-12">
+        <h3>
+          Social & Websites
+          <button
+            type="button"
+            class="edit-link"
+            data-bs-toggle="modal"
+            data-bs-target="#socialModal"
+          >
+            Edit
+          </button>
+        </h3>
+        <ul>
+          <li *ngFor="let social of doctor.socials">
+            {{ social.name }}: {{ social.url }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="page-footer">
+    <a class="btn btn-primary">Finish</a>
+  </div>
+</div>
+
+<!-- Profile Edit Modal -->
+<div
+  class="modal fade"
+  id="editProfileModal"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label>Name</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="doctor.name"
+              name="name"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Email</label>
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="doctor.email"
+              name="email"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Phone</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="doctor.phone"
+              name="phone"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Specialization</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="doctor.specialization"
+              name="specialization"
+            />
+          </div>
+          <div class="mb-3">
+            <label>Experience</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="doctor.experience"
+              name="experience"
+            />
+          </div>
+          <div class="mb-3">
+            <label>About</label>
+            <textarea
+              rows="3"
+              class="form-control"
+              [(ngModel)]="doctor.about"
+              name="about"
+            ></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Education Modal -->
+<div class="modal fade" id="educationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Education</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngFor="let edu of doctor.education; let i = index" class="mb-2">
+          <input
+            type="text"
+            class="form-control mb-1"
+            [(ngModel)]="edu.degree"
+            name="degree-{{ i }}"
+            placeholder="Degree"
+          />
+          <input
+            type="text"
+            class="form-control mb-1"
+            [(ngModel)]="edu.college"
+            name="college-{{ i }}"
+            placeholder="College"
+          />
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="edu.year"
+            name="year-{{ i }}"
+            placeholder="Year"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Awards Modal -->
+<div class="modal fade" id="awardsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Awards</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngFor="let award of doctor.awards; let i = index" class="mb-2">
+          <input
+            type="text"
+            class="form-control mb-1"
+            [(ngModel)]="award.name"
+            name="awardName-{{ i }}"
+            placeholder="Award Name"
+          />
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="award.year"
+            name="awardYear-{{ i }}"
+            placeholder="Year"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Membership Modal -->
+<div class="modal fade" id="membershipModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Membership</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngFor="let member of doctor.memberships; let i = index">
+          <input
+            type="text"
+            class="form-control mb-2"
+            [(ngModel)]="doctor.memberships[i]"
+            name="member-{{ i }}"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Social Modal -->
+<div class="modal fade" id="socialModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Social Links</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngFor="let social of doctor.socials; let i = index" class="mb-2">
+          <input
+            type="text"
+            class="form-control mb-1"
+            [(ngModel)]="social.name"
+            name="socialName-{{ i }}"
+            placeholder="Platform"
+          />
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="social.url"
+            name="socialUrl-{{ i }}"
+            placeholder="URL"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
   </div>
 </div>

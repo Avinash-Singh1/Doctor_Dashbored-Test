@@ -1,0 +1,17 @@
+<div class="day-view">
+  <h3>{{ today | date:'fullDate' }}</h3>
+
+  <div class="hour-slot" *ngFor="let hour of hours">
+    <div class="hour-label">{{ hour }}:00</div>
+    <div class="hour-events">
+      <ng-container *ngIf="getAppointmentsForHour(hour).length; else noEvents">
+        <div *ngFor="let appt of getAppointmentsForHour(hour)" class="event">
+          <span class="sub-heading">{{ appt.fullName }}</span> –
+          <span>{{ appt.reason }}</span>
+          ({{ appt.consultationType }})
+        </div>
+      </ng-container>
+      <ng-template #noEvents>No events</ng-template>
+    </div>
+  </div>
+</div>

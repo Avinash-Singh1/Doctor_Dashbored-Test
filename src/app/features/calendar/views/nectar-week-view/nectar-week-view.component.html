@@ -1,0 +1,22 @@
+<table class="week-table">
+  <thead>
+    <tr>
+      <th *ngFor="let day of weekDays">
+        {{ day | date:'EEE d' }}
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td *ngFor="let day of weekDays">
+        <ng-container *ngIf="getAppointmentsForDay(day).length; else noEvents">
+          <div *ngFor="let appt of getAppointmentsForDay(day)" class="event">
+            <span class="sub-heading">{{ appt.fullName }}</span>
+            <div>{{ appt.reason }}</div>
+          </div>
+        </ng-container>
+        <ng-template #noEvents>No events</ng-template>
+      </td>
+    </tr>
+  </tbody>
+</table>

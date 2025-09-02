@@ -1,0 +1,15 @@
+<div class="month-grid">
+  <div class="day-header" *ngFor="let day of ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']">
+    {{ day }}
+  </div>
+
+  <div class="day-cell"
+       *ngFor="let date of monthDays"
+       [ngClass]="{
+         today: (date | date:'yyyy-MM-dd') === (today | date:'yyyy-MM-dd'),
+         hasEvent: hasAppointments(date)
+       }">
+    {{ date | date:'d' }}
+    <div class="dot" *ngIf="hasAppointments(date)"></div>
+  </div>
+</div>

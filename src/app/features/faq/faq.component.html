@@ -1,1 +1,51 @@
-<p>faq works!</p>
+<div class="faq-page">
+  <!-- Page Header -->
+  <div class="page-title">
+    <h2>FAQs</h2>
+    <button class="btn btn-primary" (click)="onAddFaqs()">Add FAQ</button>
+  </div>
+
+  <!-- FAQ List -->
+  <div class="faq-list">
+    <div class="faq-item" *ngFor="let faq of faqsList">
+      <div class="faq-content">
+        <p class="question">Q: {{ faq.question }}</p>
+        <p class="answer">{{ faq.answer }}</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="onEditFaqs(faq)">Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add FAQ Modal -->
+<div id="addFaqModal" class="modal fade">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <h5>Add FAQ</h5>
+      <input #addQuestion type="text" placeholder="Enter Question" />
+      <textarea #addAnswer placeholder="Enter Answer"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="closeModal('addFaqModal')">Cancel</button>
+        <button class="btn btn-primary"
+          (click)="handleAddFaq(addQuestion.value, addAnswer.value)">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit FAQ Modal -->
+<div id="editFaqModal" class="modal fade" *ngIf="selectedFaq">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <h5>Edit FAQ</h5>
+      <input id="editQuestion" [(ngModel)]="selectedFaq.question" />
+      <textarea id="editAnswer" [(ngModel)]="selectedFaq.answer"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-danger" (click)="onDeleteFaqs()">Delete</button>
+        <button class="btn btn-secondary" (click)="closeModal('editFaqModal')">Cancel</button>
+        <button class="btn btn-primary"
+          (click)="handleEditFaq(selectedFaq.question, selectedFaq.answer)">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

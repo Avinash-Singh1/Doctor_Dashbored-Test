@@ -11,4 +11,14 @@ import { UserMenuComponent } from '../../../header/user-menu/user-menu.component
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.scss']
 })
-export class DashboardLayoutComponent {}
+export class DashboardLayoutComponent {
+  isMobileOpen = false;
+
+  toggleSidebar() {
+    this.isMobileOpen = !this.isMobileOpen;
+  }
+
+  closeSidebar() {
+    this.isMobileOpen = false;
+  }
+}

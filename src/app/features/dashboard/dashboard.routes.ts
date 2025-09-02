@@ -11,6 +11,10 @@ import { FaqComponent } from '../faq/faq.component';
 import { ProfileComponent } from '../profile/profile.component';
 import { ReviewsComponent } from '../reviews/reviews.component';
 import { SettingsComponent } from '../settings/settings.component';
+import { GeneralComponent } from '../settings/general/general.component';
+import { NotificationsComponent } from '../settings/notifications/notifications.component';
+import { SecurityComponent } from '../settings/security/security.component';
+import { DeleteComponent } from '../settings/delete/delete.component';
 
 export const dashboardRoutes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
@@ -25,4 +29,8 @@ export const dashboardRoutes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'reviews', component: ReviewsComponent },
   { path: 'settings', component: SettingsComponent },
+  { path: 'settings/general', component: GeneralComponent },
+  { path: 'settings/notifications', component: NotificationsComponent },
+  { path: 'settings/security', component: SecurityComponent },
+  { path: 'settings/delete', component: DeleteComponent },
 ];

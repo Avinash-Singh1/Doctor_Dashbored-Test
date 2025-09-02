@@ -1,0 +1,19 @@
+.week-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.week-table th,
+.week-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.today {
+  background: #45197c;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 4px;
+}
