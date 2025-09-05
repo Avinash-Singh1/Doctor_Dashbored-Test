@@ -1,1 +1,24 @@
-<p>services works!</p>
+<h2>Doctor Services</h2>
+
+<!-- Dropdown to add a new service -->
+<div>
+  <label for="newService">Add New Service:</label>
+  <input [(ngModel)]="newService" placeholder="Enter service name" />
+  <button (click)="saveList()">Add</button>
+</div>
+
+<hr />
+
+<!-- Available Services List -->
+<h3>Available Services</h3>
+<ul>
+  <li *ngFor="let service of allServicesList">
+    <label>
+      <input 
+        type="checkbox" 
+        [checked]="isServiceSelected(service)"
+        (change)="onServiceChange($event, service)" />
+      {{ service.name }} ({{ service.specialization }})
+    </label>
+  </li>
+</ul>  

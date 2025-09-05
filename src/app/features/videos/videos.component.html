@@ -1,1 +1,143 @@
-<p>videos works!</p>
+<div class="main-content">
+  <div class="page-title">
+    <h2>
+      <!-- <div class="hamber">
+        <button class="svg-icon-button" id="showMenu" (click)="onMenuClick()">
+          <img src="assets/images/svg/hamber.svg" alt="menu" />
+        </button>
+      </div> -->
+      Videos
+    </h2>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="openModal('addFaqModal')"
+    >
+      Add Video
+    </button>
+  </div>
+
+  <!-- Video List -->
+  <div class="page-form videos-screen">
+    <div class="video-grid-item" *ngFor="let video of faqsList">
+      <div class="grid-item-col">
+        <div class="video">
+          <iframe
+            [title]="video?.title"
+            [src]="sanitizeUrl(video.url)"
+            width="100%"
+            height="150"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <div class="details">
+          <p>{{ video.title }}</p>
+          <span>{{ formatDate(video.createdAt) }}</span>
+        </div>
+      </div>
+      <button
+        class="btn btn-outline-primary video-edit"
+        type="button"
+        (click)="onEditVideo(video)"
+      >
+        Edit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Video Modal -->
+<div id="addFaqModal" class="modal fade">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Video</h5>
+        <button
+          type="button"
+          class="close"
+          (click)="closeModal('addFaqModal')"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="addTitle">Title</label>
+            <input type="text" id="addTitle" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label for="addUrl">Link</label>
+            <textarea id="addUrl" class="form-control"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeModal('addFaqModal')"
+        >
+          Close
+        </button>
+        <button type="button" class="btn btn-primary" (click)="handleAddVideo()">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Video Modal -->
+<div id="editFaqModal" class="modal fade">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Video</h5>
+        <button
+          type="button"
+          class="close"
+          (click)="closeModal('editFaqModal')"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="editTitle">Title</label>
+            <input type="text" id="editTitle" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label for="editUrl">Link</label>
+            <textarea id="editUrl" class="form-control"></textarea>
+          </div>
+        </form>
+      </div>
+      <div
+        class="modal-footer"
+        style="display: flex; justify-content: space-between"
+      >
+        <button type="button" class="btn btn-danger" (click)="onDeleteVideo()">
+          Delete
+        </button>
+        <div>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeModal('editFaqModal')"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="handleEditVideo()"
+          >
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
