@@ -1,6 +1,10 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+// src/app/features/reviews/reviews.component.ts
+import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service'; // adjust path if needed
 
 interface Review {
   _id: string;
@@ -20,7 +24,9 @@ interface Review {
   templateUrl: './reviews.component.html',
   styleUrls: ['./reviews.component.scss'],
 })
-export class ReviewsComponent implements OnInit {
+export class ReviewsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   searchText = '';
   sortByNewest = true;
   isDropdownOpen = false;
@@ -31,8 +37,53 @@ export class ReviewsComponent implements OnInit {
   reviewList: Review[] = [];
   filteredReviews: Review[] = [];
 
+  constructor(private renderer: Renderer2, private router: Router, private auth: AuthService) {}
+
   ngOnInit(): void {
+    // 1) Immediate synchronous check - redirect to login if token absent
+    if (!this.auth.hasValidToken()) {
+      if (typeof this.auth.clearToken === 'function') {
+        this.auth.clearToken();
+      }
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // 2) Subscribe to auth state changes - redirect if logged out
+    this.auth
+      .isLoggedIn$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLogged) => {
+        if (!isLogged && !this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      });
+
+    // 3) Listen for storage events (cross-tab)
+    window.addEventListener('storage', this.onStorageEvent);
+
+    // existing init
     this.loadReviews();
+  }
+
+  private onStorageEvent = (ev: StorageEvent) => {
+    const relevantKeys = ['authToken', 'authUser', 'deviceId'];
+    if (ev.key === null || relevantKeys.includes(ev.key)) {
+      if (!this.auth.hasValidToken()) {
+        if (typeof this.auth.clearToken === 'function') {
+          this.auth.clearToken();
+        }
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
   }
 
   loadReviews() {

@@ -1,7 +1,10 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
-import { CommonModule } from '@angular/common';   // ✅ for *ngIf, *ngFor, date pipe, ngClass
-import { FormsModule } from '@angular/forms';     // ✅ for [(ngModel)]
-import { RouterModule } from '@angular/router';   // ✅ for routerLink
+// src/app/features/my-patient/my-patient.component.ts
+import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service'; // <-- adjust path if needed
 
 // Appointment interface
 interface Appointment {
@@ -24,12 +27,14 @@ interface Patient {
 
 @Component({
   selector: 'app-my-patient',
-  standalone: true,   // ✅ standalone
-  imports: [CommonModule, FormsModule, RouterModule], // ✅ add required imports
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './my-patient.component.html',
   styleUrls: ['./my-patient.component.scss'],
 })
-export class MyPatientComponent implements OnInit {
+export class MyPatientComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hideView = false;
   searchQuery = '';
   currentName: string = '';
@@ -97,11 +102,48 @@ export class MyPatientComponent implements OnInit {
     ],
   };
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private renderer: Renderer2, private router: Router, private auth: AuthService) {}
 
   ngOnInit(): void {
+    // 1) Immediate synchronous check - if no token present go to login
+    if (!this.auth.hasValidToken()) {
+      if (typeof this.auth.clearToken === 'function') {
+        this.auth.clearToken();
+      }
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // 2) Subscribe to login state changes - redirect if logged out
+    this.auth
+      .isLoggedIn$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLogged) => {
+        if (!isLogged && !this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      });
+
+    // 3) Listen for storage events (cross-tab / external clears)
+    window.addEventListener('storage', this.onStorageEvent);
+
+    // existing init
     this.filteredPatientDetails = this.patientDetails;
   }
+
+  private onStorageEvent = (ev: StorageEvent) => {
+    const relevantKeys = ['authToken', 'authUser', 'deviceId'];
+    if (ev.key === null || relevantKeys.includes(ev.key)) {
+      if (!this.auth.hasValidToken()) {
+        if (typeof this.auth.clearToken === 'function') {
+          this.auth.clearToken();
+        }
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
 
   filterPatients() {
     if (!this.searchQuery.trim()) {
@@ -109,9 +151,7 @@ export class MyPatientComponent implements OnInit {
     } else {
       this.filteredPatientDetails = this.patientDetails.filter(
         (patient) =>
-          patient.patientName
-            .toLowerCase()
-            .includes(this.searchQuery.toLowerCase()) ||
+          patient.patientName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
           patient.phone.includes(this.searchQuery)
       );
     }
@@ -182,5 +222,11 @@ export class MyPatientComponent implements OnInit {
     if (modal) {
       modal.classList.remove('show', 'd-block');
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
   }
 }

@@ -1,3 +1,4 @@
+// src/app/features/videos/videos.component.ts
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -6,31 +7,73 @@ import {
   Renderer2
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Subscription } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service'; // <-- adjust path if needed
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-videos',
-   imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './videos.component.html',
   styleUrls: ['./videos.component.scss'],
 })
 export class VideosComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   faqsList: any[] = [];
   selectedId: string | null = null;
-  deleteSubscription$: Subscription | undefined;
   isSubmenuOpen = false;
 
   constructor(
     private renderer: Renderer2,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private auth: AuthService,
+    private router: Router // add router to redirect
   ) {}
 
   ngOnInit(): void {
+    // 1) immediate synchronous check
+    if (!this.auth.hasValidToken()) {
+      if (typeof this.auth.clearToken === 'function') {
+        this.auth.clearToken();
+      }
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // 2) subscribe to auth state changes
+    this.auth.isLoggedIn$().pipe(takeUntil(this.destroy$)).subscribe((isLogged) => {
+      if (!isLogged && !this.router.url.startsWith('/auth/login')) {
+        this.router.navigate(['/auth/login']);
+      }
+    });
+
+    // 3) listen for storage events (cross-tab / external clears)
+    window.addEventListener('storage', this.onStorageEvent);
+
+    // existing behavior
     this.loadVideos();
   }
 
+  private onStorageEvent = (ev: StorageEvent) => {
+    const relevantKeys = ['authToken', 'authUser', 'deviceId'];
+    if (ev.key === null || relevantKeys.includes(ev.key)) {
+      if (!this.auth.hasValidToken()) {
+        if (typeof this.auth.clearToken === 'function') {
+          this.auth.clearToken();
+        }
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
+
   ngOnDestroy(): void {
-    this.deleteSubscription$?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
   }
 
   /** Load Hardcoded Videos */

@@ -1,9 +1,13 @@
+// src/app/features/calendar/calendar.component.ts
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { Subject, takeUntil } from 'rxjs';
 import { NectarDayViewComponent } from './views/nectar-day-view/nectar-day-view.component';
 import { NectarMonthViewComponent } from './views/nectar-month-view/nectar-month-view.component';
 import { NectarWeekViewComponent } from './views/nectar-week-view/nectar-week-view.component';
+import { AuthService } from '../../core/services/auth.service'; // adjust path if needed
 
 // Dummy interfaces (same as before)
 interface Appointment {
@@ -19,12 +23,14 @@ interface Appointment {
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, DatePipe, MatIconModule,NectarDayViewComponent,NectarMonthViewComponent,NectarWeekViewComponent],
+  imports: [CommonModule, DatePipe, MatIconModule, NectarDayViewComponent, NectarMonthViewComponent, NectarWeekViewComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
-  providers: [DatePipe]
+  providers: [DatePipe],
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hideView = false;
   monthdetails: Date = new Date();
   viewmode: 'day' | 'week' | 'month' = 'month';
@@ -68,6 +74,49 @@ export class CalendarComponent {
     }
   ];
 
+  isSubmenuOpen = false;
+
+  constructor(private router: Router, private auth: AuthService) {}
+
+  ngOnInit(): void {
+    // 1) Immediate synchronous check - if no token present go to login
+    if (!this.auth.hasValidToken()) {
+      // keep in-memory state consistent (optional)
+      if (typeof this.auth.clearToken === 'function') {
+        this.auth.clearToken();
+      }
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // 2) Subscribe to auth changes
+    this.auth.isLoggedIn$().pipe(takeUntil(this.destroy$)).subscribe((isLogged) => {
+      if (!isLogged) {
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    });
+
+    // 3) Listen for storage events (cross-tab / external clears)
+    window.addEventListener('storage', this.onStorageEvent);
+  }
+
+  private onStorageEvent = (ev: StorageEvent) => {
+    const relevantKeys = ['authToken', 'authUser', 'deviceId'];
+    if (ev.key === null || relevantKeys.includes(ev.key)) {
+      if (!this.auth.hasValidToken()) {
+        if (typeof this.auth.clearToken === 'function') {
+          this.auth.clearToken();
+        }
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
+
+  // Calendar logic (unchanged)
   getAppointmentsByStatus(status: string) {
     return this.appointments.filter(a => a.status === status);
   }
@@ -93,8 +142,6 @@ export class CalendarComponent {
     this.todayDate = new Date(this.todayDate.setDate(this.todayDate.getDate() + res));
   }
 
-  isSubmenuOpen = false;
-
   onMenuClick() {
     const sideMenu = document.getElementById('sideMenu');
     if (sideMenu) {
@@ -105,5 +152,11 @@ export class CalendarComponent {
   settingtoggleSubmenu(event: Event) {
     event.preventDefault();
     this.isSubmenuOpen = !this.isSubmenuOpen;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
   }
 }

@@ -1,14 +1,21 @@
+// src/app/features/services/services.component.ts
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service'; // <-- adjust path if needed
 
 @Component({
   selector: 'app-services',
-   imports: [CommonModule,FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './services.component.html',
-  styleUrls: ['./services.component.scss']
+  styleUrls: ['./services.component.scss'],
 })
-export class ServicesComponent implements OnInit {
+export class ServicesComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   servicesList: any[] = [];
   allServicesList: any[] = [];
   specializationList: any[] = [];
@@ -20,14 +27,55 @@ export class ServicesComponent implements OnInit {
   showDropdown: boolean = true;
   isSubmenuOpen: boolean = false;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private renderer: Renderer2, private router: Router, private auth: AuthService) {}
 
   ngOnInit(): void {
+    // AUTH CHECKS ---------------------------------------------------------
+    // 1) Immediate synchronous check - if no token present go to login
+    if (!this.auth.hasValidToken()) {
+      // ensure in-memory state is cleared if needed
+      if (typeof this.auth.clearToken === 'function') {
+        this.auth.clearToken();
+      }
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // 2) Subscribe to loggedIn$ changes - if it becomes false, redirect to login
+    this.auth
+      .isLoggedIn$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLoggedIn) => {
+        if (!isLoggedIn) {
+          if (!this.router.url.startsWith('/auth/login')) {
+            this.router.navigate(['/auth/login']);
+          }
+        }
+      });
+
+    // 3) Listen for storage events (other tabs / manual clear)
+    window.addEventListener('storage', this.onStorageEvent);
+
+    // EXISTING INIT LOGIC -------------------------------------------------
     this.loadSpecializations();
     this.loadDoctorSpecialization();
     this.getServicesList();
     this.getListing();
   }
+
+  private onStorageEvent = (ev: StorageEvent) => {
+    const relevantKeys = ['authToken', 'authUser', 'deviceId'];
+    if (ev.key === null || relevantKeys.includes(ev.key)) {
+      if (!this.auth.hasValidToken()) {
+        if (typeof this.auth.clearToken === 'function') {
+          this.auth.clearToken();
+        }
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
 
   // ✅ Hardcoded data instead of API
   loadSpecializations(): void {
@@ -65,9 +113,7 @@ export class ServicesComponent implements OnInit {
 
   getListing(): void {
     // Initially selected services (doctor already has these)
-    this.servicesList = [
-      { _id: 's1', name: 'Heart Checkup', specialization: 'Cardiology' }
-    ];
+    this.servicesList = [{ _id: 's1', name: 'Heart Checkup', specialization: 'Cardiology' }];
 
     // Merge into allServicesList if not already there
     this.servicesList.forEach((service) => {
@@ -123,5 +169,11 @@ export class ServicesComponent implements OnInit {
   closeModal(modalId: string): void {
     const modal = document.getElementById(modalId);
     modal?.classList.remove('show', 'd-block');
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
   }
 }

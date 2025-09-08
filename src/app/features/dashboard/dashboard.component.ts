@@ -1,3 +1,4 @@
+// src/app/features/dashboard/dashboard.component.ts
 import {
   ApexChart,
   ApexNonAxisChartSeries,
@@ -11,11 +12,14 @@ import {
 } from 'ng-apexcharts';
 import { ChartType } from 'ng-apexcharts';
 
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service'; // adjust path if needed
 
 export type ChartOptions = {
   series: ApexNonAxisChartSeries | ApexAxisChartSeries;
@@ -37,7 +41,9 @@ export type ChartOptions = {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   doctor = {
     name: 'Sarah Smith',
     specialization: 'Gynecologist, MBBS, MD',
@@ -57,7 +63,6 @@ export class DashboardComponent {
     score: 4.8,
   };
 
-  // ✅ Charts - all with strictly defined series & chart
   appointmentsChart: ChartOptions = {
     series: [28, 24, 4],
     chart: {
@@ -103,4 +108,53 @@ export class DashboardComponent {
     labels: ['Excellent', 'Good', 'Poor'],
     colors: ['#4caf50', '#ffc107', '#f44336'],
   };
+
+  constructor(private router: Router, private auth: AuthService) {}
+
+  ngOnInit(): void {
+    // 1) Immediate synchronous check - if no token present go to login
+    if (!this.auth.hasValidToken()) {
+      // ensure we clear any in-memory state also
+      this.auth.clearToken?.(); // optional: only if method exists and you want to reset BehaviorSubject
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // 2) Subscribe to loggedIn$ changes - if it becomes false, redirect to login
+    this.auth
+      .isLoggedIn$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLoggedIn) => {
+        if (!isLoggedIn) {
+          // small guard to avoid redirect loops if already on login
+          if (!this.router.url.startsWith('/auth/login')) {
+            this.router.navigate(['/auth/login']);
+          }
+        }
+      });
+
+    // 3) Listen for storage events (other tabs / manual clear)
+    window.addEventListener('storage', this.onStorageEvent);
+  }
+
+  private onStorageEvent = (ev: StorageEvent) => {
+    // If auth token or user was removed/changed OR localStorage was cleared (key === null)
+    const relevantKeys = ['authToken', 'authUser', 'deviceId'];
+    if (ev.key === null || relevantKeys.includes(ev.key)) {
+      // re-check presence of token
+      if (!this.auth.hasValidToken()) {
+        // ensure in-memory state is kept consistent
+        this.auth.clearToken?.();
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
+  }
 }
