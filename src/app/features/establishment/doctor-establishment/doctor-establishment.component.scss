@@ -1,0 +1,102 @@
+:host { display: block; }
+
+/* page container */
+.main-content {
+  padding: 24px;
+  max-width: 980px;
+  margin: 0 auto;
+  background: transparent;
+  font-family: 'Arial', sans-serif;
+}
+
+/* title area */
+.page-title {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  h2 { margin:0; font-size:20px; color:#2d2d2d; span { color:#777; font-size:13px; margin-left:8px; } }
+  button.btn { display:flex; align-items:center; gap:8px; }
+}
+
+/* sections */
+.screen-title {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:18px;
+  margin: 16px 0;
+  .material-icons { font-size:20px; color:#45197c; }
+}
+
+.page-form { margin-top: 6px; }
+
+/* address card */
+.address-card {
+  display:flex;
+  justify-content:space-between;
+  gap: 16px;
+  background:#fff;
+  padding:14px;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.04);
+  margin-bottom:12px;
+  align-items:flex-start;
+}
+
+.card-info { display:flex; gap:12px; align-items:flex-start; flex:1; }
+
+.initial-circle {
+  width:48px; height:48px; border-radius:50%;
+  background:#eee; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:18px; color:#555;
+}
+
+.personal-info h2 { margin:0; font-size:16px; }
+.address-line { margin:8px 0; color:#666; display:flex; align-items:center; gap:8px; }
+.address-text { padding-left:4px; }
+
+.day-label { display:flex; align-items:center; gap:8px; margin:6px 0; color:#444; }
+.label-text { padding-left:4px; }
+
+.days-grid { display:flex; gap:12px; flex-wrap:wrap; color:#444; font-size:13px; }
+.slot { padding-left:8px; margin:2px 0; }
+
+/* fees and directions */
+.fee-line, .get-directions { display:flex; align-items:center; gap:8px; margin:6px 0; color:#444; cursor: default; }
+.get-directions { color:#45197c; font-weight:600; cursor:pointer; }
+
+/* actions (toggle + buttons) */
+.actions { display:flex; align-items:center; gap:12px; margin-left:12px; }
+
+/* Toggle switch */
+.switch { position: relative; display:inline-block; width:44px; height:24px; }
+.switch input { display:none; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; transition:.4s; border-radius:24px; }
+.slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:white; transition:.4s; border-radius:50%; }
+.switch input:checked + .slider { background:#45197c; }
+.switch input:checked + .slider:before { transform: translateX(20px); }
+
+/* control buttons column */
+.ctrls { display:flex; flex-direction:column; gap:8px; }
+.btn { padding:8px 12px; border-radius:6px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+.btn-primary { background:#45197c; color:#fff; }
+.btn-danger { background:#d9534f; color:#fff; }
+.btn-warning { background:#f0ad4e; color:#fff; }
+.btn-outline-primary { background:transparent; border:1px solid #45197c; color:#45197c; }
+
+/* page footer */
+.page-footer { display:flex; justify-content:flex-end; gap:12px; margin-top:18px; }
+
+/* modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:3000; }
+.modal-dialog { width:420px; max-width:95%; }
+.modal-content { background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+.modal-header, .modal-footer { padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+.modal-body { padding:12px 16px; color:#333; }
+.close-btn { background:none; border:none; font-size:20px; cursor:pointer; }
+
+/* small responsive tweaks */
+@media (max-width:700px) {
+  .address-card { flex-direction:column; align-items:stretch; }
+  .actions { justify-content:space-between; }
+}

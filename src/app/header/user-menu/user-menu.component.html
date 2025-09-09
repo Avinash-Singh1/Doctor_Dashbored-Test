@@ -1,17 +1,57 @@
-<div class="user-menu">
-  <!-- User info section -->
-  <div class="user-info">
-    <div class="avatar">{{ doctorName.charAt(0) }}</div>
-    <div class="details">
-      <span class="name">{{ doctorName }}</span>
-      <span class="phone">{{ phone }}</span>
+<!-- user-menu.component.html -->
+<div class="user-menu" [class.open]="isOpen" (keydown.escape)="close()" tabindex="0">
+  <!-- Trigger: compact card -->
+  <button
+    class="user-trigger"
+    (click)="toggle()"
+    aria-haspopup="true"
+    [attr.aria-expanded]="isOpen"
+    aria-controls="user-menu-panel"
+  >
+    <div class="avatar" [attr.title]="doctorName">
+      <img *ngIf="avatarUrl; else initials" [src]="avatarUrl" alt="{{doctorName}} avatar" />
+      <ng-template #initials>{{ doctorInitial }}</ng-template>
     </div>
-  </div>
 
-  <!-- Action buttons -->
-  <div class="menu-actions">
-    <button class="btn-secondary" routerLink="/settings">Account Settings</button>
-    <button class="btn-secondary" routerLink="/profile">View My Profile</button>
-    <button class="btn-danger" (click)="logout()">Log out</button>
+    <div class="meta">
+      <div class="name" title="{{doctorName}}">{{ doctorName }}</div>
+      <div class="small phone" *ngIf="phone">{{ phone }}</div>
+    </div>
+
+    <!-- chevron -->
+    <svg class="chev" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <!-- panel -->
+  <div
+    id="user-menu-panel"
+    class="menu-panel"
+    role="menu"
+    [attr.aria-hidden]="!isOpen"
+    *ngIf="isOpen"
+    (clickOutside)="close()"
+  >
+    <div class="panel-top">
+      <div class="large-avatar">
+        <img *ngIf="avatarUrl; else bigInitial" [src]="avatarUrl" alt="{{doctorName}} avatar" />
+        <ng-template #bigInitial><span>{{ doctorInitial }}</span></ng-template>
+      </div>
+      <div class="panel-meta">
+        <div class="panel-name">{{ doctorName }}</div>
+        <div class="panel-phone" *ngIf="phone">{{ phone }}</div>
+      </div>
+    </div>
+
+    <nav class="panel-actions" role="menu">
+      <a class="action" routerLink="/profile" role="menuitem">View my profile</a>
+      <a class="action" routerLink="/settings" role="menuitem">Account settings</a>
+      <button class="action action-danger" (click)="logout()" role="menuitem">Sign out</button>
+    </nav>
+
+    <div class="panel-footer">
+      <small class="muted">Signed in</small>
+    </div>
   </div>
 </div>

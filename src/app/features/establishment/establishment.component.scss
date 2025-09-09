@@ -1,0 +1,385 @@
+/* establishment.component.scss
+   Responsive, professional styles for Establishment component
+   Paste over your current SCSS file. No HTML/logic changes required.
+*/
+
+/* ---------- theme variables (tweak to match your brand) ---------- */
+$bg: #f6f8fb;
+$card-bg: #ffffff;
+$text: #0f1724;
+$muted: #6b7280;
+$primary: #2563eb;       // primary action color
+$primary-600: #1e4ec8;
+$danger: #e11d48;
+$border: #e6e9ef;
+$shadow-sm: 0 6px 18px rgba(16,24,40,0.06);
+$radius: 12px;
+
+$gap-xs: 8px;
+$gap-sm: 12px;
+$gap-md: 18px;
+
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+
+/* ---------- base layout ---------- */
+.establishment-root {
+  min-height: 100vh;
+  background: $bg;
+  padding: 20px;
+  color: $text;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Title */
+.page-title {
+  margin-bottom: $gap-md;
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: $text;
+    display: flex;
+    align-items: baseline;
+    gap: $gap-sm;
+
+    .step_count {
+      font-size: 12px;
+      color: $muted;
+      font-weight: 600;
+      background: rgba(37,99,235,0.06);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+  }
+}
+
+/* ---------- form card ---------- */
+.form-wrap {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: $card-bg;
+  border-radius: $radius;
+  padding: 18px;
+  box-shadow: $shadow-sm;
+  border: 1px solid $border;
+  transition: box-shadow .12s ease, transform .08s ease;
+}
+
+/* ---------- rows & grid ---------- */
+/* Mobile-first: stack fields vertically */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: $gap-xs;
+  margin-bottom: $gap-sm;
+
+  label {
+    font-weight: 600;
+    font-size: 14px;
+    color: $text;
+  }
+}
+
+/* Inline radio/button controls */
+.inline-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  label {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: $text;
+
+    input[type="radio"] {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+/* In-clinic section spacing */
+.in-clinic-section {
+  margin-top: $gap-md;
+
+  h4 {
+    margin: $gap-sm 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+}
+
+/* Inputs & selects basic */
+input[type="text"],
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: #fff;
+  font-size: 14px;
+  color: $text;
+  outline: none;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+
+input[type="text"]::placeholder,
+select::placeholder { color: lighten($muted, 10%); }
+
+input[type="text"]:focus,
+select:focus {
+  border-color: $primary;
+  box-shadow: 0 6px 18px rgba(37,99,235,0.08);
+}
+
+/* error state */
+.error { color: $danger; font-size: 13px; margin-top: 6px; }
+
+/* ---------- address row: multi-field compact layout ---------- */
+.address-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $gap-sm;
+
+  input { width: 100%; }
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 1.6fr 1fr 1fr 0.8fr; /* landmark, city, state, pincode */
+    align-items: center;
+  }
+}
+
+/* ---------- file upload ---------- */
+.file-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $gap-sm;
+  margin-top: 8px;
+
+  .custom-file-label {
+    display: inline-block;
+    padding: 8px 12px;
+    background: rgba(15,23,36,0.04);
+    border-radius: 8px;
+    border: 1px dashed $border;
+    color: $text;
+    cursor: pointer;
+    width: fit-content;
+    font-weight: 600;
+  }
+
+  input[type="file"] { display: none; }
+
+  .preview {
+    display: flex;
+    align-items: center;
+    gap: $gap-sm;
+    margin-top: 8px;
+
+    img {
+      width: 120px;
+      height: 84px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+    }
+
+    .btn-remove {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: $text;
+      font-weight: 600;
+    }
+  }
+}
+
+/* ---------- footer actions ---------- */
+.page-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: $gap-md;
+  flex-wrap: wrap;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(15,23,36,0.08);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  color: $text;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, $primary, $primary-600);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 10px 28px rgba(37,99,235,0.12);
+}
+
+/* link style for "Add Day" */
+.btn-link {
+  background: transparent;
+  color: $primary;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-weight: 600;
+}
+
+/* ---------- STEP 2 - days & times ---------- */
+.days-list {
+  display: grid;
+  gap: $gap-sm;
+}
+
+/* each day row card */
+.day-row {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(15,23,36,0.06);
+  background: rgba(250,251,255,0.6);
+  display: grid;
+  gap: 10px;
+}
+
+/* time-slots: vertical on mobile, inline on larger screens */
+.time-slots {
+  display: grid;
+  gap: 8px;
+}
+
+/* timeslot row */
+.timeslot {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+
+  select {
+    padding: 8px 10px;
+  }
+
+  .remove-slot {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: rgba(15,23,36,0.5);
+    cursor: pointer;
+    padding: 0 8px;
+  }
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
+
+/* add slot button */
+.add-slot {
+  margin-top: 6px;
+  background: transparent;
+  color: $primary;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* remove and small actions */
+.remove-day {
+  margin-top: 6px;
+  background: transparent;
+  color: $danger;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* fees row */
+.fees-row {
+  display: grid;
+  gap: $gap-sm;
+  margin-top: $gap-md;
+
+  input[type="text"] {
+    max-width: 360px;
+  }
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 1fr 1fr;
+    gap: $gap-md;
+  }
+}
+
+/* ---------- saved establishments panel ---------- */
+.modal-panel {
+  margin-top: $gap-md;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  background: rgba(255,255,255,0.85);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.small-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 14px;
+
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  thead th {
+    font-weight: 700;
+    color: $muted;
+    background: rgba(0,0,0,0.02);
+  }
+}
+
+/* ---------- utility helpers ---------- */
+.center { display:flex; align-items:center; gap:8px; color: $danger; font-size: 13px; margin-top: 6px; }
+.me-2 { margin-right: 8px; }
+.mt-2 { margin-top: 8px; }
+
+/* focus visible accessibility */
+:focus { outline: none; }
+:focus-visible {
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+  border-radius: 8px;
+}
+
+/* ---------- larger breakpoints adjustments ---------- */
+@media (min-width: $bp-md) {
+  .form-wrap { padding: 24px; }
+  .page-title h2 { font-size: 22px; }
+}
+
+@media (min-width: $bp-lg) {
+  .form-wrap { padding: 28px; }
+  .days-list { grid-template-columns: 1fr 1fr; }
+  .row { flex-direction: row; align-items: center; gap: 12px; }
+  .row > input[type="text"], .row > select { max-width: 480px; }
+}

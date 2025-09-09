@@ -18,12 +18,14 @@ import { DeleteComponent } from '../settings/delete/delete.component';
 
 // 👇 Import the AuthGuard
 import { AuthGuard } from '../../core/guards/auth.guard'; 
+import { DoctorEstablishmentComponent } from '../establishment/doctor-establishment/doctor-establishment.component'; 
 export const dashboardRoutes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard] },
   { path: 'my-patient', component: MyPatientComponent, canActivate: [AuthGuard] },
   { path: 'medical-verification', component: MedicalVerificationComponent, canActivate: [AuthGuard] },
   { path: 'establishment', component: EstablishmentComponent, canActivate: [AuthGuard] },
+  { path: 'doc-establishment', component: DoctorEstablishmentComponent, canActivate: [AuthGuard] },
   { path: 'services', component: ServicesComponent, canActivate: [AuthGuard] },
   { path: 'procedure', component: ProcedureComponent, canActivate: [AuthGuard] },
   { path: 'videos', component: VideosComponent, canActivate: [AuthGuard] },

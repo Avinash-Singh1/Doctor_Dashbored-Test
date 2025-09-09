@@ -1,10 +1,10 @@
-// src/app/features/user-menu/user-menu.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// user-menu.component.ts
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
-import { AuthService, AuthUser } from '../../core/services/auth.service'; // adjust path
+import { AuthService, AuthUser } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-menu',
@@ -16,6 +16,8 @@ import { AuthService, AuthUser } from '../../core/services/auth.service'; // adj
 export class UserMenuComponent implements OnInit, OnDestroy {
   doctorName = 'User';
   phone = '';
+  avatarUrl?: string | null = null;
+  isOpen = false;
   private destroy$ = new Subject<void>();
 
   constructor(private router: Router, private auth: AuthService) {}
@@ -29,15 +31,46 @@ export class UserMenuComponent implements OnInit, OnDestroy {
       else {
         this.doctorName = 'User';
         this.phone = '';
+        this.avatarUrl = null;
       }
     });
   }
 
   private applyUser(user: AuthUser): void {
-    this.doctorName = user.fullName || (user.email ? user.email.split('@')[0] : 'User');
+    this.doctorName =
+      user.fullName || (user.email ? user.email.split('@')[0] : 'User');
     this.phone = user.phone || '';
+    // if your user model has avatar/url, map it; otherwise null
+    this.avatarUrl = (user as any).avatarUrl || (user as any).photoURL || null;
   }
 
+  get doctorInitial(): string {
+    return (this.doctorName && this.doctorName.charAt(0)) || 'U';
+  }
+
+  toggle(): void {
+    this.isOpen = !this.isOpen;
+  }
+
+  close(): void {
+    this.isOpen = false;
+  }
+
+  // keyboard accessibility: close on outside click or escape handled by template
+  @HostListener('document:click', ['$event'])
+  onDocClick(evt: MouseEvent) {
+    const path = evt.composedPath ? evt.composedPath() : (evt as any).path || [];
+    // if click is outside this component element, close.
+    // Using DOM traversal: check for element with selector 'app-user-menu'
+    const clickedInside = path.some((n: any) => {
+      return n && n.tagName && n.tagName.toLowerCase() === 'app-user-menu';
+    });
+    if (!clickedInside) {
+      this.isOpen = false;
+    }
+  }
+
+  // logout (keeps your Swal flow)
   logout(): void {
     Swal.fire({
       title: 'Log out',
@@ -48,14 +81,9 @@ export class UserMenuComponent implements OnInit, OnDestroy {
       cancelButtonText: 'Cancel',
       showLoaderOnConfirm: true,
       preConfirm: () => {
-        // return the promise from AuthService.logout so SweetAlert waits
         return this.auth.logout(false).catch((err) => {
-          // Re-throw to let Swal show error state (optional)
-          console.error('Logout failed inside preConfirm', err);
-          // We resolve anyway (AuthService clears local session even on error),
-          // but rethrowing makes Swal mark preConfirm as rejected.
-          // return Promise.reject(err);
-          return undefined; // swallow error so Swal proceeds — you can change this
+          console.error('Logout failed', err);
+          return undefined;
         });
       },
       allowOutsideClick: () => !Swal.isLoading(),

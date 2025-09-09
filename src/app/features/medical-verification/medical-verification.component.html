@@ -1,1 +1,182 @@
-<p>medical-verification works!</p>
+<div class="inner-wrapper" id="clickToCloseArea">
+  <!-- Main column centered on page -->
+  <div class="main-content medical-verification-screen" [class.full-width]="isMenuHidden" [ngClass]="{'widht_remove': isMenuHidden == false}">
+    <div class="page-title">
+      <h2 class="title">Medical Verification</h2>
+    </div>
+
+    <!-- Card wrapper -->
+    <div class="card card--lg">
+      <div class="card__header">
+        <div class="card__title">{{ profileForm.get('fullName')?.value || 'Doctor Name' }}</div>
+        <div >Complete your profile by uploading identity & medical proofs</div>
+        <!-- <div class="card__subtitle">Complete your profile by uploading identity & medical proofs</div> -->
+      </div>
+
+      <form [formGroup]="consultationForm" (click)="closeSideBar()" class="card__body">
+
+        <!-- Registration row -->
+        <div class="grid grid--cols-3">
+          <div class="form-group">
+            <label for="reg_num" class="label required">Registration Number</label>
+            <input
+              id="reg_num"
+              type="text"
+              class="input"
+              formControlName="regNum"
+              [ngClass]="{'error_border': consultationForm.get('regNum')?.hasError('required')}"
+              (blur)="consultationForm.get('regNum')?.markAsTouched()"
+              placeholder="Enter registration number" />
+            <div class="text-danger" *ngIf="consultationForm.get('regNum')?.touched && consultationForm.get('regNum')?.invalid">
+              <p *ngIf="consultationForm.get('regNum')?.hasError('required')">
+                <svg class="icon-warning" viewBox="0 0 24 24"><path fill="currentColor" d="M11 15h2v2h-2zm0-10h2v8h-2zM12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2z"/></svg>
+                Registration Number is required.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg_council" class="label required">Registration Council</label>
+            <input
+              id="reg_council"
+              type="text"
+              class="input"
+              formControlName="regCouncil"
+              placeholder="Enter registration council"
+              [ngClass]="{'error_border': consultationForm.get('regCouncil')?.hasError('required')}" />
+            <div class="text-danger" *ngIf="consultationForm.get('regCouncil')?.touched && consultationForm.get('regCouncil')?.invalid">
+              <p *ngIf="consultationForm.get('regCouncil')?.hasError('required')">
+                <svg class="icon-warning" viewBox="0 0 24 24"><path fill="currentColor" d="M11 15h2v2h-2zm0-10h2v8h-2zM12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2z"/></svg>
+                Registration Council is required.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg_year" class="label required">Registration Year</label>
+            <input
+              id="reg_year"
+              type="text"
+              class="input"
+              formControlName="regYear"
+              placeholder="YYYY"
+              [ngClass]="{'error_border': consultationForm.get('regYear')?.hasError('required')}"
+              (input)="onInput($event)" />
+            <div class="text-danger" *ngIf="consultationForm.get('regYear')?.touched && consultationForm.get('regYear')?.invalid">
+              <p *ngIf="consultationForm.get('regYear')?.hasError('required')">
+                <svg class="icon-warning" viewBox="0 0 24 24"><path fill="currentColor" d="M11 15h2v2h-2zm0-10h2v8h-2zM12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2z"/></svg>
+                Registration year is required.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload docs heading -->
+        <div class="section-heading">
+          <h3>Upload Documents</h3>
+          <p >Please upload the required documents for verification</p>
+          <!-- <p class="muted">Please upload the required documents for verification</p> -->
+        </div>
+
+        <!-- Identity proof block -->
+        <div class="upload-row">
+          <div class="upload-left">
+            <label class="label required">Identity Proof</label>
+            <select class="select" formControlName="identityProof" (change)="onDropdownChange()">
+              <option disabled value="">Select Identity Proof Type</option>
+              <option *ngFor="let option of identityProofOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+
+          <div class="upload-right">
+            <label class="label sr-only" for="file_upload_1">Choose file</label>
+            <div class="file-actions">
+              <label for="file_upload_1" class="btn-file">Choose File</label>
+              <input id="file_upload_1" class="d-none" type="file" (change)="onFileSelected($event, 'identityProof')" />
+              <div class="preview">
+                <div class="previewBox" id="file_upload_preview_1">
+                  <img *ngIf="identityProofUrl && isImage(identityProofUrl)" [src]="identityProofUrl" alt="Identity Proof Preview" />
+                  <a *ngIf="identityProofUrl && !isImage(identityProofUrl)" target="_blank" [href]="identityProofUrl">View file</a>
+                </div>
+                <div class="file-meta">
+                  <p *ngIf="identityProofUrl" class="filename">{{ identityProofFilename || 'Identity Proof' }}</p>
+
+                  <!-- Updated remove button uses Material Icons and confirmation -->
+                  <button
+                    *ngIf="identityProofUrl"
+                    type="button"
+                    class="btn-remove"
+                    (click)="confirmRemove('identityProof')"
+                    aria-label="Remove identity proof"
+                    title="Remove identity proof"
+                  >
+                    <i class="material-icons" style="color: red;" aria-hidden="true">delete</i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!identityProofUrl && consultationForm.get('identityProof')?.touched" class="text-danger center">
+              <svg class="icon-warning" viewBox="0 0 24 24"><path fill="currentColor" d="M11 15h2v2h-2zm0-10h2v8h-2zM12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2z"/></svg>
+              <span>This Field is Mandatory</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Medical proof block -->
+        <div class="upload-row">
+          <div class="upload-left">
+            <label class="label required">Medical Proof</label>
+            <select class="select" formControlName="medicalProof">
+              <option value="" disabled>Select Medical Proof Type</option>
+              <option *ngFor="let option of medicalProofOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+
+          <div class="upload-right">
+            <label class="sr-only" for="file_upload_2">Choose file</label>
+            <div class="file-actions">
+              <label for="file_upload_2" class="btn-file">Choose File</label>
+              <input id="file_upload_2" class="d-none" type="file" (change)="onFileSelected($event, 'medicalProof')" />
+              <div class="preview">
+                <div class="previewBox" id="file_upload_preview_2">
+                  <img *ngIf="medicalProofUrl && isImage(medicalProofUrl)" [src]="medicalProofUrl" alt="Medical Proof Preview" />
+                  <a *ngIf="medicalProofUrl && !isImage(medicalProofUrl)" target="_blank" [href]="medicalProofUrl">View file</a>
+                </div>
+                <div class="file-meta">
+                  <p *ngIf="medicalProofUrl" class="filename">{{ medicalProofFilename || 'Medical Proof' }}</p>
+
+                  <!-- Updated remove button uses Material Icons and confirmation -->
+                  <button
+                    *ngIf="medicalProofUrl"
+                    type="button"
+                    class="btn-remove"
+                    (click)="confirmRemove('medicalProof')"
+                    aria-label="Remove medical proof"
+                    title="Remove medical proof"
+                  >
+                    <i class="material-icons" style="color: red;" aria-hidden="true">delete</i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!medicalProofUrl && consultationForm.get('medicalProof')?.touched" class="text-danger center">
+              <svg class="icon-warning" viewBox="0 0 24 24"><path fill="currentColor" d="M11 15h2v2h-2zm0-10h2v8h-2zM12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2z"/></svg>
+              <span class="mb-3">This Field is Mandatory</span>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Footer actions -->
+      <div class="card__footer">
+        <button type="button" class="btn btn-primary" (click)="onSubmit()">
+          Save &amp; Continue
+          <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
