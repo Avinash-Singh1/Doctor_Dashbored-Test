@@ -37,18 +37,18 @@
       <tbody>
         <tr *ngFor="let item of filteredPatientDetails">
           <td class="text-center">
-            <span class="img-initial">{{ item.patientName.charAt(0) }}</span>
+            <span class="img-initial">{{ (item.patientName || 'N').charAt(0) }}</span>
           </td>
-          <td>{{ item.patientName }}</td>
-          <td>+91 {{ item.phone }}</td>
+          <td>{{ item.patientName || 'N/A' }}</td>
+          <td>+91 {{ item.phone || 'N/A' }}</td>
           <td class="text-center">
             <span class="badge badge-primary">
-              {{ genderList[item.gender] || "N/A" }}
+              {{ getGender(item.gender) }}
             </span>
           </td>
-          <td>{{ item.email }}</td>
-          <td class="text-center">{{ item.dob || "N/A" }}</td>
-          <td>{{ bloodGroupList[item.bloodGroup] }}</td>
+          <td>{{ item.email || 'N/A' }}</td>
+          <td class="text-center">{{ item.dob || 'N/A' }}</td>
+          <td>{{ getBloodGroup(item.bloodGroup) }}</td>
           <td class="text-center">
             <a class="btn btn-primary" (click)="getDetails(item)">View</a>
           </td>
@@ -61,18 +61,18 @@
   <div class="patient-cards" *ngIf="!hideView">
     <div class="patient-card" *ngFor="let item of filteredPatientDetails">
       <div class="card-header">
-        <span class="img-initial">{{ item.patientName.charAt(0) }}</span>
+        <span class="img-initial">{{ (item.patientName || 'N').charAt(0) }}</span>
         <div class="card-info">
-          <h3>{{ item.patientName }}</h3>
-          <p>+91 {{ item.phone }}</p>
+          <h3>{{ item.patientName || 'N/A' }}</h3>
+          <p>+91 {{ item.phone || 'N/A' }}</p>
         </div>
       </div>
 
       <div class="card-body">
-        <p><strong>Gender:</strong> {{ genderList[item.gender] || "N/A" }}</p>
-        <p><strong>Email:</strong> {{ item.email }}</p>
-        <p><strong>Age:</strong> {{ item.dob || "N/A" }}</p>
-        <p><strong>Blood Group:</strong> {{ bloodGroupList[item.bloodGroup] }}</p>
+        <p><strong>Gender:</strong> {{ getGender(item.gender) }}</p>
+        <p><strong>Email:</strong> {{ item.email || 'N/A' }}</p>
+        <p><strong>Age:</strong> {{ item.dob || 'N/A' }}</p>
+        <p><strong>Blood Group:</strong> {{ getBloodGroup(item.bloodGroup) }}</p>
       </div>
 
       <div class="card-footer">
@@ -91,31 +91,34 @@
         <button type="button" class="close" (click)="closeModal('details')">×</button>
       </div>
       <div class="modal-body">
-      <div class="history-item" *ngFor="let item of appointmentList">
-        <div class="history-date">
-          <span class="day">{{ item.date | date : "dd" }}</span>
-          <span class="month">{{ item.date | date : "MMM" }}</span>
-          <span class="year">{{ item.date | date : "yyyy" }}</span>
+        <div *ngIf="!appointmentList || appointmentList.length === 0">
+          <p>No appointments found.</p>
         </div>
 
-        <div class="history-details">
-          <h4>Dr. {{ item.doctorName }}</h4>
-          <p class="time">{{ item.date | date : "hh:mm a" }} • {{ item.slotTime }} mins</p>
-        </div>
+        <div class="history-item" *ngFor="let item of appointmentList">
+          <div class="history-date">
+            <span class="day">{{ item.date | date : "dd" }}</span>
+            <span class="month">{{ item.date | date : "MMM" }}</span>
+            <span class="year">{{ item.date | date : "yyyy" }}</span>
+          </div>
 
-        <div class="history-status">
-          <span
-            class="status-badge"
-            [ngClass]="{
-              'status-cancel': item.status < 0 || item.status == 2,
-              'status-complete': item.status == 0 || item.status == 1
-            }"
-          >
-            {{ getStatus(item.status) }}
-          </span>
-        </div>
-      </div>
+          <div class="history-details">
+            <h4>Dr. {{ item.doctorName }}</h4>
+            <p class="time">{{ item.date | date : "hh:mm a" }} • {{ item.slotTime }} mins</p>
+          </div>
 
+          <div class="history-status">
+            <span
+              class="status-badge"
+              [ngClass]="{
+                'status-cancel': item.status < 0 || item.status == 2,
+                'status-complete': item.status == 0 || item.status == 1
+              }"
+            >
+              {{ getStatus(item.status) }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
