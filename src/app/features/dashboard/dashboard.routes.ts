@@ -3,7 +3,7 @@ import { DashboardComponent } from './dashboard.component';
 import { CalendarComponent } from '../calendar/calendar.component';
 import { MyPatientComponent } from '../my-patient/my-patient.component';
 import { MedicalVerificationComponent } from '../medical-verification/medical-verification.component';
-import { EstablishmentComponent } from '../establishment/establishment.component';
+import { EstablishmentComponent } from '../establishment/establishment.component'; 
 import { ServicesComponent } from '../services/services.component';
 import { ProcedureComponent } from '../procedure/procedure.component';
 import { VideosComponent } from '../videos/videos.component';
@@ -19,12 +19,14 @@ import { DeleteComponent } from '../settings/delete/delete.component';
 // 👇 Import the AuthGuard
 import { AuthGuard } from '../../core/guards/auth.guard'; 
 import { DoctorEstablishmentComponent } from '../establishment/doctor-establishment/doctor-establishment.component'; 
+import { EstablishmentComponent2 } from '../establishment/edit-establshiment/establishment2.component';
 export const dashboardRoutes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard] },
   { path: 'my-patient', component: MyPatientComponent, canActivate: [AuthGuard] },
   { path: 'medical-verification', component: MedicalVerificationComponent, canActivate: [AuthGuard] },
   { path: 'establishment', component: EstablishmentComponent, canActivate: [AuthGuard] },
+  { path: 'establishment/:mode', component: EstablishmentComponent2, canActivate: [AuthGuard] },
   { path: 'doc-establishment', component: DoctorEstablishmentComponent, canActivate: [AuthGuard] },
   { path: 'services', component: ServicesComponent, canActivate: [AuthGuard] },
   { path: 'procedure', component: ProcedureComponent, canActivate: [AuthGuard] },

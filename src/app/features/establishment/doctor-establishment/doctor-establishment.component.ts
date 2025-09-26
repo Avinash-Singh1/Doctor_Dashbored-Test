@@ -1,21 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-
+import { HttpClient,HttpParams, HttpErrorResponse, HttpHeaders, HttpClientModule } from '@angular/common/http';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 interface TimeSlot {
   from: string;
   to: string;
+  slot?: string;
+  _id?: string;
 }
 
 interface HospitalAddress {
   city?: string;
   state?: string;
   pincode?: string;
+  [key: string]: any;
 }
 
 interface HospitalData {
   name: string;
   address: HospitalAddress;
+  profilePic?: string | null;
+  [key: string]: any;
 }
 
 interface Establishment {
@@ -33,6 +40,8 @@ interface Establishment {
   isDeleted?: boolean;
   isVerified?: number; // 1 pending, 2 verified
   isActive?: boolean;
+  isOwner?: boolean;
+  [key: string]: any;
 }
 
 @Component({
@@ -40,78 +49,95 @@ interface Establishment {
   templateUrl: './doctor-establishment.component.html',
   styleUrls: ['./doctor-establishment.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, HttpClientModule]
 })
 export class DoctorEstablishmentComponent implements OnInit {
-  // UI state
-  dayLabel: string | null = null;
   showDeleteModal = false;
   deleteEstablishmentData: Establishment | null = null;
 
-  // Sample local data (self-contained)
   visitEstablishment: Establishment[] = [];
   ownEstablishment: Establishment[] = [];
   ownEstablishmentExist = false;
 
-  constructor(private router: Router) {}
+  loading = false;
+  error: string | null = null;
+
+  private readonly API_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100';
+  private readonly DELETE_URL = 'http://localhost:8080/api/v1/doctor/doctor-delete-establishment';
+
+  // 🔑 Hardcoded token
+  private readonly TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg3MDY0NTgsImV4cCI6MTc1OTMxMTI1OH0.zTEVlYA3zAzE3m2dBrSbVhKYNDbeesiAHRsppyItImw';
+
+  constructor(private router: Router, private http: HttpClient) {}
 
   ngOnInit(): void {
-    // mock data so component is usable without external services
-    this.visitEstablishment = [
-      {
-        _id: 'v1',
-        hospitalData: { name: 'City Clinic', address: { city: 'Bengaluru', state: 'KA', pincode: '560001' } },
-        mon: [{ from: '09:00', to: '13:00' }, { from: '15:00', to: '18:00' }],
-        tue: [{ from: '09:00', to: '13:00' }, { from: '15:00', to: '18:00' }],
-        wed: [{ from: '09:00', to: '13:00' }, { from: '15:00', to: '18:00' }],
-        thu: [{ from: '09:00', to: '13:00' }, { from: '15:00', to: '18:00' }],
-        fri: [{ from: '09:00', to: '13:00' }, { from: '15:00', to: '18:00' }],
-        sat: [{ from: '10:00', to: '14:00' }],
-        sun: [],
-        consultationFees: 500,
-        videoConsultationFees: 300,
-        isDeleted: false,
-        isVerified: 2,
-        isActive: true
+    this.fetchEstablishments();
+  }
+
+  private fetchEstablishments(): void {
+    this.loading = true;
+    this.error = null;
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${this.TOKEN}`
+    });
+
+    this.http.get<any>(this.API_URL, { headers }).pipe(
+      catchError((err: HttpErrorResponse) => {
+        const msg = err?.error?.message || err?.message || 'Failed to fetch establishments';
+        this.error = msg;
+        this.loading = false;
+        return throwError(() => err);
+      })
+    ).subscribe((res) => {
+      this.loading = false;
+      try {
+        const arr = res?.result?.data ?? [];
+        const mapped: Establishment[] = arr.map((a: any) => this.mapApiToEstablishment(a));
+        this.ownEstablishment = mapped.filter(e => e.isOwner === true);
+        this.visitEstablishment = mapped.filter(e => e.isOwner !== true);
+        this.ownEstablishmentExist = this.ownEstablishment.length > 0;
+      } catch (e) {
+        this.error = 'Invalid response format';
+      }
+    }, () => {
+      this.loading = false;
+      this.error = this.error ?? 'Error fetching establishments';
+    });
+  }
+
+  private mapApiToEstablishment(a: any): Establishment {
+    return {
+      _id: a._id,
+      hospitalData: {
+        name: a?.hospitalData?.name ?? 'Unknown',
+        address: a?.hospitalData?.address ?? {}
       },
-      {
-        _id: 'v2',
-        hospitalData: { name: 'Video Consultation Only', address: { city: 'Online', state: 'NA', pincode: '' } },
-        mon: [{ from: '08:00', to: '20:00' }],
-        tue: [{ from: '08:00', to: '20:00' }],
-        wed: [{ from: '08:00', to: '20:00' }],
-        thu: [{ from: '08:00', to: '20:00' }],
-        fri: [{ from: '08:00', to: '20:00' }],
-        sat: [{ from: '08:00', to: '20:00' }],
-        sun: [{ from: '08:00', to: '20:00' }],
-        consultationFees: -1,
-        videoConsultationFees: 250,
-        isDeleted: false,
-        isVerified: 2,
-        isActive: true
-      }
-    ];
+      mon: this.normalizeSlots(a?.mon),
+      tue: this.normalizeSlots(a?.tue),
+      wed: this.normalizeSlots(a?.wed),
+      thu: this.normalizeSlots(a?.thu),
+      fri: this.normalizeSlots(a?.fri),
+      sat: this.normalizeSlots(a?.sat),
+      sun: this.normalizeSlots(a?.sun),
+      consultationFees: (typeof a.consultationFees !== 'undefined') ? a.consultationFees : null,
+      videoConsultationFees: (typeof a.videoConsultationFees !== 'undefined') ? a.videoConsultationFees : null,
+      isDeleted: !!a.isDeleted,
+      isVerified: typeof a.isVerified === 'number' ? a.isVerified : (a.isVerified ? Number(a.isVerified) : 0),
+      isActive: typeof a.isActive === 'boolean' ? a.isActive : !!a.isActive,
+      isOwner: !!a.isOwner,
+      ...a
+    };
+  }
 
-    this.ownEstablishment = [
-      {
-        _id: 'o1',
-        hospitalData: { name: 'My Clinic', address: { city: 'Mumbai', state: 'MH', pincode: '400001' } },
-        mon: [{ from: '09:00', to: '17:00' }],
-        tue: [{ from: '09:00', to: '17:00' }],
-        wed: [{ from: '09:00', to: '17:00' }],
-        thu: [{ from: '09:00', to: '17:00' }],
-        fri: [{ from: '09:00', to: '17:00' }],
-        sat: [],
-        sun: [],
-        consultationFees: 700,
-        videoConsultationFees: 400,
-        isDeleted: false,
-        isVerified: 1, // pending
-        isActive: false
-      }
-    ];
-
-    this.ownEstablishmentExist = this.ownEstablishment.length > 0;
+  private normalizeSlots(slots: any): TimeSlot[] {
+    if (!slots) return [];
+    return Array.isArray(slots) ? slots.map((s: any) => ({
+      from: s?.from ?? '',
+      to: s?.to ?? '',
+      slot: s?.slot,
+      _id: s?._id
+    })) : [];
   }
 
   getInitial(name?: string): string {
@@ -120,35 +146,32 @@ export class DoctorEstablishmentComponent implements OnInit {
 
   getStateName(code?: string): string {
     if (!code) return '';
-    const map: Record<string, string> = { KA: 'Karnataka', MH: 'Maharashtra', DL: 'Delhi', TN: 'Tamil Nadu', UP: 'Uttar Pradesh', NA: '' };
+    const map: Record<string, string> = {
+      KA: 'Karnataka',
+      MH: 'Maharashtra',
+      DL: 'Delhi',
+      TN: 'Tamil Nadu',
+      UP: 'Uttar Pradesh',
+      NA: ''
+    };
     return map[code] ?? code;
   }
 
-  getDayLabel(item: Establishment): string | null | undefined {
+  getDayLabelFor(item: Establishment): string | null | undefined {
     if (!item) return undefined;
     const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
     const slots = days.map(d => JSON.stringify((item as any)[d] ?? []));
     const allEqual = slots.every(s => s === slots[0]);
 
-    if (allEqual && slots[0] !== '[]') {
-      this.dayLabel = 'All Days';
-      return this.dayLabel;
-    }
+    if (allEqual && slots[0] !== '[]') return 'All Days';
 
     const monToFri = slots.slice(0, 5).every(s => s !== '[]');
     const satSun = slots.slice(5, 7).every(s => s !== '[]');
 
-    if (monToFri && !satSun) {
-      this.dayLabel = 'Mon-Fri';
-      return this.dayLabel;
-    }
-    if (satSun && !monToFri && slots.slice(0, 5).every(s => s === '[]')) {
-      this.dayLabel = 'Sat-Sun';
-      return this.dayLabel;
-    }
+    if (monToFri && !satSun) return 'Mon-Fri';
+    if (satSun && !monToFri && slots.slice(0, 5).every(s => s === '[]')) return 'Sat-Sun';
 
-    this.dayLabel = null;
-    return this.dayLabel;
+    return null;
   }
 
   openGoogleMaps(item: Establishment): void {
@@ -162,9 +185,47 @@ export class DoctorEstablishmentComponent implements OnInit {
     window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
   }
 
-  onChangeEstablishment(item: Establishment): void {
-    item.isActive = !item.isActive;
-    console.log('Toggled active:', item._id, item.isActive);
+  // onChangeEstablishment(item: Establishment): void {
+  //   item.isActive = !item.isActive;
+  //   console.log('Toggled active:', item._id, item.isActive);
+  //   // Optionally persist change to backend here
+  // }
+
+    private authKey: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg4Njc3NTMsImV4cCI6MTc1OTQ3MjU1M30.PfCopJOkuoKkvIaZfmGF88QQtV4eAsEuzFFPcFyVusw';
+
+   onChangeEstablishment(establishment: any, event: Event): void {
+    alert("Hello world")
+    // Prevent unintended event bubbling
+    event.stopPropagation();
+
+    // Toggle isActive status locally (optimistic update)
+    const newStatus = !establishment.isActive;
+
+    // Build query params
+    const params = new HttpParams()
+      .set('establishmentId', establishment?.establishmentId)
+      .set('hospitalId', establishment?.hospitalData?.hospitalId);
+
+    // API URL
+    const url = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
+
+    // Add headers with Bearer token
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authKey}`);
+
+    // Call API with PUT
+    this.http.put(url, { isActive: newStatus }, { params, headers }).subscribe({
+      next: (res: any) => {
+        if (res?.success) {
+          establishment.isActive = newStatus; // Update UI only if backend succeeds
+          console.log('Establishment updated successfully');
+        } else {
+          console.error('Failed to update establishment:', res?.message);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating establishment: ', error);
+      },
+    });
   }
 
   deleteEstablishment(item: Establishment): void {
@@ -172,12 +233,50 @@ export class DoctorEstablishmentComponent implements OnInit {
     this.showDeleteModal = true;
   }
 
+  /**
+   * Calls the delete API with Bearer token, then refreshes the list.
+   */
   deleteEstablishmentConfirm(): void {
     if (!this.deleteEstablishmentData) return;
-    this.deleteEstablishmentData.isDeleted = true;
-    this.visitEstablishment = this.visitEstablishment.filter(e => e._id !== this.deleteEstablishmentData!._id);
-    this.ownEstablishment = this.ownEstablishment.filter(e => e._id !== this.deleteEstablishmentData!._id);
-    this.closeModal();
+
+    this.loading = true;
+    this.error = null;
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${this.TOKEN}`,
+      'Content-Type': 'application/json'
+    });
+
+    const payload = {
+      establishmentId: this.deleteEstablishmentData._id
+    };
+
+    this.http.post<any>(this.DELETE_URL, payload, { headers }).pipe(
+      catchError((err: HttpErrorResponse) => {
+        const msg = err?.error?.message || err?.message || 'Failed to delete establishment';
+        this.error = msg;
+        this.loading = false;
+        return throwError(() => err);
+      })
+    ).subscribe((res) => {
+      this.loading = false;
+      try {
+        // handle success response and refresh data
+        if (res?.success) {
+          // close modal first
+          this.closeModal();
+          // refresh the establishment list from server to reflect changes
+          this.fetchEstablishments();
+        } else {
+          this.error = res?.message ?? 'Delete failed';
+        }
+      } catch (e) {
+        this.error = 'Unexpected response from delete API';
+      }
+    }, () => {
+      this.loading = false;
+      this.error = this.error ?? 'Error deleting establishment';
+    });
   }
 
   closeModal(): void {

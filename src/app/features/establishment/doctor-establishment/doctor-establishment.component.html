@@ -1,12 +1,20 @@
 <div class="main-content">
   <div class="page-title">
     <h2>Establishment <span>Step(1/2)</span></h2>
-    <button type="button" class="btn btn-primary" [routerLink]="['add']">
+    <button type="button" class="btn btn-primary" [routerLink]="['/establishment']">
       <span class="material-icons">add</span> Add Address
     </button>
   </div>
 
   <div class="page-form establishment-screen">
+    <!-- Loading / Error -->
+    <div *ngIf="loading" class="loading-state">
+      <span class="material-icons md-18">hourglass_top</span> Loading establishments...
+    </div>
+    <div *ngIf="error" class="error-state">
+      <span class="material-icons md-18">error</span> {{ error }}
+    </div>
+
     <!-- Visit Establishment -->
     <section *ngIf="visitEstablishment && visitEstablishment.length > 0">
       <h3 class="screen-title">
@@ -34,39 +42,53 @@
               </p>
 
               <!-- Days / slots -->
-              <ng-container *ngIf="getDayLabel(item) !== undefined">
-                <div *ngIf="dayLabel !== null" class="day-label">
+              <ng-container *ngIf="getDayLabelFor(item) !== undefined">
+                <div *ngIf="getDayLabelFor(item) !== null" class="day-label">
                   <span class="material-icons md-16">schedule</span>
-                  <span class="label-text">{{ dayLabel }}</span>
+                  <span class="label-text">{{ getDayLabelFor(item) }}</span>
                 </div>
 
-                <ng-container *ngIf="dayLabel === 'All Days'">
+                <ng-container *ngIf="getDayLabelFor(item) === 'All Days'">
                   <ng-container *ngFor="let slot of item.mon">
                     <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
                   </ng-container>
                 </ng-container>
 
-                <ng-container *ngIf="dayLabel === 'Mon-Fri'">
+                <ng-container *ngIf="getDayLabelFor(item) === 'Mon-Fri'">
                   <ng-container *ngFor="let slot of item.mon">
                     <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
                   </ng-container>
                 </ng-container>
 
-                <ng-container *ngIf="dayLabel === 'Sat-Sun'">
+                <ng-container *ngIf="getDayLabelFor(item) === 'Sat-Sun'">
                   <ng-container *ngFor="let slot of item.sat">
                     <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
                   </ng-container>
                 </ng-container>
 
-                <ng-container *ngIf="dayLabel === null">
+                <ng-container *ngIf="getDayLabelFor(item) === null">
                   <div class="days-grid">
-                    <div *ngIf="(item?.mon?.length || 0) > 0">Mon<div *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.tue?.length || 0) > 0">Tue<div *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.wed?.length || 0) > 0">Wed<div *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.thu?.length || 0) > 0">Thu<div *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.fri?.length || 0) > 0">Fri<div *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.sat?.length || 0) > 0">Sat<div *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.sun?.length || 0) > 0">Sun<div *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</div></div>
+                    <div *ngIf="(item?.mon?.length || 0) > 0">Mon
+                      <div *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.tue?.length || 0) > 0">Tue
+                      <div *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.wed?.length || 0) > 0">Wed
+                      <div *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.thu?.length || 0) > 0">Thu
+                      <div *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.fri?.length || 0) > 0">Fri
+                      <div *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.sat?.length || 0) > 0">Sat
+                      <div *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.sun?.length || 0) > 0">Sun
+                      <div *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
                   </div>
                 </ng-container>
               </ng-container>
@@ -90,12 +112,16 @@
 
           <div class="actions">
             <label class="switch">
-              <input type="checkbox" [checked]="item.isActive" (change)="onChangeEstablishment(item)" />
-              <div class="slider round"></div>
-            </label>
+            <input
+              type="checkbox"
+              [checked]="item.isActive"
+              (change)="onChangeEstablishment(item, $event)" />
+            <div class="slider round"></div>
+          </label>
+
 
             <div class="ctrls">
-              <button class="btn btn-primary" [routerLink]="['edit']" [queryParams]="{ id: item?._id }">
+              <button class="btn btn-primary" [routerLink]="['edit']">
                 <span class="material-icons">edit</span> Edit
               </button>
               <button class="btn btn-danger" (click)="deleteEstablishment(item)">
@@ -126,39 +152,53 @@
                 <span class="address-text">{{ item?.hospitalData?.address?.city }}, {{ getStateName(item?.hospitalData?.address?.state) }} {{ item?.hospitalData?.address?.pincode }}</span>
               </p>
 
-              <ng-container *ngIf="getDayLabel(item) !== undefined">
-                <div *ngIf="dayLabel !== null" class="day-label">
+              <ng-container *ngIf="getDayLabelFor(item) !== undefined">
+                <div *ngIf="getDayLabelFor(item) !== null" class="day-label">
                   <span class="material-icons md-16">schedule</span>
-                  <span class="label-text">{{ dayLabel }}</span>
+                  <span class="label-text">{{ getDayLabelFor(item) }}</span>
                 </div>
 
-                <ng-container *ngIf="dayLabel === 'All Days'">
+                <ng-container *ngIf="getDayLabelFor(item) === 'All Days'">
                   <ng-container *ngFor="let slot of item.mon">
                     <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
                   </ng-container>
                 </ng-container>
 
-                <ng-container *ngIf="dayLabel === 'Mon-Fri'">
+                <ng-container *ngIf="getDayLabelFor(item) === 'Mon-Fri'">
                   <ng-container *ngFor="let slot of item.mon">
                     <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
                   </ng-container>
                 </ng-container>
 
-                <ng-container *ngIf="dayLabel === 'Sat-Sun'">
+                <ng-container *ngIf="getDayLabelFor(item) === 'Sat-Sun'">
                   <ng-container *ngFor="let slot of item.sat">
                     <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
                   </ng-container>
                 </ng-container>
 
-                <ng-container *ngIf="dayLabel === null">
+                <ng-container *ngIf="getDayLabelFor(item) === null">
                   <div class="days-grid">
-                    <div *ngIf="(item?.mon?.length || 0) > 0">Mon<div *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.tue?.length || 0) > 0">Tue<div *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.wed?.length || 0) > 0">Wed<div *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.thu?.length || 0) > 0">Thu<div *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.fri?.length || 0) > 0">Fri<div *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.sat?.length || 0) > 0">Sat<div *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</div></div>
-                    <div *ngIf="(item?.sun?.length || 0) > 0">Sun<div *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</div></div>
+                    <div *ngIf="(item?.mon?.length || 0) > 0">Mon
+                      <div *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.tue?.length || 0) > 0">Tue
+                      <div *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.wed?.length || 0) > 0">Wed
+                      <div *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.thu?.length || 0) > 0">Thu
+                      <div *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.fri?.length || 0) > 0">Fri
+                      <div *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.sat?.length || 0) > 0">Sat
+                      <div *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
+                    <div *ngIf="(item?.sun?.length || 0) > 0">Sun
+                      <div *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</div>
+                    </div>
                   </div>
                 </ng-container>
               </ng-container>
@@ -183,9 +223,13 @@
           <div class="actions">
             <ng-container *ngIf="item.isVerified != 1">
               <label class="switch">
-                <input type="checkbox" [checked]="item.isActive" (change)="onChangeEstablishment(item)" />
-                <div class="slider round"></div>
-              </label>
+              <input
+                type="checkbox"
+                [checked]="item.isActive"
+                (change)="onChangeEstablishment(item, $event)" />
+              <div class="slider round"></div>
+            </label>
+
             </ng-container>
 
             <ng-container *ngIf="item.isVerified == 1">
@@ -193,8 +237,14 @@
             </ng-container>
 
             <div class="ctrls">
-              <button class="btn btn-primary" [disabled]="item.isVerified === 1" [routerLink]="['edit']" [queryParams]="{ id: item._id }">
-                <span class="material-icons">edit</span> Edit
+              <button
+                class="btn btn-primary"
+                [disabled]="item.isVerified === 1"
+                [routerLink]="['/establishment/edit']"
+                [queryParams]="{ id: item['establishmentId'] }"
+              >
+                <span class="material-icons">edit</span>
+                Edit
               </button>
               <button class="btn btn-danger" [disabled]="item.isVerified === 1" (click)="deleteEstablishment(item)">
                 <span class="material-icons">delete</span> Delete
