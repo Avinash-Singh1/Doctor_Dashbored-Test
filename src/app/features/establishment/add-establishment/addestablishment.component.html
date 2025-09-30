@@ -1,0 +1,265 @@
+<div class="establishment-root">
+  <div class="page-title">
+    <h2>
+      {{ isEditMode ? 'Edit' : 'Add' }} Establishment
+      <span class="step_count">Step({{ count }}/2)</span>
+    </h2>
+  </div>
+
+  <form [formGroup]="establishmentForm" class="form-wrap" (ngSubmit)="onSubmit()">
+    <!-- STEP 1 -->
+    <div *ngIf="currentSlide === 1" class="step step-1">
+      <h3>Consultation & Practice Details</h3>
+
+      <!-- <div class="row">
+        <label>Consultation type</label>
+        <div class="inline-controls">
+          <label>
+            <input
+              type="radio"
+              name="consultationType"
+              (change)="onConsultationChange('In-clinic')"
+              [checked]="establishmentForm.get('showInClinic')?.value"
+            />
+            In-clinic Consultation
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="consultationType"
+              (change)="onConsultationChange('video')"
+              [checked]="establishmentForm.get('showVideo')?.value"
+            />
+            Video Consultation (Only)
+          </label>
+        </div>
+      </div> -->
+
+      <div class="row">
+  <label>Consultation type</label>
+  <div class="inline-controls">
+    <label>
+      <input
+        type="radio"
+        name="consultationType"
+        (change)="onConsultationChange('In-clinic')"
+        [checked]="establishmentForm.get('showInClinic')?.value"
+      />
+      In-clinic Consultation
+    </label>
+    <label>
+      <input
+        type="radio"
+        name="consultationType"
+        (change)="onConsultationChange('video')"
+        [checked]="establishmentForm.get('showVideo')?.value"
+      />
+      Video Consultation (Only)
+    </label>
+  </div>
+</div>
+
+<!-- show these checkboxes only when in-clinic mode is active -->
+<div *ngIf="establishmentForm.get('showInClinic')?.value" class="row consultation-checkboxes">
+  <label>Available modes</label>
+  <div class="inline-controls">
+    <!-- bind directly to the form controls so checks stay in sync -->
+    <label>
+      <input type="checkbox" formControlName="showInClinic" />
+      In-clinic
+    </label>
+    <label>
+      <input type="checkbox" formControlName="showVideo" />
+      Video Consultation
+    </label>
+  </div>
+</div>
+
+      <div *ngIf="shouldShowInClinicField()" class="in-clinic-section">
+        <h4>Connect a Practice</h4>
+
+        <div class="row">
+          <label>Establishment Name*</label>
+          <input type="text" formControlName="name" placeholder="Clinic/Hospital Name*" maxlength="100" />
+          <div class="error" *ngIf="establishmentForm.get('name')?.touched">
+            <div *ngIf="establishmentForm.get('name')?.hasError('required')">Establishment Name is required.</div>
+            <div *ngIf="establishmentForm.get('name')?.hasError('minlength')">At least 3 characters.</div>
+            <div *ngIf="establishmentForm.get('name')?.hasError('maxlength')">Less than 100 characters.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Clinic/Hospital Type*</label>
+          <select formControlName="hospitalTypeId">
+            <option value="">Select Type</option>
+            <option *ngFor="let t of hospitalTypeList" [value]="t._id">{{ t.name }}</option>
+          </select>
+          <div class="error" *ngIf="establishmentForm.get('hospitalTypeId')?.touched && establishmentForm.get('hospitalTypeId')?.hasError('required')">
+            Establishment Type is required.
+          </div>
+        </div>
+
+        <h3>Address Information</h3>
+
+        <!-- Address group with simple suggestion lists -->
+        <div formGroupName="address" class="row address-row">
+          <!-- landmark input + suggestions -->
+          <div style="position: relative;">
+            <input
+              type="text"
+              formControlName="landmark"
+              placeholder="Street address"
+              (input)="onSearch($event, 'predicationList')"
+              autocomplete="off"
+            />
+            <!-- suggestions dropdown -->
+            <ul *ngIf="predicationList && predicationList.length" class="suggestions">
+              <li *ngFor="let p of predicationList" (click)="onSelectPlace(p, 'landmark')">
+                {{ p.description }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- city input + suggestions -->
+          <div style="position: relative;">
+            <input
+              type="text"
+              formControlName="city"
+              placeholder="City"
+              (input)="onSearch($event, 'predicationCityList')"
+              autocomplete="off"
+            />
+            <ul *ngIf="predicationCityList && predicationCityList.length" class="suggestions">
+              <li *ngFor="let p of predicationCityList" (click)="onSelectPlace(p, 'city')">
+                {{ p.description }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- state and pincode -->
+          <input type="text" formControlName="state" placeholder="State" />
+          <input maxlength="6" type="text" formControlName="pincode" placeholder="Pincode" (input)="onPincodeInput($event)" />
+        </div>
+
+        <div class="row">
+          <label>Clinic/Hospital Proof*</label>
+          <select formControlName="proofType">
+            <option value="">Select Clinic/Hospital Proof</option>
+            <option *ngFor="let a of establishmentProofOptions" [value]="a">{{ a }}</option>
+          </select>
+
+          <div class="file-wrap">
+            <label class="custom-file-label" for="file_upload">Choose File</label>
+            <input id="file_upload" type="file" (change)="onFileSelected($event)" />
+            <div class="preview" *ngIf="establishmentProofUrl">
+              <img [src]="establishmentProofUrl" alt="preview" />
+              <button type="button" class="btn-remove" (click)="removeFile()">Remove</button>
+            </div>
+          </div>
+          <div class="error" *ngIf="establishmentForm.get('proofType')?.touched && establishmentForm.get('proofType')?.hasError('required')">
+            Proof Type is required.
+          </div>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <button type="button" class="btn-outline" (click)="previousSlide()">Back</button>
+        <button type="button" class="btn-primary" (click)="nextSlide()">Save & Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div *ngIf="currentSlide === 2" class="step step-2">
+      <h3>Consultation Timing</h3>
+
+      <div class="days-list">
+        <div
+          class="day-row"
+          *ngFor="let ctrl of daysControls.controls; let i = index"
+          [formGroup]="getDayControl(i)"
+        >
+          <label>Day</label>
+          <select formControlName="day">
+            <option value="">Select Days</option>
+            <option *ngFor="let option of additionalOptions" [value]="option.value" [disabled]="isOptionDisabled(option.value, i)">{{ option.label }}</option>
+          </select>
+
+          <div class="time-slots" formArrayName="timeSlots">
+            <div class="timeslot" *ngFor="let slot of getTimeSlots(i).controls; let j = index" [formGroupName]="j">
+              <label>Time {{ j + 1 }}</label>
+              <select formControlName="from">
+                <option value="">Start</option>
+                <option *ngFor="let t of timingArray" [value]="t.name">{{ t.name }}</option>
+              </select>
+              <select formControlName="to">
+                <option value="">End</option>
+                <option *ngFor="let t of timingArray" [value]="t.name">{{ t.name }}</option>
+              </select>
+
+              <button type="button" class="remove-slot" (click)="removeTimeSlot(i, j)" *ngIf="getTimeSlots(i).length > 1">&times;</button>
+            </div>
+            <button type="button" class="add-slot" (click)="addTimeSlot(i)">Add more time</button>
+          </div>
+
+          <button type="button" class="remove-day" (click)="removeDay(i)" *ngIf="daysControls.length > 1">Remove Day</button>
+        </div>
+      </div>
+      <button type="button" class="btn-link" (click)="addDay()">Add Day & Time</button>
+
+      <div class="fees-row">
+        <div *ngIf="shouldShowInClinicField()">
+          <label>In-Clinic Consultation Fees*</label>
+          <input type="text" formControlName="consultationFees" placeholder="Type In-clinic consultation fee" />
+        </div>
+        <div *ngIf="shouldShowVideoField()">
+          <label>Video Consultation Fees*</label>
+          <input type="text" formControlName="videoConsultationFees" placeholder="Type video consultation fee" />
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <button type="button" class="btn-outline" (click)="previousSlide()">Back</button>
+        <button type="button" class="btn-primary" (click)="onSubmit()">Next</button>
+      </div>
+      <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+    </div>
+  </form>
+
+  <div class="modal-panel">
+    <h4>Saved establishments (local)</h4>
+    <table class="small-table" *ngIf="establishmentsList.length">
+      <thead><tr><th>Name</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let e of establishmentsList"><td>{{ e.name }}</td><td>{{ e.consultationType }}</td></tr>
+      </tbody>
+    </table>
+    <p *ngIf="establishmentsList.length === 0">No establishments saved yet.</p>
+  </div>
+</div>
+<style>
+  /* Add near the end of your SCSS file */
+.suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+  max-height: 220px;
+  overflow: auto;
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+
+  li {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  li:hover { background: rgba(37,99,235,0.04); }
+}
+
+</style>

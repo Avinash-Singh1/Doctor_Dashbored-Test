@@ -42,6 +42,7 @@ interface Establishment {
   isActive?: boolean;
   isOwner?: boolean;
   [key: string]: any;
+  establishmentId:any
 }
 
 @Component({
@@ -63,10 +64,10 @@ export class DoctorEstablishmentComponent implements OnInit {
   error: string | null = null;
 
   private readonly API_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100';
-  private readonly DELETE_URL = 'http://localhost:8080/api/v1/doctor/doctor-delete-establishment';
+  private readonly DELETE_URL = 'http://localhost:8080/api/v1/doctor/doctor-delete-establishment2';
 
   // 🔑 Hardcoded token
-  private readonly TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg3MDY0NTgsImV4cCI6MTc1OTMxMTI1OH0.zTEVlYA3zAzE3m2dBrSbVhKYNDbeesiAHRsppyItImw';
+  private readonly TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg5NTQ1MzUsImV4cCI6MTc1OTU1OTMzNX0.SYdsNjVp6JTGjaJCoCkLnHd55DkvC1K0_Q2BYa3t0Wc';
 
   constructor(private router: Router, private http: HttpClient) {}
 
@@ -191,7 +192,7 @@ export class DoctorEstablishmentComponent implements OnInit {
   //   // Optionally persist change to backend here
   // }
 
-    private authKey: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg4Njc3NTMsImV4cCI6MTc1OTQ3MjU1M30.PfCopJOkuoKkvIaZfmGF88QQtV4eAsEuzFFPcFyVusw';
+  private authKey: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg4Njc3NTMsImV4cCI6MTc1OTQ3MjU1M30.PfCopJOkuoKkvIaZfmGF88QQtV4eAsEuzFFPcFyVusw';
 
    onChangeEstablishment(establishment: any, event: Event): void {
     alert("Hello world")
@@ -248,7 +249,7 @@ export class DoctorEstablishmentComponent implements OnInit {
     });
 
     const payload = {
-      establishmentId: this.deleteEstablishmentData._id
+      establishmentId: this.deleteEstablishmentData.establishmentId
     };
 
     this.http.post<any>(this.DELETE_URL, payload, { headers }).pipe(

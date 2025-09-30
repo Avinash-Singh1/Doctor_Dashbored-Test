@@ -1,90 +1,400 @@
-.main-content {
-  max-width: 900px;
-  margin: 2rem auto;
-  background: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+// ─────────────────────────────────────────────
+// Theme tokens
+// ─────────────────────────────────────────────
+$brand:        #45197c;
+$brand-600:    #3b156a;
+$brand-100:    #f4eefb;
+$ink:          #2c3e50;
+$muted:        #6b7a90;
+$line:         #e8edf3;
+$bg:           #ffffff;
+$danger:       #d92d20;
 
+$radius:       12px;
+$radius-lg:    16px;
+$shadow:       0 6px 24px rgba(16, 24, 40, 0.08), 0 2px 6px rgba(16, 24, 40, 0.06);
+
+// Breakpoints
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+$bp-xl: 1200px;
+
+@mixin respond($bp) {
+  @if $bp == sm { @media (min-width: #{$bp-sm}) { @content; } }
+  @if $bp == md { @media (min-width: #{$bp-md}) { @content; } }
+  @if $bp == lg { @media (min-width: #{$bp-lg}) { @content; } }
+  @if $bp == xl { @media (min-width: #{$bp-xl}) { @content; } }
+}
+
+// Focus ring helper
+@mixin focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba($brand, 0.25);
+}
+
+// ─────────────────────────────────────────────
+// Page shell
+// ─────────────────────────────────────────────
+:host {
+  display: block;
+  background: linear-gradient(180deg, #fafbff 0%, #f6f7fb 100%);
+  min-height: 100dvh;
+  padding: 1rem;
+
+  @include respond(md) { padding: 2rem; }
+}
+
+.main-content {
+  max-width: 960px;
+  margin: 0 auto;
+  background: $bg;
+  padding: 1.25rem;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  border: 1px solid $line;
+
+  @include respond(md) { padding: 2rem; }
+  @include respond(lg) { padding: 2.25rem 2.5rem; }
+
+  // HEADER
   .page-title {
     display: flex;
-    justify-content: space-between;
+    gap: 1rem;
     align-items: center;
-    margin-bottom: 2rem;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+
+    @include respond(md) { margin-bottom: 1.75rem; }
 
     h2 {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      color: #2c3e50;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: $ink;
+      font-size: clamp(1.25rem, 2vw + 1rem, 1.75rem);
+      line-height: 1.2;
     }
 
-    .btn-primary {
-      background: #45197c;
-      border: none;
+    .btn.btn-primary {
+      background: $brand;
+      border: 1px solid $brand;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      font-weight: 600;
+      transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
+
+      &:hover { background: $brand-600; }
+      &:active { transform: translateY(1px); }
+      &:focus-visible { @include focus-ring; }
     }
   }
 
+  // IDENT CARD
   .profile-ident {
-    .card-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    background: linear-gradient(0deg, #fff, #fff), $brand-100;
+    border: 1px solid $line;
+    border-radius: $radius;
+    padding: 1rem;
 
-      .pic-circle {
-        width: 80px;
-        height: 80px;
+    @include respond(md) { padding: 1.25rem; }
+
+    .card-info {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 1rem;
+      align-items: center;
+
+      @include respond(md) {
+        grid-template-columns: 88px 1fr;
+        gap: 1.25rem;
+      }
+
+      .pic-circle,
+      .initial-circle {
+        width: 72px;
+        height: 72px;
         border-radius: 50%;
         object-fit: cover;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: #fff;
+        background: $brand;
+
+        @include respond(md) {
+          width: 88px;
+          height: 88px;
+          font-size: 2rem;
+        }
       }
 
-      .initial-circle {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: #45197c;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        font-weight: bold;
+      .personal-info {
+        h2 {
+          margin: 0 0 .25rem 0;
+          font-size: clamp(1.1rem, 1.2vw + 1rem, 1.5rem);
+          color: $ink;
+        }
+        p {
+          margin: 0;
+          color: $muted;
+          font-size: .95rem;
+        }
       }
     }
   }
 
+  // SECTION HEAD + inline edit
   h3 {
-    margin-top: 1.5rem;
+    margin: 1.5rem 0 .75rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $ink;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+
+    @include respond(md) { margin-top: 2rem; }
 
     .edit-link {
-      background: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: transparent;
       border: none;
-      color: #45197c;
+      color: $brand;
+      font-weight: 600;
+      font-size: .95rem;
+      padding: .25rem .5rem;
+      border-radius: 999px;
+      line-height: 1;
+      transition: background .15s ease;
+
+      svg { display: inline-block; }
+      span { position: relative; top: 1px; }
+
+      &:hover { background: rgba($brand, .08); }
+      &:focus-visible { @include focus-ring; }
+      &:active { transform: translateY(1px); }
       cursor: pointer;
-      font-size: 0.9rem;
     }
   }
+
+  // Rich text and lists
+  p { color: $ink; opacity: .9; line-height: 1.6; }
+  hr { border-color: $line; opacity: 1; }
 
   ul {
-    margin: 0.5rem 0 1rem 1.5rem;
+    margin: .25rem 0 1rem 1.25rem;
+    padding: 0;
+    list-style: disc;
 
     li {
-      line-height: 1.8;
+      line-height: 1.75;
       font-size: 1rem;
+      color: $ink;
+
+      & + li { margin-top: .25rem; }
     }
   }
 
+  // Footer
   .page-footer {
-    margin-top: 2rem;
-    text-align: right;
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
 
-    .btn-primary {
-      background: #45197c;
-      border: none;
-      padding: 0.5rem 1.5rem;
+    .btn.btn-primary {
+      background: $brand;
+      border: 1px solid $brand;
+      padding: .6rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 600;
+
+      &:hover { background: $brand-600; }
+      &:focus-visible { @include focus-ring; }
     }
   }
+}
+
+// ─────────────────────────────────────────────
+// FORMS (edit modal) – refine Bootstrap defaults
+// ─────────────────────────────────────────────
+.form-group {
+  margin-bottom: 1rem;
+
+  label.main {
+    font-weight: 600;
+    color: $ink;
+
+    &.required::after {
+      content: " *";
+      color: $danger;
+      font-weight: 700;
+    }
+  }
+
+  .form-control, .form-select, select.form-control {
+    border: 1px solid $line;
+    border-radius: 10px;
+    padding: .6rem .8rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
+
+    &:hover { border-color: rgba($brand, .5); }
+    &:focus { border-color: $brand; @include focus-ring; }
+    &.is-invalid { border-color: $danger; }
+  }
+
+  .text-danger {
+    font-size: .85rem;
+    margin-top: .35rem;
+  }
+}
+
+.input-group {
+  .btn.btn-link {
+    color: $brand;
+    text-decoration: none;
+    font-weight: 600;
+    padding-left: .5rem;
+    &:hover { text-decoration: underline; }
+    &:focus-visible { @include focus-ring; }
+  }
+}
+
+// Radio group alignment
+.form-check-inline {
+  margin-right: 1rem;
+  .form-check-input:focus { @include focus-ring; }
+}
+
+// Multiselect height
+select[formControlName="specialization"] {
+  min-height: 120px;
+}
+
+// Profile image in modal
+.profile-pic-wrapper {
+  .profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: $shadow;
+  }
+
+  .btn.btn-outline-secondary {
+    border-radius: 999px;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Modals (Bootstrap 4/5 compatible)
+// ─────────────────────────────────────────────
+.modal-content {
+  border: 1px solid $line;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+}
+
+.modal-header {
+  border-bottom: 1px solid $line;
+
+  .modal-title {
+    font-weight: 700;
+    color: $ink;
+  }
+
+  .close,
+  .btn-close {
+    opacity: .6;
+    &:hover { opacity: 1; }
+    &:focus-visible { @include focus-ring; }
+  }
+}
+
+.modal-body {
+  .list-unstyled { margin-bottom: 0; }
+  .btn.btn-link {
+    color: $brand;
+    font-weight: 600;
+    padding-left: 0;
+    &:hover { text-decoration: underline; }
+  }
+
+  // trash icon buttons
+  button.btn.btn-link[title="Delete"],
+  .col-1 .btn.btn-link,
+  .col-2 .btn.btn-link {
+    color: $danger;
+    &:hover { opacity: .9; }
+    &:focus-visible { @include focus-ring; }
+  }
+
+  .min-height-applied { min-height: 220px; }
+}
+
+.modal-footer {
+  border-top: 1px solid $line;
+
+  .btn.btn-outline-secondary {
+    border-radius: 10px;
+    border-color: $line;
+    color: $ink;
+
+    &:hover { background: #f7f7fb; }
+  }
+
+  .btn.btn-primary {
+    background: $brand;
+    border-color: $brand;
+    font-weight: 600;
+
+    &:hover { background: $brand-600; }
+    &:focus-visible { @include focus-ring; }
+  }
+}
+
+// ─────────────────────────────────────────────
+// Dropdowns in Social modal (full-width + fixed)
+// ─────────────────────────────────────────────
+.dropdown {
+  .dropdown-toggle {
+    border-radius: 10px;
+    border: 1px solid $line;
+    &:focus-visible { @include focus-ring; }
+  }
+  .dropdown-menu {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid $line;
+    box-shadow: $shadow;
+    max-height: 260px;
+    overflow-y: auto;
+
+    .dropdown-item {
+      padding: .55rem .75rem;
+      &:hover { background: $brand-100; color: $brand; }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// Utilities
+// ─────────────────────────────────────────────
+.clearfix { display: block; }
+.text-center { text-align: center; }
+
+// Hide the native file input (already done inline, but keep safety)
+#profile-upload { display: none; }
+
+// Make the whole sheet responsive & comfy on mobile
+@media (max-width: 575.98px) {
+  .main-content {
+    border-radius: 0.75rem;
+  }
+  .page-title .btn { white-space: nowrap; }
+  ul { margin-left: 1rem; }
 }

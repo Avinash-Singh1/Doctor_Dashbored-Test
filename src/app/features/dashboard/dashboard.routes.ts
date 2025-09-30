@@ -20,6 +20,7 @@ import { DeleteComponent } from '../settings/delete/delete.component';
 import { AuthGuard } from '../../core/guards/auth.guard'; 
 import { DoctorEstablishmentComponent } from '../establishment/doctor-establishment/doctor-establishment.component'; 
 import { EstablishmentComponent2 } from '../establishment/edit-establshiment/establishment2.component';
+import { AddEstablishmentComponent } from '../establishment/add-establishment/addestablishment.component';
 export const dashboardRoutes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard] },
@@ -28,6 +29,7 @@ export const dashboardRoutes: Routes = [
   { path: 'establishment', component: EstablishmentComponent, canActivate: [AuthGuard] },
   { path: 'establishment/:mode', component: EstablishmentComponent2, canActivate: [AuthGuard] },
   { path: 'doc-establishment', component: DoctorEstablishmentComponent, canActivate: [AuthGuard] },
+  { path: 'add-establishment', component: AddEstablishmentComponent, canActivate: [AuthGuard] },
   { path: 'services', component: ServicesComponent, canActivate: [AuthGuard] },
   { path: 'procedure', component: ProcedureComponent, canActivate: [AuthGuard] },
   { path: 'videos', component: VideosComponent, canActivate: [AuthGuard] },

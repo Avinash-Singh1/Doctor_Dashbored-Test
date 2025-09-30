@@ -2,12 +2,24 @@
   <!-- Page Header -->
   <div class="page-title">
     <h2>FAQs</h2>
-    <button class="btn btn-primary" (click)="onAddFaqs()">Add FAQ</button>
+    <div class="actions">
+      <button class="btn btn-outline-secondary" (click)="refresh()">Refresh</button>
+      <button class="btn btn-primary" (click)="onAddFaqs()">Add FAQ</button>
+    </div>
+  </div>
+
+  <!-- Loading / Error states -->
+  <div *ngIf="loading" class="alert alert-info">Loading FAQs…</div>
+  <div *ngIf="!loading && loadError" class="alert alert-danger">{{ loadError }}</div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !loadError && faqsList.length === 0" class="alert alert-warning">
+    No FAQs found.
   </div>
 
   <!-- FAQ List -->
-  <div class="faq-list">
-    <div class="faq-item" *ngFor="let faq of faqsList">
+  <div class="faq-list" *ngIf="!loading && !loadError && faqsList.length">
+    <div class="faq-item" *ngFor="let faq of faqsList; trackBy: trackById">
       <div class="faq-content">
         <p class="question">Q: {{ faq.question }}</p>
         <p class="answer">{{ faq.answer }}</p>
@@ -26,8 +38,7 @@
       <textarea #addAnswer placeholder="Enter Answer"></textarea>
       <div class="modal-actions">
         <button class="btn btn-secondary" (click)="closeModal('addFaqModal')">Cancel</button>
-        <button class="btn btn-primary"
-          (click)="handleAddFaq(addQuestion.value, addAnswer.value)">Save</button>
+        <button class="btn btn-primary" (click)="handleAddFaq(addQuestion.value, addAnswer.value)">Save</button>
       </div>
     </div>
   </div>
@@ -43,8 +54,7 @@
       <div class="modal-actions">
         <button class="btn btn-danger" (click)="onDeleteFaqs()">Delete</button>
         <button class="btn btn-secondary" (click)="closeModal('editFaqModal')">Cancel</button>
-        <button class="btn btn-primary"
-          (click)="handleEditFaq(selectedFaq.question, selectedFaq.answer)">Save</button>
+        <button class="btn btn-primary" (click)="handleEditFaq(selectedFaq.question, selectedFaq.answer)">Save</button>
       </div>
     </div>
   </div>

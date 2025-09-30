@@ -1,360 +1,623 @@
-<div class="main-content">
-  <!-- Page Title -->
-  <div class="page-title">
-    <h2>
-      <!-- <div class="hamber">
-        <button class="svg-icon-button">
-          <img src="assets/images/svg/hamber.svg" alt="menu" />
-        </button>
-      </div> -->
-      Profile
-    </h2>
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#editProfileModal"
-    >
-      Edit Profile
-    </button>
-  </div>
+<div class="inner-wrapper" id="clickToCloseArea">
 
-  <!-- Profile Display -->
-  <div class="page-form profile-screen">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="profile-ident">
-          <div class="card-info">
-            <img
-              *ngIf="doctor.profilePic"
-              alt="profilepic"
-              class="pic-circle"
-              [src]="doctor.profilePic"
-            />
-            <div *ngIf="!doctor.profilePic" class="initial-circle">
-              {{ doctor.name.charAt(0) }}
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-title">
+      <h2>
+        Profile
+      </h2>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-toggle="modal"
+        data-target="#edit_profile_modal"
+        (click)="openModal('edit_profile_modal')"
+      >
+        Edit Profile
+      </button>
+    </div>
+
+    <form>
+      <div class="page-form profile-screen" (click)="closeSideBar()">
+        <!-- IDENT -->
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="profile-ident">
+              <div class="card-info">
+                <img
+                  *ngIf="getFormValues?.doctor?.profilePic"
+                  alt="profilepic"
+                  class="pic-circle"
+                  [src]="getFormValues?.doctor?.profilePic"
+                />
+                <div *ngIf="!getFormValues?.doctor?.profilePic" class="initial-circle">
+                  {{ getFormValues?.fullName ? getFormValues?.fullName.charAt(0) : '' }}
+                </div>
+                <div class="personal-info">
+                  <h2>{{ getFormValues?.fullName }}</h2>
+                  <p>{{ getSpecializationNames(getFormValues?.doctor?.specialization) }}</p>
+                </div>
+              </div>
             </div>
-            <div class="personal-info">
-              <h2>{{ doctor.name }}</h2>
-              <p>{{ doctor.specialization }}</p>
+          </div>
+        </div>
+
+        <!-- ABOUT -->
+        <div class="row">
+          <div class="col-lg-12">
+            <h3>About Me*</h3>
+            <p style="white-space: pre-line;">{{ getFormValues?.doctor?.about }}</p>
+            <hr />
+          </div>
+        </div>
+
+        <!-- EDUCATION -->
+        <div class="row">
+          <div class="col-lg-12">
+            <h3>
+              Education
+              <button type="button" class="edit-link" (click)="openModal('add_editucaiton_modal')">
+                <svg width="20" height="21" viewBox="0 0 20 21" fill="none"><path d="M2.5 14.8751V18.0001H5.625L14.8417 8.78346L11.7167 5.65846L2.5 14.8751ZM17.2583 6.3668C17.5833 6.0418 17.5833 5.5168 17.2583 5.1918L15.3083 3.2418C14.9833 2.9168 14.4583 2.9168 14.1333 3.2418L12.6083 4.7668L15.7333 7.8918L17.2583 6.3668Z" fill="#45197C"/></svg>
+                <span>Edit</span>
+              </button>
+            </h3>
+            <ul *ngFor="let item of educationList">
+              <li>{{ item.degree }} - {{ item.college }}, {{ item.year }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- AWARDS -->
+        <div class="row">
+          <div class="col-lg-12">
+            <h3>
+              Awards and Recognitions
+              <button type="button" class="edit-link" (click)="openModal('awards_recognitions_modal')">
+                <svg width="20" height="21" viewBox="0 0 20 21" fill="none"><path d="M2.5 14.8751V18.0001H5.625L14.8417 8.78346L11.7167 5.65846L2.5 14.8751ZM17.2583 6.3668C17.5833 6.0418 17.5833 5.5168 17.2583 5.1918L15.3083 3.2418C14.9833 2.9168 14.4583 2.9168 14.1333 3.2418L12.6083 4.7668L15.7333 7.8918L17.2583 6.3668Z" fill="#45197C"/></svg>
+                <span>Edit</span>
+              </button>
+            </h3>
+            <ul *ngFor="let item of awardList">
+              <li>{{ item.name }} - {{ item.year }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- MEMBERSHIP -->
+        <div class="row">
+          <div class="col-lg-12">
+            <h3>
+              Membership
+              <button type="button" class="edit-link" (click)="openModal('membership_modal')">
+                <svg width="20" height="21" viewBox="0 0 20 21" fill="none"><path d="M2.5 14.8751V18.0001H5.625L14.8417 8.78346L11.7167 5.65846L2.5 14.8751ZM17.2583 6.3668C17.5833 6.0418 17.5833 5.5168 17.2583 5.1918L15.3083 3.2418C14.9833 2.9168 14.4583 2.9168 14.1333 3.2418L12.6083 4.7668L15.7333 7.8918L17.2583 6.3668Z" fill="#45197C"/></svg>
+                <span>Edit</span>
+              </button>
+            </h3>
+            <ul *ngFor="let item of membershipList">
+              <li>{{ item.name }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SOCIAL -->
+        <div class="row">
+          <div class="col-lg-12">
+            <h3>
+              Social & Websites
+              <button type="button" class="edit-link" (click)="openModal('social_websites_modal')">
+                <svg width="20" height="21" viewBox="0 0 20 21" fill="none"><path d="M2.5 14.8751V18.0001H5.625L14.8417 8.78346L11.7167 5.65846L2.5 14.8751ZM17.2583 6.3668C17.5833 6.0418 17.5833 5.5168 17.2583 5.1918L15.3083 3.2418C14.9833 2.9168 14.4583 2.9168 14.1333 3.2418L12.6083 4.7668L15.7333 7.8918L17.2583 6.3668Z" fill="#45197C"/></svg>
+                <span>Edit</span>
+              </button>
+            </h3>
+            <ul *ngFor="let type of socialList">
+              <li>{{ type.name }}: {{ type.url }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <a (click)="finish()" class="btn btn-primary">Finish</a>
+      </div>
+    </form>
+
+    <!-- =========================
+         EDIT PROFILE MODAL
+         ========================= -->
+    <div class="modal fade edit_profile_modal" id="edit_profile_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Profile</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeModal('edit_profile_modal')">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <form [formGroup]="profileForm" (ngSubmit)="submitForm()">
+              <div class="row">
+                <div class="col-lg-12 text-center">
+                  <div class="profile-pic-wrapper" style="position: relative">
+                    <label for="profile-upload" style="cursor: pointer">
+                      <img *ngIf="isProfilePic" alt="profilepic" class="profile-pic" [src]="profileForm.get('profilePic')?.value" />
+                      <div *ngIf="!isProfilePic" class="initial-circle">
+                        <img alt="profilepic" class="profile-pic" src="assets/images/avatar.png" />
+                      </div>
+                    </label>
+                    <input type="file" id="profile-upload" name="profile" accept="image/*" style="display:none" (change)="onFileUpload($event)" />
+                  </div>
+                  <button type="button" class="btn btn-outline-secondary" style="margin-top:10px" (click)="openFileInput()">
+                    Edit Image
+                  </button>
+                </div>
+              </div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <label class="main required">Name</label>
+                  <input type="text" class="form-control" formControlName="fullName" />
+                  <div class="text-danger" *ngIf="control['fullName'].touched && control['fullName'].errors?.['required']">Please enter name.</div>
+                </div>
+              </div></div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <label class="main required">Gender</label>
+                  <div class="clearfix"></div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="1" formControlName="gender" id="male" />
+                    <label class="form-check-label" for="male">Male</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="2" formControlName="gender" id="female" />
+                    <label class="form-check-label" for="female">Female</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="3" formControlName="gender" id="other" />
+                    <label class="form-check-label" for="other">Other</label>
+                  </div>
+                </div>
+              </div></div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <!-- Use any select lib; plain multiple select for zero deps -->
+                  <label class="main required">Specialisation</label>
+                  <select formControlName="specialization" class="form-control" multiple>
+                    <option *ngFor="let s of specializationList" [value]="s._id">{{ s.name }}</option>
+                  </select>
+                  <div class="text-danger" *ngIf="control['specialization'].touched && control['specialization'].errors?.['required']">
+                    Please select specialization.
+                  </div>
+                </div>
+              </div></div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <label class="main required">Experience</label>
+                  <select class="form-control" formControlName="experience">
+                    <option *ngFor="let y of experinenceYear" [value]="y.value">{{ y.label }}</option>
+                  </select>
+                  <div class="text-danger" *ngIf="control['experience'].touched && control['experience'].errors?.['required']">
+                    Please select experience.
+                  </div>
+                </div>
+              </div></div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <label class="main required" for="mobile">Mobile No</label>
+                  <div class="input-group">
+                    <input formControlName="phone" type="text" class="form-control" id="mobile" placeholder="+91 9999999999" />
+                    <!-- <button type="button" class="input-group-append btn btn-link">Edit</button> -->
+                    <button
+                    type="button"
+                    class="input-group-append btn btn-link"
+                    (click)="openPhoneModal()"
+                  >
+                    Edit
+                  </button>
+
+                  </div>
+                </div>
+              </div></div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <label class="main required">Email</label>
+                  <input formControlName="email" type="email" class="form-control" placeholder="doctor@email.com" />
+                  <div class="text-danger" *ngIf="control['email'].touched && control['email'].errors?.['required']">Please Enter Email.</div>
+                </div>
+              </div></div>
+
+              <div class="row"><div class="col-lg-12">
+                <div class="form-group">
+                  <label class="main required">About Me</label>
+                  <textarea formControlName="about" class="form-control" rows="4"></textarea>
+                  <div class="text-danger" *ngIf="control['about'].touched && control['about'].errors?.['required']">Please enter about me.</div>
+                </div>
+              </div></div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" (click)="closeModal('edit_profile_modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+         EDUCATION MODAL
+         ========================= -->
+    <div class="modal fade editucaiton_modal" id="add_editucaiton_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Education</h5>
+            <button type="button" class="close" data-dismiss="modal" (click)="closeModal('add_editucaiton_modal')">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Existing (editable) -->
+            <ul *ngFor="let item of educationList; let i = index" class="list-unstyled">
+              <li class="row align-items-center mb-3">
+                <div class="col-3 col-md-4 mb-2">
+                  <input type="text" class="form-control mb-1"
+                         name="degree-{{i}}"
+                         placeholder="Degree"
+                         [(ngModel)]="editedEducationList[item._id!].degree"
+                         (change)="markEducationAsEdited(item)" />
+                </div>
+                <div class="col-3 col-md-5">
+                  <input type="text" class="form-control"
+                         name="college-{{i}}"
+                         placeholder="College/Institute"
+                         [(ngModel)]="editedEducationList[item._id!].college"
+                         (change)="markEducationAsEdited(item)" />
+                </div>
+                <div class="col-4 col-md-2">
+                  <select class="form-control"
+                          [(ngModel)]="editedEducationList[item._id!].year"
+                          name="year-{{i}}"
+                          (change)="markEducationAsEdited(item)">
+                    <option value="">Year</option>
+                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                  </select>
+                </div>
+                <div class="col-1 col-md-1 text-center">
+                  <button type="button" title="Delete" class="btn btn-link" (click)="deleteEducation(item)">🗑</button>
+                </div>
+              </li>
+            </ul>
+
+            <!-- New rows -->
+            <div *ngFor="let newItem of newEducationList; let idx = index" class="row align-items-center mb-3">
+              <div class="col-3 col-md-4">
+                <input type="text" class="form-control" name="newDegree-{{idx}}" placeholder="Degree"
+                       [(ngModel)]="newItem.degree" (ngModelChange)="onFieldChange('degree', newItem)"
+                       [ngClass]="{'is-invalid': newItem.degreeError}" />
+                <div *ngIf="newItem.degreeError" class="text-danger">Degree is required*</div>
+              </div>
+              <div class="col-3 col-md-5">
+                <input type="text" class="form-control" name="newCollege-{{idx}}" placeholder="College/Institute"
+                       [(ngModel)]="newItem.college" (ngModelChange)="onFieldChange('college', newItem)"
+                       [ngClass]="{'is-invalid': newItem.collegeError}" />
+                <div *ngIf="newItem.collegeError" class="text-danger">College is required*</div>
+              </div>
+              <div class="col-4 col-md-2">
+                <select class="form-control" name="newYear-{{idx}}" [(ngModel)]="newItem.year"
+                        (ngModelChange)="onFieldChange('year', newItem)" [ngClass]="{'is-invalid': newItem.yearError}">
+                  <option value="">Year</option>
+                  <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                </select>
+                <div *ngIf="newItem.yearError" class="text-danger">Year is required*</div>
+              </div>
+              <div class="col-1 col-md-1 text-center">
+                <button type="button" class="btn btn-link" (click)="deleteNewEducation(idx)">🗑</button>
+              </div>
             </div>
+
+            <button type="button" class="btn btn-link" (click)="addMoreEducation()">+ Add More</button>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" (click)="closeModal('add_editucaiton_modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveEducation()">Save</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- About -->
-    <div class="row">
-      <div class="col-lg-12">
-        <h3>About Me*</h3>
-        <p style="white-space: pre-line;">{{ doctor.about }}</p>
-        <hr />
+    <!-- =========================
+         AWARDS MODAL
+         ========================= -->
+    <div class="modal fade" id="awards_recognitions_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Awards and Recognitions</h5>
+            <!-- <button type="button" class="close" data-dismiss="modal" (click)="closeModal('awards_recognitions_modal')">
+              <span aria-hidden="true">&times;</span>
+            </button> -->
+            <button type="button"
+                    class="btn-close-custom"
+                    data-dismiss="modal"
+                    (click)="closeModal('awards_recognitions_modal')"
+                    aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+
+          </div>
+
+          <div class="modal-body">
+            <ul *ngFor="let item of awardList; let i = index" class="list-unstyled">
+              <li class="row align-items-center mb-3">
+                <div class="col-6 col-md-6">
+                  <input type="text" class="form-control" name="awardName{{i}}" [(ngModel)]="item.name"
+                         placeholder="Award Name" (change)="markAwardAsEdited(item)" />
+                </div>
+                <div class="col-4 col-md-4">
+                  <select class="form-control" [(ngModel)]="item.year" name="awardYear{{i}}">
+                    <option value="">Year</option>
+                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                  </select>
+                </div>
+                <div class="col-2 col-md-2 text-center">
+                  <button type="button" class="btn btn-link" (click)="deleteAward(item)">🗑</button>
+                </div>
+              </li>
+            </ul>
+
+            <div *ngFor="let newItem of newAwardList; let idx = index" class="row align-items-center mb-3">
+              <div class="col-6 col-md-6">
+                <input type="text" class="form-control" name="newAwardName{{idx}}" [(ngModel)]="newItem.name"
+                       placeholder="Award Name" (ngModelChange)="onFieldChange('awardName', newItem)"
+                       [ngClass]="{'is-invalid': newItem.nameError}" />
+                <div *ngIf="newItem.nameError" class="text-danger">Award Name is required*</div>
+              </div>
+              <div class="col-4 col-md-4">
+                <select class="form-control" [(ngModel)]="newItem.year" name="newAwardYear{{idx}}">
+                  <option value="">Year</option>
+                  <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                </select>
+              </div>
+              <div class="col-2 col-md-2 text-center">
+                <button type="button" class="btn btn-link" (click)="deleteNewAward(idx)">🗑</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-link" (click)="addMoreAward()">+ Add More</button>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" (click)="closeModal('awards_recognitions_modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveAllAwards()">Save</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Education -->
-    <div class="row">
-      <div class="col-lg-12">
-        <h3>
-          Education
-          <button
-            type="button"
-            class="edit-link"
-            data-bs-toggle="modal"
-            data-bs-target="#educationModal"
-          >
-            Edit
-          </button>
-        </h3>
-        <ul>
-          <li *ngFor="let edu of doctor.education">
-            {{ edu.degree }} - {{ edu.college }}, {{ edu.year }}
-          </li>
-        </ul>
+    <!-- =========================
+         MEMBERSHIP MODAL
+         ========================= -->
+    <div class="modal fade" id="membership_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Membership</h5>
+            <button type="button" class="close" data-dismiss="modal" (click)="closeModal('membership_modal')">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <ul *ngFor="let item of membershipList; let i = index" class="list-unstyled">
+              <li class="row align-items-center mb-3">
+                <div class="col-10 col-md-10">
+                  <input type="text" class="form-control" name="memberName{{i}}" [(ngModel)]="item.name"
+                         placeholder="Name" (change)="markMemberAsEdited(item)" />
+                </div>
+                <div class="col-2 col-md-2 text-center">
+                  <button type="button" class="btn btn-link" (click)="deleteMembership(item)">🗑</button>
+                </div>
+              </li>
+            </ul>
+
+            <div *ngFor="let newItem of newMemberList; let idx = index" class="row align-items-center mb-3">
+              <div class="col-10 col-md-10">
+                <input type="text" class="form-control" name="newMemberName{{idx}}" [(ngModel)]="newItem.name"
+                       placeholder="Name" (ngModelChange)="onFieldChange('membershipName', newItem)"
+                       [ngClass]="{'is-invalid': newItem.nameError}" />
+                <div *ngIf="newItem.nameError" class="text-danger">Name is required*</div>
+              </div>
+              <div class="col-2 col-md-2 text-center">
+                <button type="button" class="btn btn-link" (click)="deleteNewMember(idx)">🗑</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-link" (click)="addMoreMember()">+ Add More</button>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" (click)="closeModal('membership_modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveAllMember()">Save</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Awards -->
-    <div class="row">
-      <div class="col-lg-12">
-        <h3>
-          Awards and Recognitions
-          <button
-            type="button"
-            class="edit-link"
-            data-bs-toggle="modal"
-            data-bs-target="#awardsModal"
-          >
-            Edit
-          </button>
-        </h3>
-        <ul>
-          <li *ngFor="let award of doctor.awards">
-            {{ award.name }} - {{ award.year }}
-          </li>
-        </ul>
+    <!-- =========================
+         SOCIAL & WEBSITES MODAL
+         ========================= -->
+    <div class="modal fade social_websites_modal" id="social_websites_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Social and Websites</h5>
+            <button type="button" class="close" data-dismiss="modal" (click)="closeModal('social_websites_modal')">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body min-height-applied">
+            <!-- Existing -->
+            <ul *ngFor="let item of socialList; let i = index" class="list-unstyled">
+              <li class="row align-items-center mb-3">
+                <div class="col-4 col-md-4">
+                  <div class="dropdown" style="position: relative;">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="width:100%;display:flex;align-items:center;justify-content:space-between;">
+                      {{ getSocialMediaName(item.socialMediaId) || 'Select Social Media' }}
+                    </button>
+                    <ul class="dropdown-menu" style="width:100%;">
+                      <li *ngFor="let type of socialTypes" (click)="selectSocialMedia(item, type)">
+                        <a class="dropdown-item">{{ type.name }}</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div *ngIf="item.socialMediaIdError" class="text-danger">Social is required*</div>
+                </div>
+                <div class="col-6 col-md-6">
+                  <input type="text" class="form-control" name="socialUrl{{i}}" [(ngModel)]="item.url" placeholder="Type Social Link" />
+                  <div *ngIf="item.urlError" class="text-danger">URL is required*</div>
+                </div>
+                <div class="col-2 col-md-2 text-center">
+                  <button type="button" class="btn btn-link" (click)="deleteSocail(item)">🗑</button>
+                </div>
+              </li>
+            </ul>
+
+            <!-- New -->
+            <div *ngFor="let newItem of newSocialList; let idx = index" class="row align-items-center mb-3">
+              <div class="col-4 col-md-4">
+                <div class="dropdown" style="position: relative;">
+                  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="width:100%;display:flex;align-items:center;justify-content:space-between;">
+                    {{ getSocialMediaName(newItem.socialMediaId) || 'Select' }}
+                  </button>
+                  <ul class="dropdown-menu" style="width:100%;">
+                    <li *ngFor="let type of socialTypes" (click)="selectNewSocialMedia(newItem, type)">
+                      <a class="dropdown-item" style="cursor:pointer;">{{ type.name }}</a>
+                    </li>
+                  </ul>
+                </div>
+                <div *ngIf="newItem.socialMediaIdError" class="text-danger">Social is required*</div>
+              </div>
+              <div class="col-6 col-md-6">
+                <input type="text" class="form-control" name="newSocialName{{idx}}" [(ngModel)]="newItem.url"
+                       placeholder="Type Social Link" (ngModelChange)="onFieldChange('socialLink', newItem)"
+                       [ngClass]="{'is-invalid': newItem.urlError}" />
+                <div *ngIf="newItem.urlError" class="text-danger">URL is required*</div>
+              </div>
+              <div class="col-2 col-md-2 text-center">
+                <button type="button" class="btn btn-link" (click)="deleteNewSocial(idx)">🗑</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-link" (click)="addMoreSocial()">+ Add More</button>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" (click)="closeModal('social_websites_modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveAllSocial()">Save</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Membership -->
-    <div class="row">
-      <div class="col-lg-12">
-        <h3>
-          Membership
-          <button
-            type="button"
-            class="edit-link"
-            data-bs-toggle="modal"
-            data-bs-target="#membershipModal"
-          >
-            Edit
-          </button>
-        </h3>
-        <ul>
-          <li *ngFor="let member of doctor.memberships">{{ member }}</li>
-        </ul>
-      </div>
-    </div>
 
-    <!-- Social -->
-    <div class="row">
-      <div class="col-lg-12">
-        <h3>
-          Social & Websites
-          <button
-            type="button"
-            class="edit-link"
-            data-bs-toggle="modal"
-            data-bs-target="#socialModal"
-          >
-            Edit
-          </button>
-        </h3>
-        <ul>
-          <li *ngFor="let social of doctor.socials">
-            {{ social.name }}: {{ social.url }}
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="page-footer">
-    <a class="btn btn-primary">Finish</a>
-  </div>
-</div>
-
-<!-- Profile Edit Modal -->
-<div
-  class="modal fade"
-  id="editProfileModal"
-  tabindex="-1"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered">
+    <!-- =========================
+     EDIT PHONE + VERIFY OTP MODAL
+     ========================= -->
+<div class="modal fade" id="edit_phone_modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Edit Profile</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title">Update Mobile Number</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closePhoneModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
+
       <div class="modal-body">
-        <form>
-          <div class="mb-3">
-            <label>Name</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="doctor.name"
-              name="name"
-            />
+        <!-- STEP 1: enter phone -->
+        <form [formGroup]="phoneForm" *ngIf="phoneStep === 1" (ngSubmit)="requestOtp()">
+          <div class="form-group">
+            <label class="main required" for="newPhone">New Mobile No</label>
+            <div class="input-group">
+              <input
+                id="newPhone"
+                type="tel"
+                class="form-control"
+                formControlName="phone"
+                placeholder="+91 9876543210"
+                autocomplete="tel"
+              />
+            </div>
+            <div class="text-danger" *ngIf="phoneForm.touched && phoneForm.invalid">
+              Please enter a valid phone number.
+            </div>
           </div>
-          <div class="mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              class="form-control"
-              [(ngModel)]="doctor.email"
-              name="email"
-            />
-          </div>
-          <div class="mb-3">
-            <label>Phone</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="doctor.phone"
-              name="phone"
-            />
-          </div>
-          <div class="mb-3">
-            <label>Specialization</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="doctor.specialization"
-              name="specialization"
-            />
-          </div>
-          <div class="mb-3">
-            <label>Experience</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="doctor.experience"
-              name="experience"
-            />
-          </div>
-          <div class="mb-3">
-            <label>About</label>
-            <textarea
-              rows="3"
-              class="form-control"
-              [(ngModel)]="doctor.about"
-              name="about"
-            ></textarea>
+
+          <div class="d-flex align-items-center gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="loading || phoneForm.invalid">
+              {{ loading ? 'Sending...' : 'Send OTP' }}
+            </button>
+            <div *ngIf="serverError" class="text-danger ml-2">{{ serverError }}</div>
           </div>
         </form>
+
+        <!-- STEP 2: verify otp -->
+        <form [formGroup]="otpForm" *ngIf="phoneStep === 2" (ngSubmit)="verifyOtp()">
+          <div class="form-group">
+            <label class="main required" for="otp">Enter OTP</label>
+            <input
+              id="otp"
+              type="text"
+              maxlength="6"
+              class="form-control"
+              formControlName="otp"
+              placeholder="6-digit code"
+              autocomplete="one-time-code"
+            />
+            <div class="text-danger" *ngIf="otpForm.touched && otpForm.invalid">
+              Please enter the 6-digit OTP.
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between">
+            <button type="submit" class="btn btn-primary" [disabled]="loading || otpForm.invalid">
+              {{ loading ? 'Verifying...' : 'Verify & Save' }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-link"
+              (click)="resendOtp()"
+              [disabled]="resendCooldown > 0 || loading"
+              title="Resend OTP"
+            >
+              Resend OTP <span *ngIf="resendCooldown > 0">({{ resendCooldown }}s)</span>
+            </button>
+          </div>
+
+          <div *ngIf="serverError" class="text-danger mt-2">{{ serverError }}</div>
+          <div *ngIf="serverInfo" class="text-success mt-2">{{ serverInfo }}</div>
+        </form>
       </div>
+
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="closePhoneModal()">Close</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Education Modal -->
-<div class="modal fade" id="educationModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Education</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngFor="let edu of doctor.education; let i = index" class="mb-2">
-          <input
-            type="text"
-            class="form-control mb-1"
-            [(ngModel)]="edu.degree"
-            name="degree-{{ i }}"
-            placeholder="Degree"
-          />
-          <input
-            type="text"
-            class="form-control mb-1"
-            [(ngModel)]="edu.college"
-            name="college-{{ i }}"
-            placeholder="College"
-          />
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="edu.year"
-            name="year-{{ i }}"
-            placeholder="Year"
-          />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Awards Modal -->
-<div class="modal fade" id="awardsModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Awards</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngFor="let award of doctor.awards; let i = index" class="mb-2">
-          <input
-            type="text"
-            class="form-control mb-1"
-            [(ngModel)]="award.name"
-            name="awardName-{{ i }}"
-            placeholder="Award Name"
-          />
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="award.year"
-            name="awardYear-{{ i }}"
-            placeholder="Year"
-          />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Membership Modal -->
-<div class="modal fade" id="membershipModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Membership</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngFor="let member of doctor.memberships; let i = index">
-          <input
-            type="text"
-            class="form-control mb-2"
-            [(ngModel)]="doctor.memberships[i]"
-            name="member-{{ i }}"
-          />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Social Modal -->
-<div class="modal fade" id="socialModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Social Links</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngFor="let social of doctor.socials; let i = index" class="mb-2">
-          <input
-            type="text"
-            class="form-control mb-1"
-            [(ngModel)]="social.name"
-            name="socialName-{{ i }}"
-            placeholder="Platform"
-          />
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="social.url"
-            name="socialUrl-{{ i }}"
-            placeholder="URL"
-          />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-      </div>
-    </div>
   </div>
 </div>
