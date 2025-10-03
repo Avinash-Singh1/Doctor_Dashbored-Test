@@ -43,8 +43,9 @@ export class VideosComponent implements OnInit, OnDestroy {
   private readonly API_BASE = 'http://localhost:8080/api/v1';
   private readonly LIST_PATH = '/video/list';
   private readonly EDIT_PATH = '/video'; // PUT
-  private readonly QUERY_LIST_ID = '65716d561eece2ff479fba0b'; // list API "id"
+  // private readonly QUERY_LIST_ID = '65716d561eece2ff479fba0b'; // list API "id"
   private readonly QUERY_USER_TYPE = 2;
+  currentUser:any;
 
   constructor(
     private renderer: Renderer2,
@@ -53,7 +54,11 @@ export class VideosComponent implements OnInit, OnDestroy {
     private router: Router,
     private http: HttpClient,
     private crypto: CryptoProvider
-  ) {}
+  ) {
+    this.currentUser = this.crypto.decryptObj(localStorage.getItem('authUser'));
+    console.log("Video: user ", this.currentUser);
+
+  }
 
   // Build auth header using dynamic token from localStorage (decrypted)
   private getAuthHeader(): HttpHeaders {
@@ -111,7 +116,7 @@ export class VideosComponent implements OnInit, OnDestroy {
     this.error = null;
 
     const params = new HttpParams()
-      .set('id', this.QUERY_LIST_ID)
+      .set('id', this.currentUser.doctorId)
       .set('userType', String(this.QUERY_USER_TYPE));
 
     this.http

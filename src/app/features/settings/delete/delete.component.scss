@@ -1,67 +1,187 @@
+/* ===== Delete Account (Panel) ===== */
 .delete-account-screen {
-  padding: 15px 22px;
+  /* Subtle panel so content doesn't blend into page */
+  background: #f8fafc;                 /* light slate/blue gray */
+  border: 1px solid #e5e7eb;           /* visible edge */
+  border-radius: 10px;
+  padding: 18px 22px;
+  box-shadow: 0 8px 28px rgba(2, 6, 23, 0.06);
 
+  p {
+    margin: 0;
+    color: #4b5563;                    /* gray-600 for clear contrast */
+    line-height: 1.6;
+    font-size: 0.975rem;
+
+    // strong { color: #111827; }         /* emphasize irreversible */
+  }
+
+  /* Primary delete CTA — keep your red but refine states */
   .delete-btn {
-    margin-top: 30px;
-    padding: 12px 35px;
-    background-color: #ff0000;
+    margin-top: 18px;
+    padding: 12px 18px;
+    background-color: #ef4444;         /* red-500 (less neon than pure #f00) */
     color: #fff;
-    border: none;
-    border-radius: 4px;
-    display: flex;
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .06s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+    box-shadow: 0 10px 24px rgba(239, 68, 68, .20);
 
     &:hover {
-      opacity: 0.7;
+      background-color: #dc2626;       /* red-600 */
+      border-color: #dc2626;
+      box-shadow: 0 12px 28px rgba(220, 38, 38, .25);
     }
+    &:active { transform: translateY(1px); }
+    &:focus-visible { outline: 3px solid rgba(239,68,68,.35); outline-offset: 2px; }
 
-    .material-icons {
-      font-size: 20px;
-    }
+    .material-icons { font-size: 20px; line-height: 1; }
   }
 }
 
+/* ===== Modal (Bootstrap-friendly) ===== */
 .modal {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);     /* slightly darker backdrop for clarity */
 
-  .btn-danger {
-    background-color: #ff0000;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .modal-dialog {
+    margin: 1.25rem;
+    max-width: 520px;
+  }
 
-    &:hover {
-      opacity: 0.85;
-    }
-
-    .material-icons {
-      font-size: 18px;
-    }
+  .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f9fafb;               /* NOT pure white; gentle gray */
+    color: #f5f8ff;
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.18);
   }
 
   .modal-header {
     position: relative;
-    padding-bottom: 0;
+    padding: 14px 16px;
+    background: #f3f4f6;               /* header contrast */
+    border-bottom: 1px solid #e5e7eb;
 
     h5 {
       margin: 0;
-      font-size: 20px;
-      font-weight: 600;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #edf0f7;
     }
 
     .close {
       background: transparent;
       border: none;
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      color: #000;
-      opacity: 0.5;
+      color: #6b7280;
+      opacity: .9;
       position: absolute;
-      top: 15px;
-      right: 20px;
+      top: 10px;
+      right: 12px;
       cursor: pointer;
+      line-height: 1;
+      border-radius: 6px;
+      padding: 2px 6px;
+      transition: background-color .15s ease, color .15s ease;
+
+      &:hover   { background: #e5e7eb; color: #111827; }
+      &:focus-visible { outline: 3px solid rgba(69,25,124,.25); outline-offset: 2px; }
+    }
+  }
+
+  .modal-body {
+    padding: 16px;
+    background: #f9fafb;
+    color: #1f2937;
+
+    p {
+      margin: 0 0 14px 0;
+      line-height: 1.6;
+    }
+
+    .modal-footer {
+      margin-top: 6px;
+      padding: 12px 0 0 0;
+      border-top: 1px solid #e5e7eb;
+
+      /* Responsive buttons: stack on mobile, side-by-side on sm+ */
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+
+      @media (min-width: 480px) {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  }
+
+  /* Buttons inside modal */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    line-height: 1;
+    transition: transform .06s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
+
+    &:active { transform: translateY(1px); }
+    &:focus-visible { outline: 3px solid rgba(69,25,124,.25); outline-offset: 2px; }
+
+    .material-icons { font-size: 18px; line-height: 1; }
+  }
+
+  .btn-danger {
+    background-color: #ef4444;         /* red-500 */
+    border: 1px solid #ef4444;
+    color: #fff;
+
+    &:hover  { background-color: #dc2626; border-color: #dc2626; }
+    &:active { background-color: #b91c1c; border-color: #b91c1c; }
+  }
+
+  .btn-outline-secondary {
+    background: #f3f4f6;               /* clear contrast vs body */
+    color: #374151;
+    border: 1px solid #d1d5db;
+
+    &:hover  { background: #e5e7eb; }
+    &:active { background: #d1d5db; }
+  }
+}
+
+/* ===== Utility: .btn-block (mobile full width) ===== */
+.btn-block {
+  width: 100%;
+  @media (min-width: 480px) { width: auto; }
+}
+
+/* ===== Optional Dark Mode (keeps contrast, no “all white”) ===== */
+@media (prefers-color-scheme: dark) {
+  .delete-account-screen {
+    // background: #0f1420;
+    border-color: #1f2937;
+    p { color: #a7bad1; }
+    .delete-btn { box-shadow: 0 10px 24px rgba(239,68,68,.18); }
+  }
+
+  .modal {
+    .modal-content { background: #0f1117; border-color: #262b36; color: #e5e7eb; }
+    .modal-header  { background: #ec3535; border-bottom-color: #262b36; }
+    // .modal-body    { background: #0f1117; }
+    .btn-outline-secondary {
+      background: #121826; color: #e5e7eb; border-color: #2b3547;
+      &:hover { background: #1a2132; }
+      &:active { background: #101624; }
     }
   }
 }

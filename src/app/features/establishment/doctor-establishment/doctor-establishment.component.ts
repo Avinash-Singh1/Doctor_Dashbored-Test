@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { HttpClient,HttpParams, HttpErrorResponse, HttpHeaders, HttpClientModule } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { CryptoProvider } from '../../../core/services/crypto.service';
 interface TimeSlot {
   from: string;
   to: string;
@@ -65,11 +66,13 @@ export class DoctorEstablishmentComponent implements OnInit {
 
   private readonly API_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100';
   private readonly DELETE_URL = 'http://localhost:8080/api/v1/doctor/doctor-delete-establishment2';
+  private readonly TOKEN:any;
 
   // 🔑 Hardcoded token
-  private readonly TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg5NTQ1MzUsImV4cCI6MTc1OTU1OTMzNX0.SYdsNjVp6JTGjaJCoCkLnHd55DkvC1K0_Q2BYa3t0Wc';
-
-  constructor(private router: Router, private http: HttpClient) {}
+  
+  constructor(private router: Router, private http: HttpClient,private crypto: CryptoProvider) {
+    this.TOKEN = this.crypto.decryptObj(localStorage.getItem('authToken'));
+  }
 
   ngOnInit(): void {
     this.fetchEstablishments();
@@ -194,6 +197,7 @@ export class DoctorEstablishmentComponent implements OnInit {
 
   private authKey: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZmOTY1ZjI3YzEwNDg5OThjYmE0NDAiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gQmVqdWdhbSBLZWVydGhpa2EiLCJpYXQiOjE3NTg4Njc3NTMsImV4cCI6MTc1OTQ3MjU1M30.PfCopJOkuoKkvIaZfmGF88QQtV4eAsEuzFFPcFyVusw';
 
+  
    onChangeEstablishment(establishment: any, event: Event): void {
     alert("Hello world")
     // Prevent unintended event bubbling
@@ -211,7 +215,7 @@ export class DoctorEstablishmentComponent implements OnInit {
     const url = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
 
     // Add headers with Bearer token
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authKey}`);
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.TOKEN}`);
 
     // Call API with PUT
     this.http.put(url, { isActive: newStatus }, { params, headers }).subscribe({

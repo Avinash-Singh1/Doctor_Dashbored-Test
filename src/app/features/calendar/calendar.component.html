@@ -1,25 +1,17 @@
-<div class="main-content">
+<div class="calendar-wrapper">
   <!-- Page Title -->
   <div class="page-title">
-    <div class="title-left d-flex align-items-center gap-3">
+    <div class="title-left">
       <h2>
-        <div class="hamber">
-          <button class="svg-icon-button" id="showMenu" (click)="onMenuClick()">
-            <mat-icon>menu</mat-icon>
-          </button>
-        </div>
         Calendar
       </h2>
 
-      <!-- Today Button -->
-      <div class="today-btn d-flex align-items-center gap-2 cursor-pointer"
-           (click)="onChangingMonth(0)">
+      <div class="today-btn" (click)="onChangingMonth(0)">
         <mat-icon>today</mat-icon>
         <span>TODAY</span>
       </div>
 
-      <!-- Month Switch -->
-      <div class="month-switch d-flex align-items-center gap-2">
+      <div class="month-switch">
         <button class="svg-icon-button" (click)="onChangingMonth(-1)">
           <mat-icon>chevron_left</mat-icon>
         </button>
@@ -30,23 +22,10 @@
       </div>
     </div>
 
-    <!-- View Toggle -->
-    <div class="button-wrapper d-flex">
-      <button type="button" class="toggole-button day"
-              [ngClass]="{ active: viewmode === 'day' }"
-              (click)="onChangingMode('day')">
-        DAY
-      </button>
-      <button type="button" class="toggole-button"
-              [ngClass]="{ active: viewmode === 'week' }"
-              (click)="onChangingMode('week')">
-        WEEK
-      </button>
-      <button type="button" class="toggole-button month"
-              [ngClass]="{ active: viewmode === 'month' }"
-              (click)="onChangingMode('month')">
-        MONTH
-      </button>
+    <div class="button-wrapper">
+      <button class="toggole-button" [ngClass]="{ active: viewmode === 'day' }" (click)="onChangingMode('day')">DAY</button>
+      <button class="toggole-button" [ngClass]="{ active: viewmode === 'week' }" (click)="onChangingMode('week')">WEEK</button>
+      <button class="toggole-button" [ngClass]="{ active: viewmode === 'month' }" (click)="onChangingMode('month')">MONTH</button>
     </div>
   </div>
 
@@ -60,40 +39,21 @@
   </div>
 
   <!-- Calendar & Appointment List -->
-  <div class="content d-flex w-100 justify-content-between" *ngIf="!hideView">
+  <div class="content" *ngIf="!hideView">
     <!-- Calendar -->
-    <div class="calendar w-75">
-      <nectar-month-view
-      *ngIf="viewmode == 'month'"
-      [appointments]="appointments"
-      [today]="today">
-    </nectar-month-view>
-
-    <nectar-week-view
-      *ngIf="viewmode == 'week'"
-      [appointments]="appointments"
-      [today]="today">
-    </nectar-week-view>
-
-    <nectar-day-view
-      *ngIf="viewmode == 'day'"
-      [appointments]="appointments"
-      [today]="today">
-    </nectar-day-view>
-
+    <div class="calendar">
+      <nectar-month-view *ngIf="viewmode == 'month'" [appointments]="appointments" [today]="today"></nectar-month-view>
+      <nectar-week-view *ngIf="viewmode == 'week'" [appointments]="appointments" [today]="today"></nectar-week-view>
+      <nectar-day-view *ngIf="viewmode == 'day'" [appointments]="appointments" [today]="today"></nectar-day-view>
     </div>
 
     <!-- Appointment Details -->
-    <div class="appointment-details w-25 border-top-style border-left-style">
-      <div class="header-pad d-flex justify-content-between align-items-center border-bottom-style">
+    <div class="appointment-details">
+      <div class="header-pad">
         <span class="sub-heading-label">
-          {{
-            (todayDate | date : "d EEEE, yyyy") === (today | date : "d EEEE, yyyy")
-              ? scheduleDay
-              : (todayDate | date : "d EEEE, yyyy")
-          }}
+          {{ (todayDate | date : "d EEEE, yyyy") === (today | date : "d EEEE, yyyy") ? scheduleDay : (todayDate | date : "d EEEE, yyyy") }}
         </span>
-        <div class="switch-btns d-flex gap-2">
+        <div class="switch-btns">
           <button class="svg-icon-button" (click)="onChangeSchedule(-1)">
             <mat-icon>chevron_left</mat-icon>
           </button>
@@ -106,42 +66,31 @@
       <div class="appointment-content">
         <ng-container *ngFor="let appt of appointmentConstant">
           <div class="pending">
-            <!-- Appointment Header -->
-            <div class="sub-heading-label px-24 py-3"
-                 [ngClass]="'border-' + appt.status">
+            <div class="sub-heading-label" [ngClass]="'border-' + appt.status">
               <mat-icon>{{ appt.icon }}</mat-icon>
               {{ appt.label }}
             </div>
 
-            <!-- Appointment Items -->
-            <div>
-              <ng-container *ngFor="let item of getAppointmentsByStatus(appt.status)">
-                <div class="event-details d-flex justify-content-between cursor-pointer"
-                     [ngClass]="item.status">
-                  <div class="event-left d-flex gap-3">
-                    <div class="time-label d-flex flex-column align-items-end">
-                      <span>{{ item.date | date : "h:mm a" }}</span>
-                      <span class="badge badge-primary" *ngIf="item.consultationType == 'in_clinic'">Clinic</span>
-                      <span class="badge badge-success" *ngIf="item.consultationType == 'video'">Video</span>
-                    </div>
-                    <div class="event-info d-flex flex-column">
-                      <span class="sub-heading-label">{{ item.fullName }}</span>
-                      <span>{{ item.reason }}</span>
-                      <span>{{ item.doctorName }}</span>
-                    </div>
-                  </div>
-                  <div class="event-status d-flex align-items-center">
-                    <mat-icon>{{ appt.icon }}</mat-icon>
-                    <span class="status">{{ appt.label }}</span>
-                  </div>
+            <div *ngFor="let item of getAppointmentsByStatus(appt.status)" class="event-details" [ngClass]="item.status">
+              <div class="event-left">
+                <div class="time-label">
+                  <span>{{ item.date | date : "h:mm a" }}</span>
+                  <span class="badge badge-primary" *ngIf="item.consultationType == 'in_clinic'">Clinic</span>
+                  <span class="badge badge-success" *ngIf="item.consultationType == 'video'">Video</span>
                 </div>
-              </ng-container>
+                <div class="event-info">
+                  <span class="sub-heading-label">{{ item.fullName }}</span>
+                  <span>{{ item.reason }}</span>
+                  <span>{{ item.doctorName }}</span>
+                </div>
+              </div>
+              <div class="event-status">
+                <mat-icon>{{ appt.icon }}</mat-icon>
+                <span class="status">{{ appt.label }}</span>
+              </div>
             </div>
 
-            <!-- No Appointments -->
-            <div class="no-appointments px-24 py-3 text-center"
-                 *ngIf="getAppointmentsByStatus(appt.status).length === 0"
-                 [ngClass]="'border-' + appt.status">
+            <div class="no-appointments" *ngIf="getAppointmentsByStatus(appt.status).length === 0">
               No {{ appt.label }} Appointments
             </div>
           </div>

@@ -1,76 +1,131 @@
 <div class="main-content">
   <div class="page-title">
     <h2>Security Settings</h2>
+    <p class="subtitle">Update your password. Use at least 8 characters with a mix of letters, numbers, and symbols.</p>
   </div>
 
-  <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()">
+  <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()" novalidate>
     <div class="page-form change-password-screen">
-      <!-- Current Password -->
-      <div class="row">
-        <div class="col-lg-4">
-          <div class="form-group position-relative">
-            <label class="required">Current Password</label>
+      <div class="form-grid">
+        <!-- Current Password -->
+        <div class="form-group">
+          <label class="required" for="current-password">Current Password</label>
+          <div class="input-wrap">
             <input
-              [type]="isPasswordVisible1 ? 'text' : 'password'"
+              id="current-password"
+              [type]="isVisible.current ? 'text' : 'password'"
               formControlName="password"
               class="form-control"
               placeholder="Enter current password"
+              autocomplete="current-password"
+              [attr.aria-invalid]="passwordForm.get('password')?.invalid && (passwordForm.get('password')?.touched || submitted)"
+              [attr.aria-describedby]="'currentPasswordHelp'"
             />
-            <div class="toggle-password" (click)="togglePasswordVisibility(1)">
-              <img
-                [src]="isPasswordVisible1 ? 'assets/images/svg/eye-open.svg' : 'assets/images/svg/eye-closed.svg'"
-              />
-            </div>
+            <button
+              type="button"
+              class="toggle-visibility"
+              (click)="toggle('current')"
+              [attr.aria-label]="isVisible.current ? 'Hide current password' : 'Show current password'"
+              [attr.aria-pressed]="isVisible.current"
+            >
+              {{ isVisible.current ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <div id="currentPasswordHelp" class="field-hint error" *ngIf="passwordForm.get('password')?.touched || submitted">
+            <span *ngIf="passwordForm.get('password')?.hasError('required')">Current password is required.</span>
+            <span *ngIf="passwordForm.get('password')?.hasError('minlength')">Minimum 6 characters.</span>
           </div>
         </div>
-      </div>
 
-      <!-- New Password -->
-      <div class="row">
-        <div class="col-lg-4">
-          <div class="form-group position-relative">
-            <label class="required">New Password</label>
+        <!-- New Password -->
+        <div class="form-group">
+          <label class="required" for="new-password">New Password</label>
+          <div class="input-wrap">
             <input
-              [type]="isPasswordVisible2 ? 'text' : 'password'"
+              id="new-password"
+              [type]="isVisible.new ? 'text' : 'password'"
               formControlName="newPassword"
               class="form-control"
               placeholder="Enter new password"
+              autocomplete="new-password"
+              [attr.aria-invalid]="passwordForm.get('newPassword')?.invalid && (passwordForm.get('newPassword')?.touched || submitted)"
+              [attr.aria-describedby]="'newPasswordHelp strengthText'"
             />
-            <div class="toggle-password" (click)="togglePasswordVisibility(2)">
-              <img
-                [src]="isPasswordVisible2 ? 'assets/images/svg/eye-open.svg' : 'assets/images/svg/eye-closed.svg'"
-              />
-            </div>
+            <button
+              type="button"
+              class="toggle-visibility"
+              (click)="toggle('new')"
+              [attr.aria-label]="isVisible.new ? 'Hide new password' : 'Show new password'"
+              [attr.aria-pressed]="isVisible.new"
+            >
+              {{ isVisible.new ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+
+          <!-- Strength meter -->
+          <div class="strength-meter" role="progressbar"
+               [attr.aria-valuenow]="passwordStrength.score * 25"
+               aria-valuemin="0" aria-valuemax="100">
+            <span class="bar" [class.filled]="passwordStrength.score > 0"></span>
+            <span class="bar" [class.filled]="passwordStrength.score > 1"></span>
+            <span class="bar" [class.filled]="passwordStrength.score > 2"></span>
+            <span class="bar" [class.filled]="passwordStrength.score > 3"></span>
+          </div>
+          <div id="strengthText" class="strength-text" [class.warn]="passwordStrength.score < 3">
+            {{ passwordStrength.label }}
+          </div>
+
+          <div id="newPasswordHelp" class="field-hint error" *ngIf="passwordForm.get('newPassword')?.touched || submitted">
+            <span *ngIf="passwordForm.get('newPassword')?.hasError('required')">New password is required.</span>
+            <span *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Minimum 8 characters.</span>
+            <span *ngIf="passwordForm.get('newPassword')?.hasError('weakPassword')">Include upper, lower, number, and symbol.</span>
           </div>
         </div>
-      </div>
 
-      <!-- Confirm Password -->
-      <div class="row">
-        <div class="col-lg-4">
-          <div class="form-group position-relative">
-            <label class="required">Confirm Password</label>
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="required" for="confirm-password">Confirm Password</label>
+          <div class="input-wrap">
             <input
-              [type]="isPasswordVisible3 ? 'text' : 'password'"
+              id="confirm-password"
+              [type]="isVisible.confirm ? 'text' : 'password'"
               formControlName="confirmPassword"
               class="form-control"
               placeholder="Confirm new password"
+              autocomplete="new-password"
+              [attr.aria-invalid]="(passwordForm.hasError('passwordsMismatch') || passwordForm.get('confirmPassword')?.invalid) && (passwordForm.get('confirmPassword')?.touched || submitted)"
+              [attr.aria-describedby]="'confirmPasswordHelp'"
             />
-            <div class="toggle-password" (click)="togglePasswordVisibility(3)">
-              <img
-                [src]="isPasswordVisible3 ? 'assets/images/svg/eye-open.svg' : 'assets/images/svg/eye-closed.svg'"
-              />
-            </div>
+            <button
+              type="button"
+              class="toggle-visibility"
+              (click)="toggle('confirm')"
+              [attr.aria-label]="isVisible.confirm ? 'Hide confirmation password' : 'Show confirmation password'"
+              [attr.aria-pressed]="isVisible.confirm"
+            >
+              {{ isVisible.confirm ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <div id="confirmPasswordHelp" class="field-hint error" *ngIf="passwordForm.get('confirmPassword')?.touched || submitted">
+            <span *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">Please confirm your new password.</span>
+            <span *ngIf="passwordForm.hasError('passwordsMismatch')">Passwords do not match.</span>
           </div>
         </div>
       </div>
 
       <!-- Submit -->
-      <div class="row">
-        <div class="col-lg-4">
-          <button type="submit" class="btn btn-primary submit-btn">
-            Save Changes
-          </button>
+      <div class="actions">
+        <button
+          type="submit"
+          class="btn btn-primary submit-btn"
+          [disabled]="loading || passwordForm.invalid"
+        >
+          <span class="spinner" *ngIf="loading" aria-hidden="true"></span>
+          {{ loading ? 'Saving...' : 'Save Changes' }}
+        </button>
+
+        <div *ngIf="serverMessage" class="server-msg" [class.success]="serverSuccess" [class.error]="!serverSuccess">
+          {{ serverMessage }}
         </div>
       </div>
     </div>

@@ -74,6 +74,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // ──────────────────────────────
   // LIFECYCLE
   // ──────────────────────────────
+  currentUser:any;
   ngOnInit(): void {
     // Optional auth guards if you have an AuthService
     if (this.auth?.hasValidToken && !this.auth.hasValidToken()) {
@@ -87,6 +88,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
     window.addEventListener('storage', this.onStorageEvent);
+    this.currentUser=this.crypto.decryptObj(localStorage.getItem('authUser'));
 
     this.initForm();
     this.loadAll();
@@ -562,11 +564,17 @@ verifyOtp() {
 
   const payload = {
     phone: this.pendingPhone,
+    userId:this.currentUser._id,
     otp: this.otpForm.value.otp,
+    userType:2,
+
   };
 
+  
+// https://api.nectarplus.health/api/v1/registration/changePhoneVerify
+
   this.http
-    .post<any>(`${this.BASE_URL}/auth/otp/verify`, payload, { headers: this.authHeaders() })
+    .post<any>(`${this.BASE_URL}/registration/changePhoneVerify`, payload, { headers: this.authHeaders() })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (res) => {
@@ -595,8 +603,8 @@ resendOtp() {
   this.serverError = '';
   this.serverInfo = '';
 
-  const body = { phone: this.pendingPhone,countryCode:"+91",userType:2 };
-    http://localhost:8080/api/v1/registration/changePhone
+  const body = { phone: this.pendingPhone,countryCode:"+91",userType:2, userId:this.currentUser._id };
+    // http://localhost:8080/api/v1/registration/changePhone
 
   this.http
     .post<any>(`${this.BASE_URL}registration/changePhone`, body, { headers: this.authHeaders() })
