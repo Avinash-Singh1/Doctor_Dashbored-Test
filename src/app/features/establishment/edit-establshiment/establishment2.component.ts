@@ -28,6 +28,31 @@ declare const google: any; // Global Google Maps JS
 
 type DayOption = { value: string; label: string };
 
+// --- FIX HELPER FUNCTION START ---
+/**
+ * Helper function to generate all times between a start and end time with a given interval.
+ * This ensures all possible API return times are available in the <select> options.
+ */
+function generateTimes(start: string, end: string, intervalMinutes: number = 15): Array<{ name: string }> {
+    const times: Array<{ name: string }> = [];
+    // Use an arbitrary date string for comparison
+    let startTime = new Date(`2000/01/01 ${start}`);
+    const endTime = new Date(`2000/01/01 ${end}`);
+    
+    // Safety check
+    if (startTime > endTime) return []; 
+
+    while (startTime <= endTime) {
+        // Format to 'h:mm A' (e.g., 9:00 AM, 11:45 AM, 1:00 PM)
+        const timeString = startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        times.push({ name: timeString });
+        startTime.setMinutes(startTime.getMinutes() + intervalMinutes);
+    }
+
+    return times;
+}
+// --- FIX HELPER FUNCTION END ---
+
 @Component({
   selector: 'app-establishment',
   standalone: true,
@@ -73,7 +98,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     { _id: '64632b33d9293fff19dcf555', name: 'Clinic' },
   ];
 
-  establishmentProofOptions = ['GST Certificate', 'Trade License','Clinic Registration Certificate', 'Other'];
+  establishmentProofOptions = ['GST Certificate', 'Trade License', 'Clinic Registration Certificate', 'Other'];
 
   additionalOptions: DayOption[] = [
     { value: 'all', label: 'All Days' },
@@ -86,25 +111,11 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     { value: 'sun', label: 'Sunday' },
   ];
 
-  timingArray = [
-    { name: '09:00 AM' },
-    { name: '09:30 AM' },
-    { name: '10:00 AM' },
-    { name: '10:30 AM' },
-    { name: '11:00 AM' },
-    { name: '11:30 AM' },
-    { name: '12:00 PM' },
-    { name: '12:30 PM' },
-    { name: '01:00 PM' },
-    { name: '01:30 PM' },
-    { name: '02:00 PM' },
-    { name: '02:30 PM' },
-    { name: '03:00 PM' },
-    { name: '03:30 PM' },
-    { name: '04:00 PM' },
-    { name: '04:30 PM' },
-    { name: '05:00 PM' },
-  ];
+  // --- FIXED timingArray IMPLEMENTATION ---
+  // Generate times from 9:00 AM up to 9:30 PM in 15-minute intervals 
+  // to cover all values in the API response like 11:45 AM, 1:00 PM, and 9:00 PM.
+  timingArray = generateTimes('9:00 AM', '9:30 PM', 15);
+  // --- END FIXED timingArray IMPLEMENTATION ---
 
   establishmentsList: Array<{ name: string; consultationType: string }> = [];
 
@@ -224,6 +235,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
         // error already logged
         return;
       }
+      console.log("edit result: ",res);
 
       const result = res.result ?? res;
       const data = result?.data ?? [];
@@ -336,11 +348,13 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
 
     // 6) days/timeSlots
     const daysArr = this.establishmentForm.get('days') as FormArray;
+    // Clear existing form array controls
     while (daysArr.length > 0) daysArr.removeAt(0);
 
     const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     let anyDayPatched = false;
 
+    // Iterate through API response properties (mon, tue, wed, etc.)
     for (const wd of weekDays) {
       const slots = item[wd];
       if (Array.isArray(slots) && slots.length > 0) {
@@ -349,18 +363,23 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
           timeSlots: this.fb.array([]),
         });
         const slotsArr = dayGroup.get('timeSlots') as FormArray;
+        
+        // Patch time slots
         slots.forEach((s: any) => {
           slotsArr.push(this.fb.group({
-            from: [s.from || '', Validators.required],
+            // Ensure `from` and `to` are correctly patched
+            from: [s.from || '', Validators.required], 
             to: [s.to || '', Validators.required],
           }));
         });
+        
         daysArr.push(dayGroup);
         anyDayPatched = true;
       }
     }
 
     if (!anyDayPatched) {
+      // Fallback logic if the data came in a different structure (your existing logic)
       if (Array.isArray(item.days) && item.days.length) {
         item.days.forEach((d: any) => {
           const dayKey = d.day || d.name || 'mon';
@@ -383,6 +402,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
           daysArr.push(group);
         });
       } else {
+        // Default to one empty day group if no data exists
         daysArr.push(this.createDayGroup());
       }
     }
@@ -452,6 +472,9 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     if (this.daysControls.length > 1) {
       this.daysControls.removeAt(index);
     }
+  }
+  getDayControl(i: number): FormGroup {
+    return this.daysControls.at(i) as FormGroup;
   }
   getTimeSlots(dayIndex: number): FormArray {
     return this.daysControls.at(dayIndex).get('timeSlots') as FormArray;
@@ -545,7 +568,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     this.daysControls.controls.forEach((dayCtrl: any) => {
       const day = dayCtrl.get('day')?.value;
       const slots = (dayCtrl.get('timeSlots') as any).value.map((s: any) => ({
-        slot: 'morning',
+        slot: 'morning', // NOTE: You hardcoded 'morning' slot type here. Adjust if API needs more specific slot times.
         from: s.from,
         to: s.to,
       }));
@@ -561,7 +584,6 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     const payload: any = {
       // _id field: prefer patched hospitalId (hospital record), else fallback to lastPatchedItem._id or query param
       _id: this.establishmentId || null,
-      // _id: this.lastPatchedItem?.hospitalData?.hospitalId || this.lastPatchedItem?._id || this.establishmentId || null,
       isOwner: this.lastPatchedItem?.isOwner !== undefined ? String(this.lastPatchedItem.isOwner) : 'true',
       location: {
         coordinates: [this.location[0], this.location[1]],
@@ -572,8 +594,13 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
       ...daysData,
     };
 
-    // If user uploaded a new proof and you want to include it in update, you may add establishmentProof here.
-    // For this API demo you provided, only days/fees/location/_id/isOwner used; adapt if needed.
+    // If form is invalid, stop submission
+    if (this.establishmentForm.invalid) {
+        this.markAllAsTouched(this.establishmentForm);
+        this.errorMessage = 'Please fill all required fields in consultation timing and fees.';
+        console.error('Form is invalid, stopping submission.');
+        return;
+    }
 
     console.log('PUT payload (edit):', payload);
 
@@ -613,6 +640,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Edit API error:', err);
+            this.errorMessage = `Error updating establishment: ${err.message || err.statusText || 'Server error'}`;
           },
         });
       return;
@@ -680,6 +708,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Create API error:', err);
+          this.errorMessage = `Error creating establishment: ${err.message || err.statusText || 'Server error'}`;
         },
       });
   }
@@ -742,9 +771,6 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     this.establishmentForm.get('showVideo')?.setValue(!current);
   }
 
-  getDayControl(i: number): FormGroup {
-    return this.daysControls.at(i) as FormGroup;
-  }
 
   closeModal(_id?: string) {
     // placeholder for modal close

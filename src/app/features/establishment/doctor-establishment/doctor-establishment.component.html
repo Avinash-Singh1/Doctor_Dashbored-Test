@@ -1,254 +1,300 @@
 <div class="main-content">
-  <div class="page-title">
-    <h2>Establishment <span>Step(1/2)</span></h2>
-    <button type="button" class="btn btn-primary" [routerLink]="['/add-establishment']">
-      <span class="material-icons">add</span> Add Address
+  <div class="header-bar">
+    <div class="page-title">
+      <h1>Establishment <span class="step-indicator">Step (1/2)</span></h1>
+    </div>
+    <button type="button" class="btn btn-primary add-button" [routerLink]="['/add-establishment']">
+      <span class="material-icons">add</span> Add New Address
     </button>
   </div>
 
-  <div class="page-form establishment-screen">
-    <!-- Loading / Error -->
-    <div *ngIf="loading" class="loading-state">
+  <div class="page-form establishment-list">
+    <div *ngIf="loading" class="state-message loading-state">
       <span class="material-icons md-18">hourglass_top</span> Loading establishments...
     </div>
-    <div *ngIf="error" class="error-state">
+    <div *ngIf="error" class="state-message error-state">
       <span class="material-icons md-18">error</span> {{ error }}
     </div>
 
-    <!-- Visit Establishment -->
     <section *ngIf="visitEstablishment && visitEstablishment.length > 0">
-      <h3 class="screen-title">
-        <span class="material-icons md-18">local_hospital</span>
-        <span>Visit Establishment</span>
-      </h3>
+      <h2 class="section-title">
+        <span class="material-icons md-20 primary-color-text">local_hospital</span>
+        <span>Visit Establishments</span>
+      </h2>
 
-      <div *ngFor="let item of visitEstablishment">
-        <div *ngIf="item.isDeleted == false && item.isVerified == 2" class="address-card">
-          <div class="card-info">
-            <div class="initial-circle">{{ getInitial(item?.hospitalData?.name) }}</div>
+      <div class="establishment-card-list">
+        <div *ngFor="let item of visitEstablishment">
+          <div *ngIf="item.isDeleted == false && item.isVerified == 2" class="establishment-item">
+            <div class="item-details">
+              <div class="initial-badge">{{ getInitial(item?.hospitalData?.name) }}</div>
 
-            <div class="personal-info">
-              <h2>{{ item?.hospitalData?.name }}</h2>
+              <div class="info-content">
+                <h3 class="establishment-name">{{ item?.hospitalData?.name }}</h3>
 
-              <p class="address-line">
-                <span class="material-icons md-16">place</span>
-                <span *ngIf="item?.hospitalData?.name !== 'Video Consultation Only'" class="address-text">
-                  {{ item?.hospitalData?.address?.city ? item?.hospitalData?.address?.city + ',' : '' }}
-                  {{ getStateName(item?.hospitalData?.address?.state) }} {{ item?.hospitalData?.address?.pincode }}
-                </span>
-                <span *ngIf="item?.hospitalData?.name === 'Video Consultation Only'">
-                  {{ item?.hospitalData?.address?.city ? item?.hospitalData?.address?.city : '' }}
-                </span>
-              </p>
+                <p class="detail-line address-line">
+                  <span class="material-icons md-16">place</span>
+                  <span class="address-text">
+                    <ng-container *ngIf="item?.hospitalData?.name !== 'Video Consultation Only'">
+                      {{ item?.hospitalData?.address?.city ? item?.hospitalData?.address?.city + ',' : '' }}
+                      {{ getStateName(item?.hospitalData?.address?.state) }} {{ item?.hospitalData?.address?.pincode }}
+                    </ng-container>
+                    <ng-container *ngIf="item?.hospitalData?.name === 'Video Consultation Only'">
+                      {{ item?.hospitalData?.address?.city ? item?.hospitalData?.address?.city : '' }}
+                    </ng-container>
+                  </span>
+                </p>
 
-              <!-- Days / slots -->
-              <ng-container *ngIf="getDayLabelFor(item) !== undefined">
-                <div *ngIf="getDayLabelFor(item) !== null" class="day-label">
-                  <span class="material-icons md-16">schedule</span>
-                  <span class="label-text">{{ getDayLabelFor(item) }}</span>
+                <div class="schedule-info">
+                  <ng-container *ngIf="getDayLabelFor(item) !== undefined">
+                    <div *ngIf="getDayLabelFor(item) !== null" class="schedule-summary">
+                      <span class="material-icons md-16">schedule</span>
+                      <span class="label-text">{{ getDayLabelFor(item) }}</span>
+                      <div class="slot-list">
+                        <ng-container *ngIf="getDayLabelFor(item) === 'All Days'">
+                          <span class="slot" *ngFor="let slot of item.mon">{{ slot?.from }} - {{ slot?.to }}</span>
+                        </ng-container>
+                        <ng-container *ngIf="getDayLabelFor(item) === 'Mon-Fri'">
+                          <span class="slot" *ngFor="let slot of item.mon">{{ slot?.from }} - {{ slot?.to }}</span>
+                        </ng-container>
+                        <ng-container *ngIf="getDayLabelFor(item) === 'Sat-Sun'">
+                          <span class="slot" *ngFor="let slot of item.sat">{{ slot?.from }} - {{ slot?.to }}</span>
+                        </ng-container>
+                      </div>
+                    </div>
+
+                    <ng-container *ngIf="getDayLabelFor(item) === null">
+                      <div class="days-grid-detailed">
+                        <div class="day-slot-group" *ngIf="(item?.mon?.length || 0) > 0">
+                          <span class="day-name">Mon</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.tue?.length || 0) > 0">
+                          <span class="day-name">Tue</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.wed?.length || 0) > 0">
+                          <span class="day-name">Wed</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.thu?.length || 0) > 0">
+                          <span class="day-name">Thu</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.fri?.length || 0) > 0">
+                          <span class="day-name">Fri</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.sat?.length || 0) > 0">
+                          <span class="day-name">Sat</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.sun?.length || 0) > 0">
+                          <span class="day-name">Sun</span>
+                          <div class="slots">
+                            <span class="slot" *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </ng-container>
+                </div>
+                <div class="fee-direction-group">
+                  <p *ngIf="item.consultationFees != -1 && item.consultationFees != null" class="detail-line fee-line">
+                    <span class="material-icons md-16">payments</span>
+                    <span>₹ {{ item.consultationFees }} per In-Clinic consultation</span>
+                  </p>
+
+                  <p *ngIf="item.videoConsultationFees != -1 && item.videoConsultationFees != null" class="detail-line fee-line">
+                    <span class="material-icons md-16">videocam</span>
+                    <span>₹ {{ item.videoConsultationFees }} per Video consultation</span>
+                  </p>
+
+                  <p *ngIf="item.consultationFees != -1" class="detail-line get-directions-link" (click)="openGoogleMaps(item)">
+                    <span class="material-icons md-16">directions</span>
+                    <span class="directions-text">Get Directions</span>
+                  </p>
                 </div>
 
-                <ng-container *ngIf="getDayLabelFor(item) === 'All Days'">
-                  <ng-container *ngFor="let slot of item.mon">
-                    <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
-                  </ng-container>
-                </ng-container>
-
-                <ng-container *ngIf="getDayLabelFor(item) === 'Mon-Fri'">
-                  <ng-container *ngFor="let slot of item.mon">
-                    <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
-                  </ng-container>
-                </ng-container>
-
-                <ng-container *ngIf="getDayLabelFor(item) === 'Sat-Sun'">
-                  <ng-container *ngFor="let slot of item.sat">
-                    <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
-                  </ng-container>
-                </ng-container>
-
-                <ng-container *ngIf="getDayLabelFor(item) === null">
-                  <div class="days-grid">
-                    <div *ngIf="(item?.mon?.length || 0) > 0">Mon
-                      <div *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.tue?.length || 0) > 0">Tue
-                      <div *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.wed?.length || 0) > 0">Wed
-                      <div *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.thu?.length || 0) > 0">Thu
-                      <div *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.fri?.length || 0) > 0">Fri
-                      <div *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.sat?.length || 0) > 0">Sat
-                      <div *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.sun?.length || 0) > 0">Sun
-                      <div *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                  </div>
-                </ng-container>
-              </ng-container>
-
-              <p *ngIf="item.consultationFees != -1 && item.consultationFees != null" class="fee-line">
-                <span class="material-icons md-16">payments</span>
-                <span>₹ {{ item.consultationFees }} per In-Clinic consultation</span>
-              </p>
-
-              <p *ngIf="item.videoConsultationFees != -1 && item.videoConsultationFees != null" class="fee-line">
-                <span class="material-icons md-16">videocam</span>
-                <span>₹ {{ item.videoConsultationFees }} per Video consultation</span>
-              </p>
-
-              <p *ngIf="item.consultationFees != -1" class="get-directions" (click)="openGoogleMaps(item)">
-                <span class="material-icons md-16">directions</span>
-                <span class="directions-text">Get Directions</span>
-              </p>
+              </div>
             </div>
-          </div>
 
-          <div class="actions">
-            <label class="switch">
-            <input
-              type="checkbox"
-              [checked]="item.isActive"
-              (change)="onChangeEstablishment(item, $event)" />
-            <div class="slider round"></div>
-          </label>
+            <div class="establishment-actions">
+              <div class="status-control">
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    [checked]="item.isActive"
+                    (change)="onChangeEstablishment(item, $event)"
+                  />
+                  <div class="slider round"></div>
+                </label>
+                <span class="toggle-label">{{ item.isActive ? 'Active' : 'Inactive' }}</span>
+              </div>
 
-
-            <div class="ctrls">
-              <button class="btn btn-primary" [routerLink]="['edit']">
-                <span class="material-icons">edit</span> Edit
-              </button>
-              <button class="btn btn-danger" (click)="deleteEstablishment(item)">
-                <span class="material-icons">delete</span> Delete
-              </button>
+              <div class="action-buttons-group">
+                <button class="btn btn-icon-secondary" [routerLink]="['edit']">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="btn btn-icon-danger" (click)="deleteEstablishment(item)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Own Establishment -->
     <section *ngIf="ownEstablishment && ownEstablishment.length > 0 && ownEstablishmentExist">
-      <h3 class="screen-title">
-        <span class="material-icons md-18">home</span>
+      <h2 class="section-title">
+        <span class="material-icons md-20 primary-color-text">home</span>
         <span>Own Establishment</span>
-      </h3>
+      </h2>
 
-      <div *ngFor="let item of ownEstablishment">
-        <div *ngIf="item.isDeleted == false" class="address-card">
-          <div class="card-info">
-            <div class="initial-circle">{{ getInitial(item?.hospitalData?.name) }}</div>
+      <div class="establishment-card-list">
+        <div *ngFor="let item of ownEstablishment">
+          <div *ngIf="item.isDeleted == false" class="establishment-item">
+            <div class="item-details">
+              <div class="initial-badge">{{ getInitial(item?.hospitalData?.name) }}</div>
 
-            <div class="personal-info">
-              <h2>{{ item?.hospitalData?.name }}</h2>
-              <p class="address-line">
-                <span class="material-icons md-16">place</span>
-                <span class="address-text">{{ item?.hospitalData?.address?.city }}, {{ getStateName(item?.hospitalData?.address?.state) }} {{ item?.hospitalData?.address?.pincode }}</span>
-              </p>
+              <div class="info-content">
+                <h3 class="establishment-name">{{ item?.hospitalData?.name }}</h3>
 
-              <ng-container *ngIf="getDayLabelFor(item) !== undefined">
-                <div *ngIf="getDayLabelFor(item) !== null" class="day-label">
-                  <span class="material-icons md-16">schedule</span>
-                  <span class="label-text">{{ getDayLabelFor(item) }}</span>
+                <p class="detail-line address-line">
+                  <span class="material-icons md-16">place</span>
+                  <span class="address-text">{{ item?.hospitalData?.address?.city }}, {{ getStateName(item?.hospitalData?.address?.state) }} {{ item?.hospitalData?.address?.pincode }}</span>
+                </p>
+
+                <div class="schedule-info">
+                  <ng-container *ngIf="getDayLabelFor(item) !== undefined">
+                    <div *ngIf="getDayLabelFor(item) !== null" class="schedule-summary">
+                      <span class="material-icons md-16">schedule</span>
+                      <span class="label-text">{{ getDayLabelFor(item) }}</span>
+                      <div class="slot-list">
+                        <ng-container *ngIf="getDayLabelFor(item) === 'All Days'">
+                          <span class="slot" *ngFor="let slot of item.mon">{{ slot?.from }} - {{ slot?.to }}</span>
+                        </ng-container>
+                        <ng-container *ngIf="getDayLabelFor(item) === 'Mon-Fri'">
+                          <span class="slot" *ngFor="let slot of item.mon">{{ slot?.from }} - {{ slot?.to }}</span>
+                        </ng-container>
+                        <ng-container *ngIf="getDayLabelFor(item) === 'Sat-Sun'">
+                          <span class="slot" *ngFor="let slot of item.sat">{{ slot?.from }} - {{ slot?.to }}</span>
+                        </ng-container>
+                      </div>
+                    </div>
+
+                    <ng-container *ngIf="getDayLabelFor(item) === null">
+                      <div class="days-grid-detailed">
+                        <div class="day-slot-group" *ngIf="(item?.mon?.length || 0) > 0">
+                            <span class="day-name">Mon</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.tue?.length || 0) > 0">
+                            <span class="day-name">Tue</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.wed?.length || 0) > 0">
+                            <span class="day-name">Wed</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.thu?.length || 0) > 0">
+                            <span class="day-name">Thu</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.fri?.length || 0) > 0">
+                            <span class="day-name">Fri</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.sat?.length || 0) > 0">
+                            <span class="day-name">Sat</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                        <div class="day-slot-group" *ngIf="(item?.sun?.length || 0) > 0">
+                            <span class="day-name">Sun</span>
+                            <div class="slots">
+                              <span class="slot" *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</span>
+                            </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </ng-container>
                 </div>
+                <div class="fee-direction-group">
+                  <p *ngIf="item.consultationFees != -1" class="detail-line fee-line">
+                    <span class="material-icons md-16">payments</span>
+                    <span>₹ {{ item.consultationFees }} per In-Clinic consultation</span>
+                  </p>
 
-                <ng-container *ngIf="getDayLabelFor(item) === 'All Days'">
-                  <ng-container *ngFor="let slot of item.mon">
-                    <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
-                  </ng-container>
-                </ng-container>
+                  <p *ngIf="item.videoConsultationFees != -1" class="detail-line fee-line">
+                    <span class="material-icons md-16">videocam</span>
+                    <span>₹ {{ item.videoConsultationFees }} per Video consultation</span>
+                  </p>
 
-                <ng-container *ngIf="getDayLabelFor(item) === 'Mon-Fri'">
-                  <ng-container *ngFor="let slot of item.mon">
-                    <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
-                  </ng-container>
-                </ng-container>
-
-                <ng-container *ngIf="getDayLabelFor(item) === 'Sat-Sun'">
-                  <ng-container *ngFor="let slot of item.sat">
-                    <div class="slot">{{ slot?.from }} - {{ slot?.to }}</div>
-                  </ng-container>
-                </ng-container>
-
-                <ng-container *ngIf="getDayLabelFor(item) === null">
-                  <div class="days-grid">
-                    <div *ngIf="(item?.mon?.length || 0) > 0">Mon
-                      <div *ngFor="let slot of item?.mon">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.tue?.length || 0) > 0">Tue
-                      <div *ngFor="let slot of item?.tue">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.wed?.length || 0) > 0">Wed
-                      <div *ngFor="let slot of item?.wed">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.thu?.length || 0) > 0">Thu
-                      <div *ngFor="let slot of item?.thu">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.fri?.length || 0) > 0">Fri
-                      <div *ngFor="let slot of item?.fri">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.sat?.length || 0) > 0">Sat
-                      <div *ngFor="let slot of item?.sat">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                    <div *ngIf="(item?.sun?.length || 0) > 0">Sun
-                      <div *ngFor="let slot of item?.sun">{{ slot?.from }} - {{ slot?.to }}</div>
-                    </div>
-                  </div>
-                </ng-container>
-              </ng-container>
-
-              <p *ngIf="item.consultationFees != -1" class="fee-line">
-                <span class="material-icons md-16">payments</span>
-                <span>₹ {{ item.consultationFees }} per In-Clinic consultation</span>
-              </p>
-
-              <p *ngIf="item.videoConsultationFees != -1" class="fee-line">
-                <span class="material-icons md-16">videocam</span>
-                <span>₹ {{ item.videoConsultationFees }} per Video consultation</span>
-              </p>
-
-              <p *ngIf="item.consultationFees != -1" class="get-directions" (click)="openGoogleMaps(item)">
-                <span class="material-icons md-16">directions</span>
-                <span class="directions-text">Get Directions</span>
-              </p>
+                  <p *ngIf="item.consultationFees != -1" class="detail-line get-directions-link" (click)="openGoogleMaps(item)">
+                    <span class="material-icons md-16">directions</span>
+                    <span class="directions-text">Get Directions</span>
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div class="actions">
-            <ng-container *ngIf="item.isVerified != 1">
-              <label class="switch">
-              <input
-                type="checkbox"
-                [checked]="item.isActive"
-                (change)="onChangeEstablishment(item, $event)" />
-              <div class="slider round"></div>
-            </label>
+            <div class="establishment-actions">
+              <div class="status-control">
+                <ng-container *ngIf="item.isVerified != 1">
+                  <label class="switch">
+                    <input
+                      type="checkbox"
+                      [checked]="item.isActive"
+                      (change)="onChangeEstablishment(item, $event)"
+                    />
+                    <div class="slider round"></div>
+                  </label>
+                  <span class="toggle-label">{{ item.isActive ? 'Active' : 'Inactive' }}</span>
+                </ng-container>
+                <ng-container *ngIf="item.isVerified == 1">
+                  <button type="button" class="btn btn-status-pending">
+                    <span class="material-icons">hourglass_top</span> Pending Verification
+                  </button>
+                </ng-container>
+              </div>
 
-            </ng-container>
-
-            <ng-container *ngIf="item.isVerified == 1">
-              <button type="button" class="btn btn-warning"><span class="material-icons">hourglass_top</span> Pending</button>
-            </ng-container>
-
-            <div class="ctrls">
-              <button
-                class="btn btn-primary"
-                [disabled]="item.isVerified === 1"
-                [routerLink]="['/establishment/edit']"
-                [queryParams]="{ id: item['establishmentId'] }"
-              >
-                <span class="material-icons">edit</span>
-                Edit
-              </button>
-              <button class="btn btn-danger" [disabled]="item.isVerified === 1" (click)="deleteEstablishment(item)">
-                <span class="material-icons">delete</span> Delete
-              </button>
+              <div class="action-buttons-group">
+                <button
+                  class="btn btn-icon-secondary"
+                  [disabled]="item.isVerified === 1"
+                  [routerLink]="['/establishment/edit']"
+                  [queryParams]="{ id: item['establishmentId'] }"
+                >
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="btn btn-icon-danger" [disabled]="item.isVerified === 1" (click)="deleteEstablishment(item)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -256,18 +302,17 @@
     </section>
 
     <div class="page-footer">
-      <a [routerLink]="['/medical-verification']" class="btn btn-outline-primary">Back</a>
-      <a [routerLink]="['/services']" class="btn btn-primary">Next</a>
+      <a [routerLink]="['/medical-verification']" class="btn btn-outline-secondary">Back</a>
+      <a [routerLink]="['/services']" class="btn btn-primary">Next: Services</a>
     </div>
   </div>
 </div>
 
-<!-- Delete modal -->
 <div class="modal-overlay" *ngIf="showDeleteModal">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5>Delete Hospital/Clinic</h5>
+        <h5 class="modal-title">Delete Hospital/Clinic</h5>
         <button class="close-btn" (click)="closeModal()">&times;</button>
       </div>
       <div class="modal-body">

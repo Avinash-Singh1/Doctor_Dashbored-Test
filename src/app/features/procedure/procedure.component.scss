@@ -1,0 +1,230 @@
+// Define variables/placeholders (best placed in a global file, but here for context)
+$primary-color: #1976d2; // Keeping your primary color
+$secondary-btn-color: #6c757d;
+$border-color: #ddd;
+$light-bg: #f8f9fa;
+
+/* --- Layout and Responsiveness --- */
+
+:host {
+  display: flex;
+  min-height: 100vh;
+}
+
+.inner-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 1.5rem; 
+  background-color: $light-bg;
+  min-height: 100vh;
+
+  @media (max-width: 991px) {
+    padding: 1rem;
+  }
+}
+
+/* --- Page Header and Actions (Copied from Services Component) --- */
+.page-header {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+
+  .h3 {
+    font-weight: 600; 
+  }
+
+  .btn-primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+  }
+}
+
+/* --- Procedures Grid --- */
+
+.procedures-grid {
+  padding: 0;
+}
+
+/* --- Service Checkbox Item (Adopted for Procedures) --- */
+/* This replaces .container-checkbox and .procedures-screen-item */
+.service-checkbox-item {
+  display: flex;
+  position: relative;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  min-height: 50px; 
+  padding: 0.5rem 1rem 0.5rem 40px; 
+
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $primary-color;
+    box-shadow: 0 0 5px rgba($primary-color, 0.1);
+  }
+
+  .service-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #333;
+  }
+
+  // Hide the default checkbox
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+
+    &:checked ~ .checkmark {
+      background-color: $primary-color;
+      border-color: $primary-color;
+    }
+
+    &:checked ~ .checkmark:after {
+      display: block;
+    }
+  }
+
+  // Custom Checkmark design
+  .checkmark {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    height: 20px;
+    width: 20px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    &:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 7px;
+      top: 3px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+/* --- Footer Actions (Copied from Services Component) --- */
+
+.page-footer {
+  position: sticky; 
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  margin-top: 2rem; 
+  background-color: #fff;
+  border-top: 1px solid #eee;
+
+  @media (max-width: 991px) {
+    padding: 1rem; 
+  }
+
+  .d-flex {
+    gap: 0.5rem; // Using gap utility from Bootstrap
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+  }
+  
+  .btn-outline-secondary {
+    // Ensuring the back arrow matches the button text color
+    svg {
+        fill: currentColor; 
+    }
+  }
+}
+
+/* --- Modal Styles (Updated to match Services component's modal) --- */
+
+.modal {
+  background: rgba(0, 0, 0, 0.5);
+
+  &.show.d-block {
+    display: block !important;
+  }
+  
+  .modal-header {
+    h5 {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1;
+      margin: 0;
+    }
+    // Using Bootstrap's .btn-close now, removed old .close overrides
+    .btn-close {
+        padding: 0.5rem 0.5rem;
+        margin: -0.5rem -0.5rem -0.5rem auto;
+    }
+  }
+
+  .modal-body {
+    min-height: 200px; // Adjusted from 400px, as select box takes less space
+  }
+
+  .btn-primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+  }
+}
+
+
+/* --- Modal Search Input (Custom Styles for Select Box) --- */
+.custom-search-input {
+  // Styles for the Select/Search Input Group
+  
+  // Customizing the dropdown box to look like the search input
+  .input-group-text {
+    background-color: transparent;
+    border: none;
+    padding: 0.75rem 0.5rem 0.75rem 0.75rem; // Adjust padding for vertical alignment
+    color: $secondary-btn-color;
+    border: 1px solid #ccc;
+    border-right: none;
+    border-radius: 8px 0 0 8px; // Rounded left corner
+  }
+
+  .form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-left: none;
+    box-shadow: none;
+    height: auto; // Let padding define height
+    border-radius: 0 8px 8px 0; // Rounded right corner
+    
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 0.25rem rgba($primary-color, 0.25);
+    }
+  }
+
+  select.form-control {
+    // Specifically for the select element
+    appearance: none; // Remove default select arrow if possible
+  }
+}

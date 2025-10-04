@@ -1,7 +1,10 @@
 <div class="main-content">
   <div class="page-title">
     <h2>Security Settings</h2>
-    <p class="subtitle">Update your password. Use at least 8 characters with a mix of letters, numbers, and symbols.</p>
+    <p class="subtitle">
+      Update your password. Use at least 8 characters with a mix of letters,
+      numbers, and symbols.
+    </p>
   </div>
 
   <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()" novalidate>
@@ -25,15 +28,17 @@
               type="button"
               class="toggle-visibility"
               (click)="toggle('current')"
-              [attr.aria-label]="isVisible.current ? 'Hide current password' : 'Show current password'"
-              [attr.aria-pressed]="isVisible.current"
             >
               {{ isVisible.current ? 'Hide' : 'Show' }}
             </button>
           </div>
           <div id="currentPasswordHelp" class="field-hint error" *ngIf="passwordForm.get('password')?.touched || submitted">
-            <span *ngIf="passwordForm.get('password')?.hasError('required')">Current password is required.</span>
-            <span *ngIf="passwordForm.get('password')?.hasError('minlength')">Minimum 6 characters.</span>
+            <span *ngIf="passwordForm.get('password')?.hasError('required')">
+              Current password is required.
+            </span>
+            <span *ngIf="passwordForm.get('password')?.hasError('minlength')">
+              Minimum 6 characters.
+            </span>
           </div>
         </div>
 
@@ -55,8 +60,6 @@
               type="button"
               class="toggle-visibility"
               (click)="toggle('new')"
-              [attr.aria-label]="isVisible.new ? 'Hide new password' : 'Show new password'"
-              [attr.aria-pressed]="isVisible.new"
             >
               {{ isVisible.new ? 'Hide' : 'Show' }}
             </button>
@@ -76,9 +79,15 @@
           </div>
 
           <div id="newPasswordHelp" class="field-hint error" *ngIf="passwordForm.get('newPassword')?.touched || submitted">
-            <span *ngIf="passwordForm.get('newPassword')?.hasError('required')">New password is required.</span>
-            <span *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Minimum 8 characters.</span>
-            <span *ngIf="passwordForm.get('newPassword')?.hasError('weakPassword')">Include upper, lower, number, and symbol.</span>
+            <span *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+              New password is required.
+            </span>
+            <span *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
+              Minimum 8 characters.
+            </span>
+            <span *ngIf="passwordForm.get('newPassword')?.hasError('weakPassword')">
+              Include upper, lower, number, and symbol.
+            </span>
           </div>
         </div>
 
@@ -100,19 +109,22 @@
               type="button"
               class="toggle-visibility"
               (click)="toggle('confirm')"
-              [attr.aria-label]="isVisible.confirm ? 'Hide confirmation password' : 'Show confirmation password'"
-              [attr.aria-pressed]="isVisible.confirm"
             >
               {{ isVisible.confirm ? 'Hide' : 'Show' }}
             </button>
           </div>
           <div id="confirmPasswordHelp" class="field-hint error" *ngIf="passwordForm.get('confirmPassword')?.touched || submitted">
-            <span *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">Please confirm your new password.</span>
-            <span *ngIf="passwordForm.hasError('passwordsMismatch')">Passwords do not match.</span>
+            <span *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
+              Please confirm your new password.
+            </span>
+            <span *ngIf="passwordForm.hasError('passwordsMismatch')">
+              Passwords do not match.
+            </span>
           </div>
         </div>
       </div>
 
+      <!-- Submit -->
       <!-- Submit -->
       <div class="actions">
         <button
@@ -128,6 +140,7 @@
           {{ serverMessage }}
         </div>
       </div>
+
     </div>
   </form>
 </div>

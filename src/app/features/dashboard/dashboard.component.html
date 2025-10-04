@@ -1,60 +1,57 @@
-<div class="content-block">
-  <!-- Breadcrumb -->
-  <div class="block-header d-flex align-items-center justify-content-between mt-3 mb-3">
-    <ul class="breadcrumb">
-      <li><h4 class="page-title">Doctor Dashboard</h4></li>
-      <li class="breadcrumb-item"><a routerLink="/"><mat-icon>home</mat-icon></a></li>
+<div class="content-block container-fluid p-4 p-md-5">
+  <div class="block-header d-flex align-items-center justify-content-between mb-4">
+    <ul class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a routerLink="/"><mat-icon class="text-primary fs-5">home</mat-icon></a></li>
       <li class="breadcrumb-item active">Dashboard</li>
     </ul>
+    <h1 class="page-title h3 mb-0">Doctor Dashboard</h1>
   </div>
 
-  <div class="row">
-    <!-- Welcome Card -->
-    <div class="col-lg-8 col-md-12">
-      <mat-card class="welcome-card">
-        <div class="row align-items-center">
-          <div class="col-md-8">
-            <p class="font-b-500">Welcome back</p>
-            <h2 class="col-blue">Dr. {{ doctor.name }}!</h2>
-            <p class="mb-4">{{ doctor.specialization }}</p>
-            <div class="row text-center">
-              <div class="col-4">
-                <div class="mini-stat bg-primary">
-                  <span>Appointments</span>
-                  <h5>{{ stats.appointments }}</h5>
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+      <mat-card class="welcome-card mat-elevation-z4 p-4">
+        <div class="row align-items-center g-3">
+          <div class="col-12 col-md-8 order-md-1 order-2">
+            <p class="font-b-500 text-muted mb-1">Welcome back</p>
+            <h2 class="col-blue display-6 fw-bold mb-2">Dr. {{ doctor.name }}!</h2>
+            <p class="mb-4 lead text-secondary">{{ doctor.specialization }}</p>
+            <div class="row text-center g-3 mt-3">
+              <div class="col-12 col-sm-4">
+                <div class="mini-stat bg-primary p-3 shadow-sm">
+                  <span class="d-block text-uppercase fw-light mb-1">Appointments</span>
+                  <h5 class="fw-bold mb-0">{{ stats.appointments }}</h5>
                 </div>
               </div>
-              <div class="col-4">
-                <div class="mini-stat bg-danger">
-                  <span>Surgeries</span>
-                  <h5>{{ stats.surgeries }}</h5>
+              <div class="col-12 col-sm-4">
+                <div class="mini-stat bg-danger p-3 shadow-sm">
+                  <span class="d-block text-uppercase fw-light mb-1">Surgeries</span>
+                  <h5 class="fw-bold mb-0">{{ stats.surgeries }}</h5>
                 </div>
               </div>
-              <div class="col-4">
-                <div class="mini-stat bg-success">
-                  <span>Room Visits</span>
-                  <h5>{{ stats.roomVisits }}</h5>
+              <div class="col-12 col-sm-4">
+                <div class="mini-stat bg-success p-3 shadow-sm">
+                  <span class="d-block text-uppercase fw-light mb-1">Room Visits</span>
+                  <h5 class="fw-bold mb-0">{{ stats.roomVisits }}</h5>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <img src="assets/images/doctor.jpg" class="w-100" alt="Doctor" />
+          <div class="col-12 col-md-4 text-center order-md-2 order-1">
+            <img src="assets/images/doctor.jpg" class="img-fluid rounded-circle shadow-lg" style="max-height: 180px; width: auto;" alt="Doctor Profile" />
           </div>
         </div>
       </mat-card>
     </div>
 
-    <!-- Appointments Chart -->
-    <div class="col-lg-4 col-md-6">
-      <mat-card class="kpi-card">
-        <mat-card-content>
-          <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="col-12 col-lg-4">
+      <mat-card class="kpi-card mat-elevation-z2 h-100">
+        <mat-card-content class="p-4">
+          <div class="d-flex justify-content-between align-items-start mb-4">
             <div>
-              <h6>Appointments</h6>
-              <p class="text-muted">Today’s Summary</p>
+              <h6 class="fw-bold mb-0">Appointments</h6>
+              <p class="text-muted small mb-0">Today’s Summary</p>
             </div>
-            <mat-icon>schedule</mat-icon>
+            <mat-icon class="text-secondary fs-5">schedule</mat-icon>
           </div>
           <apx-chart
             [series]="appointmentsChart.series"
@@ -67,17 +64,16 @@
     </div>
   </div>
 
-  <div class="row mt-3">
-    <!-- Performance -->
-    <div class="col-lg-4 col-md-6">
-      <mat-card class="kpi-card">
-        <mat-card-content>
-          <div class="d-flex justify-content-between mb-2">
+  <div class="row g-4 mt-1">
+    <div class="col-12 col-lg-4 col-md-6">
+      <mat-card class="kpi-card mat-elevation-z2 h-100">
+        <mat-card-content class="p-4">
+          <div class="d-flex justify-content-between align-items-start mb-4">
             <div>
-              <h6>Performance</h6>
-              <p class="text-muted">Daily Metrics</p>
+              <h6 class="fw-bold mb-0">Performance</h6>
+              <p class="text-muted small mb-0">Daily Metrics</p>
             </div>
-            <mat-icon>trending_up</mat-icon>
+            <mat-icon class="text-success fs-5">trending_up</mat-icon>
           </div>
           <apx-chart
             [series]="performanceChart.series"
@@ -87,16 +83,15 @@
       </mat-card>
     </div>
 
-    <!-- Revenue -->
-    <div class="col-lg-4 col-md-6">
-      <mat-card class="kpi-card">
-        <mat-card-content>
-          <div class="d-flex justify-content-between mb-2">
+    <div class="col-12 col-lg-4 col-md-6">
+      <mat-card class="kpi-card mat-elevation-z2 h-100">
+        <mat-card-content class="p-4">
+          <div class="d-flex justify-content-between align-items-start mb-4">
             <div>
-              <h6>Today’s Revenue</h6>
-              <h3 class="text-success">${{ revenue.amount }}</h3>
+              <h6 class="fw-bold mb-1">Today’s Revenue</h6>
+              <h3 class="text-success fw-bold mb-0">₹{{ revenue.amount }}</h3>
             </div>
-            <mat-icon>attach_money</mat-icon>
+            <mat-icon class="text-success fs-5">attach_money</mat-icon>
           </div>
           <apx-chart
             [series]="revenueChart.series"
@@ -106,16 +101,15 @@
       </mat-card>
     </div>
 
-    <!-- Feedback -->
-    <div class="col-lg-4 col-md-12">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Patient Feedback</mat-card-title>
+    <div class="col-12 col-lg-4 col-md-12">
+      <mat-card class="mat-elevation-z2 h-100">
+        <mat-card-header class="border-bottom mx-4 pt-4 px-0">
+          <mat-card-title class="fw-bold fs-6">Patient Feedback</mat-card-title>
         </mat-card-header>
-        <mat-card-content>
-          <div class="text-center">
-            <h2>{{ feedback.score }}</h2>
-            <p>Overall Rating</p>
+        <mat-card-content class="p-4">
+          <div class="text-center mb-4">
+            <h2 class="display-4 fw-bold text-primary">{{ feedback.score }}</h2>
+            <p class="text-muted mb-0">Overall Rating</p>
           </div>
           <apx-chart
             [series]="feedbackChart.series"

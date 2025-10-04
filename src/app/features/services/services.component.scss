@@ -1,93 +1,180 @@
+// Define variables/placeholders (best placed in a global file, but here for context)
+$primary-color: #1976d2;
+$secondary-btn-color: #6c757d;
+$border-color: #ddd;
+$light-bg: #f8f9fa;
+
+/* --- Layout and Responsiveness --- */
+
 :host {
-  display: block;
-  padding: 1.5rem;
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  color: #333;
-}
-
-h2, h3 {
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #222;
-}
-
-hr {
-  margin: 1.5rem 0;
-  border: none;
-  border-top: 1px solid #e0e0e0;
-}
-
-/* Add new service form */
-div {
   display: flex;
+  min-height: 100vh;
+}
+
+.inner-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 1.5rem; // Increased padding for a cleaner look
+  // margin-left: 250px; // Assumes a fixed sidebar on desktop
+  background-color: $light-bg;
+  min-height: 100vh;
+
+  @media (max-width: 991px) {
+    margin-left: 0; // Full width on mobile
+    padding: 1rem; // Slightly less padding on smaller screens
+  }
+}
+
+/* --- Page Header and Actions --- */
+.page-header {
+  // Uses Bootstrap `d-flex justify-content-between align-items-center mb-4` in HTML
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+
+  .h3 {
+    font-weight: 600; // Make the title stand out
+  }
+}
+
+/* --- Service Selection Grid --- */
+
+.services-grid {
+  // Using Bootstrap's row/col and g-3 (gap) utilities makes custom SCSS minimal
+  padding: 0;
+}
+
+/* --- Service Checkbox Item (Custom Component) --- */
+.service-checkbox-item {
+  display: flex;
+  position: relative;
   align-items: center;
-  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  min-height: 50px; // Increased height for better click target
+  padding: 0.5rem 1rem 0.5rem 40px; // Padding for text and checkbox offset
 
-  input {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    flex: 1;
-    transition: border-color 0.2s ease;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.2s;
 
-    &:focus {
-      border-color: #1976d2;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  &:hover {
+    border-color: $primary-color;
+    box-shadow: 0 0 5px rgba($primary-color, 0.1);
+  }
+
+  .service-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #333;
+  }
+
+  // Hide the default checkbox
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+
+    &:checked ~ .checkmark {
+      background-color: $primary-color;
+      border-color: $primary-color;
+    }
+
+    &:checked ~ .checkmark:after {
+      display: block;
     }
   }
 
-  button {
-    background: #1976d2;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
+  // Custom Checkmark design
+  .checkmark {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    height: 20px;
+    width: 20px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 
-    &:hover {
-      background: #125ca1;
+    &:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 7px;
+      top: 3px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
     }
   }
 }
 
-/* Services list */
-ul {
-  list-style: none;
-  padding: 0;
+/* --- Footer Actions --- */
 
-  li {
-    margin: 0.4rem 0;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    background: #fafafa;
-    display: flex;
+.page-footer {
+  // Using fixed position for a better user experience on long forms
+  position: sticky; 
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  margin-top: 2rem; 
+  background-color: #fff;
+  border-top: 1px solid #eee;
+
+  @media (max-width: 991px) {
+    padding: 1rem; // Less padding on mobile
+  }
+
+  .btn {
+    // Buttons are already in a flex container with gap utility
+    display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
-    transition: background 0.2s ease;
+    font-weight: 500;
+  }
+}
 
-    &:hover {
-      background: #f1f7ff;
+
+/* --- Modal Search Input --- */
+
+.custom-search-input {
+  // Overriding Bootstrap input group for a cleaner search field
+  .search-icon-container {
+    background-color: transparent;
+    border: none;
+    padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+    color: $secondary-btn-color; // Color the icon
+    
+    // Position the icon correctly within the input group-text
+    svg {
+      display: block;
     }
-
-    label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.95rem;
-      cursor: pointer;
-      width: 100%;
-
-      input[type="checkbox"] {
-        accent-color: #1976d2; /* modern browsers */
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-      }
+  }
+  
+  .form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-left: none; // Match input group aesthetic
+    box-shadow: none;
+    
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 0.25rem rgba($primary-color, 0.25);
     }
   }
 }
