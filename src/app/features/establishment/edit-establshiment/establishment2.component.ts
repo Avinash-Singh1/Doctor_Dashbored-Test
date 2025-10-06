@@ -28,30 +28,73 @@ declare const google: any; // Global Google Maps JS
 
 type DayOption = { value: string; label: string };
 
-// --- FIX HELPER FUNCTION START ---
+// --- FIXED HELPER FUNCTION START ---
 /**
  * Helper function to generate all times between a start and end time with a given interval.
- * This ensures all possible API return times are available in the <select> options.
+ * FIX: This version ensures both 'h:mm AM/PM' and 'hh:mm AM/PM' formats are generated 
+ * for single-digit hours (e.g., '9:00 AM' and '09:00 AM') to reliably match API data.
  */
 function generateTimes(start: string, end: string, intervalMinutes: number = 15): Array<{ name: string }> {
     const times: Array<{ name: string }> = [];
-    // Use an arbitrary date string for comparison
-    let startTime = new Date(`2000/01/01 ${start}`);
-    const endTime = new Date(`2000/01/01 ${end}`);
+    // Use a fixed arbitrary date for consistency, e.g., Jan 1, 2000
+    const baseDate = '2000/01/01 '; 
+    let startTime = new Date(baseDate + start);
+    const endTime = new Date(baseDate + end);
     
     // Safety check
-    if (startTime > endTime) return []; 
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime()) || startTime > endTime) return []; 
+
+    const uniqueTimes = new Set<string>();
 
     while (startTime <= endTime) {
-        // Format to 'h:mm A' (e.g., 9:00 AM, 11:45 AM, 1:00 PM)
-        const timeString = startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        times.push({ name: timeString });
+        // Use a standard format for generation: 'h:mm A' (e.g., 9:00 AM)
+        const timeString = startTime.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+        });
+
+        // 1. Add the unpadded time (e.g., '9:00 AM')
+        if (!uniqueTimes.has(timeString)) {
+            times.push({ name: timeString });
+            uniqueTimes.add(timeString);
+        }
+
+        // 2. Explicitly add the zero-padded hour format (e.g., '09:00 AM') 
+        // to ensure it matches the API response (like '09:00 AM' in your data).
+        const parts = timeString.split(' ');
+        if (parts.length === 2) {
+            const timePart = parts[0];
+            const ampmPart = parts[1];
+            const match = timePart.match(/^(\d{1}):/); // Check for single-digit hour
+            
+            if (match) {
+                 // If timePart is '9:00', create '09:00 AM'
+                const zeroPaddedTime = `0${timePart} ${ampmPart}`;
+                if (!uniqueTimes.has(zeroPaddedTime)) {
+                     times.push({ name: zeroPaddedTime });
+                     uniqueTimes.add(zeroPaddedTime);
+                }
+            }
+        }
+        
+        // Add the interval and update for the next loop iteration
         startTime.setMinutes(startTime.getMinutes() + intervalMinutes);
     }
 
+    // Sort the results to ensure the dropdown options are in order
+    times.sort((a, b) => {
+        // Normalize time strings for reliable Date object comparison
+        const normalize = (timeStr: string) => timeStr.replace(/^0(\d{1}:)/, '$1');
+        const dateA = new Date(baseDate + normalize(a.name)); 
+        const dateB = new Date(baseDate + normalize(b.name));
+        
+        return dateA.getTime() - dateB.getTime();
+    });
+
     return times;
 }
-// --- FIX HELPER FUNCTION END ---
+// --- FIXED HELPER FUNCTION END ---
 
 @Component({
   selector: 'app-establishment',
@@ -112,8 +155,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
   ];
 
   // --- FIXED timingArray IMPLEMENTATION ---
-  // Generate times from 9:00 AM up to 9:30 PM in 15-minute intervals 
-  // to cover all values in the API response like 11:45 AM, 1:00 PM, and 9:00 PM.
+  // This now uses the fixed helper function above which includes both '9:00 AM' and '09:00 AM'.
   timingArray = generateTimes('9:00 AM', '9:30 PM', 15);
   // --- END FIXED timingArray IMPLEMENTATION ---
 

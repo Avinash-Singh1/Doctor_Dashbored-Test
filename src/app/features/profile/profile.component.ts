@@ -4,649 +4,926 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
-import { CryptoProvider } from '../../core/services/crypto.service';   // <-- assumes you have this
+import { CryptoProvider } from '../../core/services/crypto.service';   // <-- assumes you have this
 
 // If you already have AuthService in your app, you can keep it injected;
 // otherwise this comp works without it (it will call the APIs without auth headers).
 class AuthServiceLike {
-  hasValidToken?: () => boolean;
-  clearToken?: () => void;
-  isLoggedIn$?: () => any;
+  hasValidToken?: () => boolean;
+  clearToken?: () => void;
+  isLoggedIn$?: () => any;
+  // Add a method to get the ID if needed outside of localStorage
+  getUserId?: () => string; 
 }
 
 @Component({
-  selector: 'app-profile',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule,RouterModule],
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss'],
+  selector: 'app-profile',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule,RouterModule],
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-  // ──────────────────────────────
-  // CONFIG
-  // ──────────────────────────────
-  private destroy$ = new Subject<void>();
-  private BASE_URL = 'http://localhost:8080/api/v1';
+  // ──────────────────────────────
+  // CONFIG
+  // ──────────────────────────────
+  private destroy$ = new Subject<void>();
+  private BASE_URL = 'http://localhost:8080/api/v1';
+  private SETTINGS_URL = `${this.BASE_URL}/setting/list`; // The PUT endpoint
 
-  // Optional: if you have AuthService in your app, Angular DI will provide it;
-  // otherwise it’s fine (it’s typed as "AuthServiceLike" so code compiles).
-  private auth = inject<AuthServiceLike>(AuthServiceLike as any, { optional: true });
-  private http = inject(HttpClient);
-  private router = inject(Router);
-  private fb = inject(FormBuilder);
-  private crypto = inject(CryptoProvider);
+  // Type constants for the API payload 'type' field
+  private SETTING_TYPE = {
+    EDUCATION: 1,
+    AWARD: 2,
+    MEMBERSHIP: 4,
+    SOCIAL: 8,
+  };
 
-  // ──────────────────────────────
-  // UI / FORM STATE
-  // ──────────────────────────────
-  getFormValues: any = null; // merged profile used by read-only section
-  profileForm!: FormGroup;
-  isProfilePic = false;
+  // Optional: if you have AuthService in your app, Angular DI will provide it;
+  private auth = inject<AuthServiceLike>(AuthServiceLike as any, { optional: true });
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+  private crypto = inject(CryptoProvider);
 
-  specializationList: Array<{ _id: string; name: string }> = [];
-  educationList: Array<{ _id?: string; degree: string; college: string; year: string }> = [];
-  awardList: Array<any> = [];
-  membershipList: Array<any> = [];
-  socialList: Array<any> = [];
-  socialTypes: Array<{ _id: string; name: string; logo?: string }> = [];
+  // ──────────────────────────────
+  // UI / FORM STATE
+  // ──────────────────────────────
+  getFormValues: any = null; // merged profile used by read-only section
+  profileForm!: FormGroup;
+  isProfilePic = false;
 
-  // For editable/add rows in modals
-  editedEducationList: Record<string, any> = {};
-  newEducationList: Array<any> = [];
-  newAwardList: Array<any> = [];
-  newMemberList: Array<any> = [];
-  newSocialList: Array<any> = [];
+  specializationList: Array<{ _id: string; name: string }> = [];
+  educationList: Array<{ _id?: string; degree: string; college: string; year: string }> = [];
+  awardList: Array<any> = [];
+  membershipList: Array<any> = [];
+  socialList: Array<any> = [];
+  socialTypes: Array<{ _id: string; name: string; logo?: string }> = [];
 
-  // dropdown / misc
-  experinenceYear = Array.from({ length: 60 }, (_, i) => ({ label: `${i + 1} years`, value: `${i + 1}` }));
-  years = ((): string[] => {
-    const now = new Date().getFullYear();
-    return Array.from({ length: 60 }, (_, i) => String(now - i));
-  })();
+  // For editable/add rows in modals
+  editedEducationList: Record<string, any> = {}; 
+  newEducationList: Array<any> = [];
+  newAwardList: Array<any> = [];
+  newMemberList: Array<any> = [];
+  newSocialList: Array<any> = [];
+  
+  // To track changes on existing items (Awards, Membership, Social)
+  private editedAwards: Record<string, any> = {};
+  private editedMemberships: Record<string, any> = {};
+  private editedSocials: Record<string, any> = {};
+  
 
-  // side menu submenu toggle
-  isSubmenuOpen = false;
-  
-  
+  // dropdown / misc
+  experinenceYear = Array.from({ length: 60 }, (_, i) => ({ label: `${i + 1} years`, value: `${i + 1}` }));
+  years = ((): string[] => {
+    const now = new Date().getFullYear();
+    return Array.from({ length: 60 }, (_, i) => String(now - i));
+  })();
+
+  // side menu submenu toggle
+  isSubmenuOpen = false;
+  
+  // ── phone/otp modal state ─────────────────────
+  phoneForm!: FormGroup;
+  otpForm!: FormGroup;
+  phoneStep: 1 | 2 = 1;
+  loading = false;
+  resendCooldown = 0;
+  resendTimerRef: any = null;
+  serverError = '';
+  serverInfo = '';
+  pendingPhone = ''; // holds the phone being verified
+  
+  
+  // ──────────────────────────────
+  // LIFECYCLE
+  // ──────────────────────────────
+  currentUser:any;
+  ngOnInit(): void {
+    if (this.auth?.hasValidToken && !this.auth.hasValidToken()) {
+      this.auth?.clearToken?.();
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    this.auth?.isLoggedIn$?.().pipe(takeUntil(this.destroy$)).subscribe((isLogged: boolean) => {
+      if (!isLogged && !this.router.url.startsWith('/auth/login')) {
+        this.router.navigate(['/auth/login']);
+      }
+    });
+    window.addEventListener('storage', this.onStorageEvent);
+    this.currentUser=this.crypto.decryptObj(localStorage.getItem('authUser'));
+
+    this.initForm();
+    this.loadAll();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    window.removeEventListener('storage', this.onStorageEvent);
+  }
+
+  private onStorageEvent = (_ev: StorageEvent) => {
+    const relevant = ['authToken', 'authUser', 'deviceId'];
+    if (!_ev.key || relevant.includes(_ev.key)) {
+      if (this.auth?.hasValidToken && !this.auth.hasValidToken()) {
+        this.auth?.clearToken?.();
+        if (!this.router.url.startsWith('/auth/login')) {
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    }
+  };
+
+  // ──────────────────────────────
+  // FORM
+  // ──────────────────────────────
+  private initForm() {
+    this.profileForm = this.fb.group({
+      fullName: ['', Validators.required],
+      gender: ['1', Validators.required],
+      specialization: [[], Validators.required],
+      experience: ['', Validators.required],
+      phone: [{ value: '', disabled: false }],
+      email: ['', Validators.required],
+      about: ['', Validators.required],
+      profilePic: [''],
+    });
+
+    this.phoneForm = this.fb.group({
+      phone: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(/^(\+?\d{1,3}[- ]?)?\d{10,14}$/),
+        ],
+      ],
+    });
+
+    this.otpForm = this.fb.group({
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+    });
+
+  }
+  get control() {
+    return this.profileForm.controls;
+  }
+
+  // ──────────────────────────────
+  // HTTP HELPERS
+  // ──────────────────────────────
+  private authHeaders(): HttpHeaders {
+    const token =
+      (typeof localStorage !== 'undefined' && this.crypto.decryptObj(localStorage.getItem('authToken'))) ||
+      (this.auth as any)?.getToken?.();
+    return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+  }
+
+  private get<T>(url: string) {
+    return this.http.get<T>(url, { headers: this.authHeaders() });
+  }
+  
+  private put(payload: any) {
+    return this.http.put<any>(this.SETTINGS_URL, payload, { headers: this.authHeaders() });
+  }
+
+  // ──────────────────────────────
+  // LOAD ALL API DATA
+  // ──────────────────────────────
+  private loadAll() {
+    const profile$ = this.get<any>(`${this.BASE_URL}/setting/profile`);
+    const edu$ = this.get<any>(`${this.BASE_URL}/setting/list?type=1`);
+    const awards$ = this.get<any>(`${this.BASE_URL}/setting/list?type=2`);
+    const members$ = this.get<any>(`${this.BASE_URL}/setting/list?type=4`);
+    const socialList$ = this.get<any>(`${this.BASE_URL}/setting/list?type=8`);
+    const socialTypes$ = this.get<any>(`${this.BASE_URL}/master/social-media`);
+    const specialization$ = this.get<any>(`${this.BASE_URL}/master/specialization`);
+
+    forkJoin({ profile$, edu$, awards$, members$, socialList$, socialTypes$, specialization$ })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ profile$, edu$, awards$, members$, socialList$, socialTypes$, specialization$ }) => {
+          // Profile
+          const profileObj = (profile$?.result ?? [])[0] ?? {};
+          this.getFormValues = profileObj;
+          this.isProfilePic = !!profileObj?.doctor?.profilePic;
+
+          // Patch form
+          const doc = profileObj?.doctor || {};
+          this.profileForm.patchValue({
+            fullName: profileObj?.fullName || '',
+            gender: String(doc?.gender || '1'),
+            specialization: doc?.specialization || [],
+            experience: doc?.experience || '',
+            phone: profileObj?.phone || '',
+            email: doc?.email || '',
+            about: doc?.about || '',
+            profilePic: doc?.profilePic || '',
+          });
+
+          // Specializations
+          this.specializationList = (specialization$?.result?.data || []).map((it: any) => ({
+            _id: it._id,
+            name: it.name,
+          }));
+
+          // Education
+          this.educationList = (edu$?.result?.list || []).map((e: any) => ({
+            _id: e._id,
+            degree: e.degree,
+            college: e.college,
+            year: e.year,
+          }));
+          // build editable clone map
+          this.editedEducationList = {};
+          this.educationList.forEach((e) => (this.editedEducationList[e._id!] = { ...e }));
+
+          // Awards
+          this.awardList = (awards$?.result?.list || []).map((a: any) => ({ ...a }));
+
+          // Memberships
+          this.membershipList = (members$?.result?.list || []).map((m: any) => ({ ...m }));
+
+          // Social master/types
+          this.socialTypes = (socialTypes$?.result?.data || []).map((s: any) => ({
+            _id: s._id,
+            name: s.name,
+          }));
+
+          // Social list (already resolved names/logos)
+          this.socialList = (socialList$?.result?.list || []).map((s: any) => ({
+            _id: s._id,
+            socialMediaId: s.socialMediaId,
+            name: s.name,
+            socialMediaLogo: s.socialMediaLogo,
+            url: s.url,
+          }));
+        
+        // Initialize edit maps for awards/memberships/socials for tracking changes to existing items
+        this.awardList.forEach(a => this.editedAwards[a._id] = {...a});
+        this.membershipList.forEach(m => this.editedMemberships[m._id] = {...m});
+        this.socialList.forEach(s => this.editedSocials[s._id] = {...s});
+
+        },
+        error: (err) => {
+          console.error('Failed to load profile data', err);
+        },
+      });
+  }
+
+  // ──────────────────────────────
+  // TEMPLATE HELPERS (Fixing the NG9: Property does not exist errors)
+  // ──────────────────────────────
+  getSpecializationNames(ids: string[] = []): string {
+    if (!ids?.length) return '';
+    const map = new Map(this.specializationList.map((s) => [s._id, s.name]));
+    return ids.map((id) => map.get(id) || '').filter(Boolean).join(', ');
+  }
+
+  getSocialMediaName(id?: string): string {
+    if (!id) return '';
+    // Check socialTypes for the name (preferred source)
+    const byId = this.socialTypes.find((s) => s._id === id);
+    if (byId) return byId.name;
+    
+    // Fallback to socialList name
+    return this.socialList.find((s) => s.socialMediaId === id)?.name ?? '';
+  }
+
+  // Profile image helpers (Fixing the NG9: openFileInput does not exist error)
+  openFileInput() {
+    document.getElementById('profile-upload')?.click();
+  }
+  onFileUpload(ev: any) {
+    const file = ev?.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.profileForm.patchValue({ profilePic: reader.result as string });
+      this.isProfilePic = true;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ──────────────────────────────
+  // MENU & MODALS
+  // ──────────────────────────────
+  onMenuClick() {
+    const side = document.getElementById('sideMenu');
+    if (side) side.classList.add('open');
+  }
+  onCloseMenuClick() {
+    const side = document.getElementById('sideMenu');
+    if (side) side.classList.remove('open');
+  }
+  closeSideBar() {
+    const side = document.getElementById('sideMenu');
+    if (side) side.classList.remove('open');
+  }
+  settingtoggleSubmenu(e: Event) {
+    e.preventDefault();
+    this.isSubmenuOpen = !this.isSubmenuOpen;
+  }
+
+  openModal(id: string) {
+    const el: any = document.getElementById(id);
+    if (!el) return;
+    // Simple Bootstrap 4/5 compatibility for showing modal
+    const win = window as any;
+    if (win.bootstrap?.Modal) {
+      const modal = new win.bootstrap.Modal(el);
+      modal.show();
+    } else {
+      el.classList.add('show');
+      el.style.display = 'block';
+      el.setAttribute('aria-modal', 'true');
+      el.setAttribute('role', 'dialog');
+      el.removeAttribute('aria-hidden');
+    }
+  }
+  closeModal(id: string) {
+    const el: any = document.getElementById(id);
+    if (!el) return;
+    const win = window as any;
+    // Simple Bootstrap 4/5 compatibility for hiding modal
+    if (win.bootstrap?.Modal) {
+      const modal = win.bootstrap.Modal.getInstance(el) || new win.bootstrap.Modal(el);
+      modal.hide();
+    } else {
+      el.classList.remove('show');
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+      el.removeAttribute('aria-modal');
+      el.removeAttribute('role');
+    }
+  }
 
 
+  // ──────────────────────────────
+  // EDUCATION (modal)
+  // ──────────────────────────────
+  markEducationAsEdited(item: any) {
+    // The two-way binding is sufficient; keep this method simple for consistency.
+  }
+  addMoreEducation() {
+    this.newEducationList.push({ degree: '', college: '', year: '', degreeError: false, collegeError: false, yearError: false, _isNew: true });
+  }
+  deleteEducation(item: any) {
+    // DELETE API call for existing item
+    if (item._id) {
+      const payload = {
+        type: this.SETTING_TYPE.EDUCATION,
+        isEdit: true, 
+        records: { _id: item._id, isDelete: true },
+      };
+      this.put(payload).subscribe({
+        next: () => {
+          this.educationList = this.educationList.filter((e) => e._id !== item._id);
+          delete this.editedEducationList[item._id];
+        },
+        error: (err) => console.error('Failed to delete education', err),
+      });
+    }
+  }
+  deleteNewEducation(idx: number) {
+    this.newEducationList.splice(idx, 1);
+  }
+  
+  saveEducation() {
+    const isValidNew = this.newEducationList.every((x) => x.degree && x.college && x.year);
+    
+    if (!isValidNew) {
+      this.newEducationList = this.newEducationList.map((x) => ({
+        ...x,
+        degreeError: !x.degree,
+        collegeError: !x.college,
+        yearError: !x.year,
+      }));
+      return;
+    }
 
-  // ──────────────────────────────
-  // LIFECYCLE
-  // ──────────────────────────────
-  currentUser:any;
-  ngOnInit(): void {
-    // Optional auth guards if you have an AuthService
-    if (this.auth?.hasValidToken && !this.auth.hasValidToken()) {
-      this.auth?.clearToken?.();
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-    this.auth?.isLoggedIn$?.().pipe(takeUntil(this.destroy$)).subscribe((isLogged: boolean) => {
-      if (!isLogged && !this.router.url.startsWith('/auth/login')) {
-        this.router.navigate(['/auth/login']);
-      }
-    });
-    window.addEventListener('storage', this.onStorageEvent);
-    this.currentUser=this.crypto.decryptObj(localStorage.getItem('authUser'));
+    const saveRequests: any[] = [];
 
-    this.initForm();
-    this.loadAll();
-  }
+    // 1. Handle Edited Existing Education
+    for (const original of this.educationList) {
+      const edited = this.editedEducationList[original._id!];
+      if (
+        edited &&
+        (original.degree !== edited.degree || original.college !== edited.college || original.year !== edited.year)
+      ) {
+        const payload = {
+          type: this.SETTING_TYPE.EDUCATION,
+          isEdit: true,
+          records: {
+            _id: original._id, 
+            degree: edited.degree,
+            college: edited.college,
+            year: edited.year,
+          },
+        };
+        saveRequests.push(this.put(payload));
+      }
+    }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    window.removeEventListener('storage', this.onStorageEvent);
-  }
+    // 2. Handle New Education
+    for (const newItem of this.newEducationList) {
+      const payload = {
+        type: this.SETTING_TYPE.EDUCATION,
+        isEdit: false,
+        records: {
+          degree: newItem.degree,
+          college: newItem.college,
+          year: newItem.year,
+        },
+      };
+      saveRequests.push(this.put(payload));
+    }
 
-  private onStorageEvent = (_ev: StorageEvent) => {
-    const relevant = ['authToken', 'authUser', 'deviceId'];
-    if (!_ev.key || relevant.includes(_ev.key)) {
-      if (this.auth?.hasValidToken && !this.auth.hasValidToken()) {
-        this.auth?.clearToken?.();
-        if (!this.router.url.startsWith('/auth/login')) {
-          this.router.navigate(['/auth/login']);
-        }
-      }
-    }
-  };
+    if (saveRequests.length === 0) {
+      this.closeModal('add_editucaiton_modal');
+      return;
+    }
 
-  // ──────────────────────────────
-  // FORM
-  // ──────────────────────────────
-  private initForm() {
-    this.profileForm = this.fb.group({
-      fullName: ['', Validators.required],
-      gender: ['1', Validators.required],
-      specialization: [[], Validators.required],
-      experience: ['', Validators.required],
-      phone: [{ value: '', disabled: false }],
-      email: ['', Validators.required],
-      about: ['', Validators.required],
-      profilePic: [''],
-    });
+    forkJoin(saveRequests).subscribe({
+      next: () => {
+        this.newEducationList = []; 
+        this.closeModal('add_editucaiton_modal');
+        this.loadAll(); // Reload to get fresh IDs/state
+      },
+      error: (err) => console.error('Failed to save education', err),
+    });
+  }
 
-    // inside initForm() AFTER your profile form, or in ngOnInit() after calling initForm()
-    this.phoneForm = this.fb.group({
-      phone: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(/^(\+?\d{1,3}[- ]?)?\d{10,14}$/), // tweak to your needs
-        ],
-      ],
-    });
+  // ──────────────────────────────
+  // AWARDS (modal)
+  // ──────────────────────────────
+  markAwardAsEdited(item: any) {
+    this.editedAwards[item._id] = { ...item };
+  }
+  addMoreAward() {
+    this.newAwardList.push({ name: '', year: '', nameError: false, yearError: false, _isNew: true });
+  }
+  deleteAward(item: any) {
+    if (item._id) {
+      const payload = {
+        type: this.SETTING_TYPE.AWARD,
+        isEdit: true,
+        records: { _id: item._id, isDelete: true },
+      };
+      this.put(payload).subscribe({
+        next: () => {
+          this.awardList = this.awardList.filter((a) => a._id !== item._id);
+          delete this.editedAwards[item._id];
+        },
+        error: (err) => console.error('Failed to delete award', err),
+      });
+    }
+  }
+  deleteNewAward(idx: number) {
+    this.newAwardList.splice(idx, 1);
+  }
+  saveAllAwards() {
+    const isValidNew = this.newAwardList.every((x) => x.name && x.year);
+    
+    if (!isValidNew) {
+      this.newAwardList = this.newAwardList.map((x) => ({
+        ...x,
+        nameError: !x.name,
+        yearError: !x.year,
+      }));
+      return;
+    }
+    
+    const saveRequests: any[] = [];
+    
+    // 1. Handle Edited Existing Awards
+    this.awardList.forEach(item => {
+      if (item._id && this.editedAwards[item._id]) {
+        const payload = {
+          type: this.SETTING_TYPE.AWARD,
+          isEdit: true,
+          records: {
+            _id: item._id,
+            name: item.name,
+            year: item.year,
+          },
+        };
+        saveRequests.push(this.put(payload));
+      }
+    });
 
-    this.otpForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-    });
+    // 2. Handle New Awards
+    for (const newItem of this.newAwardList) {
+      const payload = {
+        type: this.SETTING_TYPE.AWARD,
+        isEdit: false,
+        records: {
+          name: newItem.name,
+          year: newItem.year,
+        },
+      };
+      saveRequests.push(this.put(payload));
+    }
 
-  }
-  get control() {
-    return this.profileForm.controls;
-  }
+    if (saveRequests.length === 0) {
+      this.closeModal('awards_recognitions_modal');
+      return;
+    }
 
-  // ──────────────────────────────
-  // HTTP HELPERS
-  // ──────────────────────────────
-  private authHeaders(): HttpHeaders {
-    const token =
-      (typeof localStorage !== 'undefined' && this.crypto.decryptObj(localStorage.getItem('authToken'))) ||
-      (this.auth as any)?.getToken?.();
-    return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-  }
+    forkJoin(saveRequests).subscribe({
+      next: () => {
+        this.newAwardList = []; 
+        this.closeModal('awards_recognitions_modal');
+        this.loadAll(); 
+      },
+      error: (err) => console.error('Failed to save awards', err),
+    });
+  }
 
-  private get<T>(url: string) {
-    return this.http.get<T>(url, { headers: this.authHeaders() });
-  }
 
-  // ──────────────────────────────
-  // LOAD ALL API DATA
-  // ──────────────────────────────
-  private loadAll() {
-    const profile$ = this.get<any>(`${this.BASE_URL}/setting/profile`);
-    const edu$ = this.get<any>(`${this.BASE_URL}/setting/list?type=1`);
-    const awards$ = this.get<any>(`${this.BASE_URL}/setting/list?type=2`);
-    const members$ = this.get<any>(`${this.BASE_URL}/setting/list?type=4`);
-    const socialList$ = this.get<any>(`${this.BASE_URL}/setting/list?type=8`);
-    const socialTypes$ = this.get<any>(`${this.BASE_URL}/master/social-media`);
-    const specialization$ = this.get<any>(`${this.BASE_URL}/master/specialization`);
+  // ──────────────────────────────
+  // MEMBERSHIP (modal)
+  // ──────────────────────────────
+  markMemberAsEdited(item: any) {
+    this.editedMemberships[item._id] = { ...item };
+  }
+  addMoreMember() {
+    this.newMemberList.push({ name: '', nameError: false, _isNew: true });
+  }
+  deleteMembership(item: any) {
+    if (item._id) {
+      const payload = {
+        type: this.SETTING_TYPE.MEMBERSHIP,
+        isEdit: true,
+        records: { _id: item._id, isDelete: true },
+      };
+      this.put(payload).subscribe({
+        next: () => {
+          this.membershipList = this.membershipList.filter((m) => m._id !== item._id);
+          delete this.editedMemberships[item._id];
+        },
+        error: (err) => console.error('Failed to delete membership', err),
+      });
+    }
+  }
+  deleteNewMember(idx: number) {
+    this.newMemberList.splice(idx, 1);
+  }
+  saveAllMember() {
+    const isValidNew = this.newMemberList.every((x) => x.name);
+    
+    if (!isValidNew) {
+      this.newMemberList = this.newMemberList.map((x) => ({ ...x, nameError: !x.name }));
+      return;
+    }
+    
+    const saveRequests: any[] = [];
+    
+    // 1. Handle Edited Existing Memberships
+    this.membershipList.forEach(item => {
+      if (item._id && this.editedMemberships[item._id]) {
+        const payload = {
+          type: this.SETTING_TYPE.MEMBERSHIP,
+          isEdit: true,
+          records: {
+            _id: item._id,
+            name: item.name,
+          },
+        };
+        saveRequests.push(this.put(payload));
+      }
+    });
 
-    forkJoin({ profile$, edu$, awards$, members$, socialList$, socialTypes$, specialization$ })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: ({ profile$, edu$, awards$, members$, socialList$, socialTypes$, specialization$ }) => {
-          // Profile
-          const profileObj = (profile$?.result ?? [])[0] ?? {};
-          this.getFormValues = profileObj;
-          this.isProfilePic = !!profileObj?.doctor?.profilePic;
+    // 2. Handle New Memberships
+    for (const newItem of this.newMemberList) {
+      const payload = {
+        type: this.SETTING_TYPE.MEMBERSHIP,
+        isEdit: false,
+        records: {
+          name: newItem.name,
+        },
+      };
+      saveRequests.push(this.put(payload));
+    }
 
-          // Patch form
-          const doc = profileObj?.doctor || {};
-          this.profileForm.patchValue({
-            fullName: profileObj?.fullName || '',
-            gender: String(doc?.gender || '1'),
-            specialization: doc?.specialization || [],
-            experience: doc?.experience || '',
-            phone: profileObj?.phone || '',
-            email: doc?.email || '',
-            about: doc?.about || '',
-            profilePic: doc?.profilePic || '',
-          });
+    if (saveRequests.length === 0) {
+      this.closeModal('membership_modal');
+      return;
+    }
 
-          // Specializations
-          this.specializationList = (specialization$?.result?.data || []).map((it: any) => ({
-            _id: it._id,
-            name: it.name,
-          }));
+    forkJoin(saveRequests).subscribe({
+      next: () => {
+        this.newMemberList = []; 
+        this.closeModal('membership_modal');
+        this.loadAll(); 
+      },
+      error: (err) => console.error('Failed to save membership', err),
+    });
+  }
 
-          // Education
-          this.educationList = (edu$?.result?.list || []).map((e: any) => ({
-            _id: e._id,
-            degree: e.degree,
-            college: e.college,
-            year: e.year,
-          }));
-          // build editable clone map
-          this.editedEducationList = {};
-          this.educationList.forEach((e) => (this.editedEducationList[e._id!] = { ...e }));
 
-          // Awards
-          this.awardList = (awards$?.result?.list || []).map((a: any) => ({ ...a }));
+  // ──────────────────────────────
+  // SOCIAL (modal)
+  // ──────────────────────────────
+  selectSocialMedia(item: any, type: any) {
+    item.socialMediaId = type._id;
+    item.name = type.name;
+    item.socialMediaIdError = false;
+    // Mark existing social as edited when ID changes
+    if (item._id) {
+      this.editedSocials[item._id] = { ...item };
+    }
+  }
+  selectNewSocialMedia(item: any, type: any) {
+    item.socialMediaId = type._id;
+    item.name = type.name;
+    item.socialMediaIdError = false;
+  }
+  
+  markSocialAsEdited(item: any) {
+    if (item._id) {
+      this.editedSocials[item._id] = { ...item };
+    }
+  }
+  
+  addMoreSocial() {
+    this.newSocialList.push({ socialMediaId: '', url: '', socialMediaIdError: false, urlError: false, _isNew: true });
+  }
+  deleteSocail(item: any) {
+    if (item._id) {
+      const payload = {
+        type: this.SETTING_TYPE.SOCIAL,
+        isEdit: true,
+        records: { _id: item._id, isDelete: true },
+      };
+      this.put(payload).subscribe({
+        next: () => {
+          this.socialList = this.socialList.filter((s) => s._id !== item._id);
+          delete this.editedSocials[item._id];
+        },
+        error: (err) => console.error('Failed to delete social', err),
+      });
+    }
+  }
+  deleteNewSocial(idx: number) {
+    this.newSocialList.splice(idx, 1);
+  }
+  saveAllSocial() {
+    const isValidNew = this.newSocialList.every((x) => x.socialMediaId && x.url);
+    
+    if (!isValidNew) {
+      this.newSocialList = this.newSocialList.map((x) => ({
+        ...x,
+        socialMediaIdError: !x.socialMediaId,
+        urlError: !x.url,
+      }));
+      return;
+    }
+    
+    const saveRequests: any[] = [];
+    
+    // 1. Handle Edited Existing Socials
+    this.socialList.forEach(item => {
+      if (item._id && this.editedSocials[item._id]) {
+        const payload = {
+          type: this.SETTING_TYPE.SOCIAL,
+          isEdit: true,
+          records: {
+            _id: item._id,
+            socialMediaId: item.socialMediaId,
+            url: item.url,
+          },
+        };
+        saveRequests.push(this.put(payload));
+      }
+    });
 
-          // Memberships
-          this.membershipList = (members$?.result?.list || []).map((m: any) => ({ ...m }));
+    // 2. Handle New Socials
+    for (const newItem of this.newSocialList) {
+      const payload = {
+        type: this.SETTING_TYPE.SOCIAL,
+        isEdit: false,
+        records: {
+          socialMediaId: newItem.socialMediaId,
+          url: newItem.url,
+        },
+      };
+      saveRequests.push(this.put(payload));
+    }
 
-          // Social master/types
-          this.socialTypes = (socialTypes$?.result?.data || []).map((s: any) => ({
-            _id: s._id,
-            name: s.name,
-            // we don't get a logo here; logos are present in type=8 payload per-entry if needed
-          }));
+    if (saveRequests.length === 0) {
+      this.closeModal('social_websites_modal');
+      return;
+    }
 
-          // Social list (already resolved names/logos)
-          this.socialList = (socialList$?.result?.list || []).map((s: any) => ({
-            _id: s._id,
-            socialMediaId: s.socialMediaId,
-            name: s.name,
-            socialMediaLogo: s.socialMediaLogo,
-            url: s.url,
-          }));
-        },
-        error: (err) => {
-          console.error('Failed to load profile data', err);
-        },
-      });
-  }
+    forkJoin(saveRequests).subscribe({
+      next: () => {
+        this.newSocialList = []; 
+        this.closeModal('social_websites_modal');
+        this.loadAll(); 
+      },
+      error: (err) => console.error('Failed to save social media/websites', err),
+    });
+  }
+  
+  // ──────────────────────────────
+  // SHARED VALIDATION
+  // ──────────────────────────────
+  onFieldChange(field: 'degree' | 'college' | 'year' | 'awardName' | 'membershipName' | 'socialLink', obj: any) {
+    const map: any = {
+      degree: 'degreeError',
+      college: 'collegeError',
+      year: 'yearError',
+      awardName: 'nameError',
+      membershipName: 'nameError',
+      socialLink: 'urlError',
+    };
+    
+    // Update validation for new items
+    if (obj && map[field] in obj) {
+      const propToValidate = (field === 'awardName' || field === 'membershipName') ? 'name' : (field === 'socialLink' ? 'url' : field);
+      obj[map[field]] = !obj[propToValidate];
+    }
+    
+    // If it's an existing item being edited, ensure we mark it for PUT.
+    if (obj && obj._id) {
+      if (field === 'awardName') {
+        this.markAwardAsEdited(obj);
+      } else if (field === 'membershipName') {
+        this.markMemberAsEdited(obj);
+      } else if (field === 'socialLink') {
+        // Note: for social links, the template is updated to use markSocialAsEdited directly on (change)
+        // This ensures we catch changes from the input field.
+        this.markSocialAsEdited(obj);
+      }
+    }
+  }
 
-  // ──────────────────────────────
-  // TEMPLATE HELPERS
-  // ──────────────────────────────
-  getSpecializationNames(ids: string[] = []): string {
-    if (!ids?.length) return '';
-    const map = new Map(this.specializationList.map((s) => [s._id, s.name]));
-    return ids.map((id) => map.get(id) || '').filter(Boolean).join(', ');
-  }
 
-  getSocialMediaName(id?: string): string {
-    if (!id) return '';
-    const byId = this.socialTypes.find((s) => s._id === id);
-    return byId?.name || (this.socialList.find((s) => s.socialMediaId === id)?.name ?? '');
-  }
+  // ──────────────────────────────
+  // TOP ACTIONS
+  // ──────────────────────────────
+  submitForm() {
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+    // Ideally, you would call a profile update API here
+    
+    const v = this.profileForm.getRawValue();
+    this.getFormValues = {
+      ...(this.getFormValues || {}),
+      fullName: v.fullName,
+      phone: v.phone,
+      doctor: {
+        ...(this.getFormValues?.doctor || {}),
+        gender: Number(v.gender),
+        specialization: v.specialization,
+        experience: v.experience,
+        email: v.email,
+        about: v.about,
+        profilePic: v.profilePic,
+      },
+    };
+    this.isProfilePic = !!v.profilePic;
+    this.closeModal('edit_profile_modal');
+  }
 
-  // ──────────────────────────────
-  // MENU & MODALS
-  // ──────────────────────────────
-  onMenuClick() {
-    const side = document.getElementById('sideMenu');
-    if (side) side.classList.add('open');
-  }
-  onCloseMenuClick() {
-    const side = document.getElementById('sideMenu');
-    if (side) side.classList.remove('open');
-  }
-  closeSideBar() {
-    const side = document.getElementById('sideMenu');
-    if (side) side.classList.remove('open');
-  }
-  settingtoggleSubmenu(e: Event) {
-    e.preventDefault();
-    this.isSubmenuOpen = !this.isSubmenuOpen;
-  }
-
-  openModal(id: string) {
-    const el: any = document.getElementById(id);
-    if (!el) return;
-    // Bootstrap 5 support if available on page:
-    const win = window as any;
-    if (win.bootstrap?.Modal) {
-      const modal = new win.bootstrap.Modal(el);
-      modal.show();
-    } else {
-      el.classList.add('show');
-      el.style.display = 'block';
-      el.removeAttribute('aria-hidden');
-    }
-  }
-  closeModal(id: string) {
-    const el: any = document.getElementById(id);
-    if (!el) return;
-    const win = window as any;
-    if (win.bootstrap?.Modal) {
-      const modal = win.bootstrap.Modal.getInstance(el) || new win.bootstrap.Modal(el);
-      modal.hide();
-    } else {
-      el.classList.remove('show');
-      el.style.display = 'none';
-      el.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  // Profile image
-  openFileInput() {
-    document.getElementById('profile-upload')?.click();
-  }
-  onFileUpload(ev: any) {
-    const file = ev?.target?.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.profileForm.patchValue({ profilePic: reader.result as string });
-      this.isProfilePic = true;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // ──────────────────────────────
-  // EDUCATION (modal)
-  // ──────────────────────────────
-  markEducationAsEdited(item: any) {
-    if (!item?._id) return;
-    this.editedEducationList[item._id] = { ...item };
-  }
-  addMoreEducation() {
-    this.newEducationList.push({ degree: '', college: '', year: '', degreeError: false, collegeError: false, yearError: false });
-  }
-  deleteEducation(item: any) {
-    this.educationList = this.educationList.filter((e) => e._id !== item._id);
-    delete this.editedEducationList[item._id];
-  }
-  deleteNewEducation(idx: number) {
-    this.newEducationList.splice(idx, 1);
-  }
-  onFieldChange(field: 'degree' | 'college' | 'year' | 'awardName' | 'membershipName' | 'socialLink', obj: any) {
-    const map: any = {
-      degree: 'degreeError',
-      college: 'collegeError',
-      year: 'yearError',
-      awardName: 'nameError',
-      membershipName: 'nameError',
-      socialLink: 'urlError',
-    };
-    if (obj && map[field] in obj) obj[map[field]] = !obj[field === 'awardName' ? 'name' : field];
-  }
-  saveEducation() {
-    // Here you’d POST/PUT to your save endpoint.
-    // For now we just merge the new list into main list.
-    const valid = this.newEducationList.every((x) => x.degree && x.college && x.year);
-    if (!valid) {
-      this.newEducationList = this.newEducationList.map((x) => ({
-        ...x,
-        degreeError: !x.degree,
-        collegeError: !x.college,
-        yearError: !x.year,
-      }));
-      return;
-    }
-    this.educationList = [...this.educationList, ...this.newEducationList.map(({ degree, college, year }) => ({ degree, college, year }))];
-    this.newEducationList = [];
-    this.closeModal('add_editucaiton_modal');
-  }
-
-  // ──────────────────────────────
-  // AWARDS (modal)
-  // ──────────────────────────────
-  markAwardAsEdited(item: any) {
-    item._edited = true;
-  }
-  addMoreAward() {
-    this.newAwardList.push({ name: '', year: '', nameError: false, yearError: false });
-  }
-  deleteAward(item: any) {
-    this.awardList = this.awardList.filter((a) => a._id !== item._id);
-  }
-  deleteNewAward(idx: number) {
-    this.newAwardList.splice(idx, 1);
-  }
-  saveAllAwards() {
-    const valid = this.newAwardList.every((x) => x.name && x.year);
-    if (!valid) {
-      this.newAwardList = this.newAwardList.map((x) => ({
-        ...x,
-        nameError: !x.name,
-        yearError: !x.year,
-      }));
-      return;
-    }
-    this.awardList = [...this.awardList, ...this.newAwardList.map(({ name, year }) => ({ name, year }))];
-    this.newAwardList = [];
-    this.closeModal('awards_recognitions_modal');
-  }
-
-  // ──────────────────────────────
-  // MEMBERSHIP (modal)
-  // ──────────────────────────────
-  markMemberAsEdited(item: any) {
-    item._edited = true;
-  }
-  addMoreMember() {
-    this.newMemberList.push({ name: '', nameError: false });
-  }
-  deleteMembership(item: any) {
-    this.membershipList = this.membershipList.filter((m) => m._id !== item._id);
-  }
-  deleteNewMember(idx: number) {
-    this.newMemberList.splice(idx, 1);
-  }
-  saveAllMember() {
-    const valid = this.newMemberList.every((x) => x.name);
-    if (!valid) {
-      this.newMemberList = this.newMemberList.map((x) => ({ ...x, nameError: !x.name }));
-      return;
-    }
-    this.membershipList = [...this.membershipList, ...this.newMemberList.map(({ name }) => ({ name }))];
-    this.newMemberList = [];
-    this.closeModal('membership_modal');
-  }
-
-  // ──────────────────────────────
-  // SOCIAL (modal)
-  // ──────────────────────────────
-  selectSocialMedia(item: any, type: any) {
-    item.socialMediaId = type._id;
-    item.name = type.name;
-    item.socialMediaIdError = false;
-  }
-  selectNewSocialMedia(item: any, type: any) {
-    item.socialMediaId = type._id;
-    item.name = type.name;
-    item.socialMediaIdError = false;
-  }
-  addMoreSocial() {
-    this.newSocialList.push({ socialMediaId: '', url: '', socialMediaIdError: false, urlError: false });
-  }
-  deleteSocail(item: any) {
-    this.socialList = this.socialList.filter((s) => s._id !== item._id);
-  }
-  deleteNewSocial(idx: number) {
-    this.newSocialList.splice(idx, 1);
-  }
-  saveAllSocial() {
-    const valid = this.newSocialList.every((x) => x.socialMediaId && x.url);
-    if (!valid) {
-      this.newSocialList = this.newSocialList.map((x) => ({
-        ...x,
-        socialMediaIdError: !x.socialMediaId,
-        urlError: !x.url,
-      }));
-      return;
-    }
-    this.socialList = [
-      ...this.socialList,
-      ...this.newSocialList.map(({ socialMediaId, url, name }) => ({ socialMediaId, url, name })),
-    ];
-    this.newSocialList = [];
-    this.closeModal('social_websites_modal');
-  }
-
-  // ──────────────────────────────
-  // TOP ACTIONS
-  // ──────────────────────────────
-  submitForm() {
-    if (this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-    // Here you’d hit your PUT/PATCH endpoint to save profile.
-    // For now we update the display model and close the modal.
-    const v = this.profileForm.getRawValue();
-    this.getFormValues = {
-      ...(this.getFormValues || {}),
-      fullName: v.fullName,
-      phone: v.phone,
-      doctor: {
-        ...(this.getFormValues?.doctor || {}),
-        gender: Number(v.gender),
-        specialization: v.specialization,
-        experience: v.experience,
-        email: v.email,
-        about: v.about,
-        profilePic: v.profilePic,
-      },
-    };
-    this.isProfilePic = !!v.profilePic;
-    this.closeModal('edit_profile_modal');
-  }
-
-  finish() {
-    // Navigate or do any final action
-    // this.router.navigate(['/doctor/dashboard']);
-    console.log('Finish clicked');
-  }
+  finish() {
+    console.log('Finish clicked');
+    // this.router.navigate(['/doctor/dashboard']);
+  }
 
 // ── phone/otp modal state ─────────────────────
-phoneForm!: FormGroup;
-otpForm!: FormGroup;
-phoneStep: 1 | 2 = 1;
-loading = false;
-resendCooldown = 0;
-resendTimerRef: any = null;
-serverError = '';
-serverInfo = '';
-pendingPhone = ''; // holds the phone being verified
-
 
 openPhoneModal() {
-  this.resetPhoneModal();
-  // prefill with current phone
-  const current = this.profileForm.get('phone')?.value || this.getFormValues?.phone || '';
-  this.phoneForm.patchValue({ phone: current });
-  this.openModal('edit_phone_modal');
+  this.resetPhoneModal();
+  const current = this.profileForm.get('phone')?.value || this.getFormValues?.phone || '';
+  this.phoneForm.patchValue({ phone: current });
+  this.openModal('edit_phone_modal');
 }
 
 closePhoneModal() {
-  this.clearResendTimer();
-  this.closeModal('edit_phone_modal');
+  this.clearResendTimer();
+  this.closeModal('edit_phone_modal');
 }
 
-  
 requestOtp() {
-  if (this.phoneForm.invalid) {
-    this.phoneForm.markAllAsTouched();
-    return;
-  }
-  this.loading = true;
-  this.serverError = '';
-  this.serverInfo = '';
+  if (this.phoneForm.invalid) {
+    this.phoneForm.markAllAsTouched();
+    return;
+  }
+  this.loading = true;
+  this.serverError = '';
+  this.serverInfo = '';
 
-  const phone = (this.phoneForm.value.phone || '').trim();
-  // const body = { phone }; // adjust to your backend contract
-    const body = { phone,countryCode:"+91",userType:2 };
+  const phone = (this.phoneForm.value.phone || '').trim();
+  const body = { phone,countryCode:"+91",userType:2 };
 
-  this.http
-    .post<any>(`${this.BASE_URL}/registration/changePhone`, body, { headers: this.authHeaders() })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (res) => {
-        this.loading = false;
-        this.pendingPhone = phone;
-        this.phoneStep = 2;
-        // this.startResendTimer(30);
-        this.serverInfo = res?.message || 'OTP sent to your phone.';
-      },
-      error: (err) => {
-        this.loading = false;
-        this.serverError = err?.error?.message || 'Failed to send OTP. Please try again.';
-      },
-    });
+  this.http
+    .post<any>(`${this.BASE_URL}/registration/changePhone`, body, { headers: this.authHeaders() })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.pendingPhone = phone;
+        this.phoneStep = 2;
+        this.serverInfo = res?.message || 'OTP sent to your phone.';
+      },
+      error: (err) => {
+        this.loading = false;
+        this.serverError = err?.error?.message || 'Failed to send OTP. Please try again.';
+      },
+    });
 }
 
 
 verifyOtp() {
-  if (this.otpForm.invalid) {
-    this.otpForm.markAllAsTouched();
-    return;
-  }
-  this.loading = true;
-  this.serverError = '';
-  this.serverInfo = '';
+  if (this.otpForm.invalid) {
+    this.otpForm.markAllAsTouched();
+    return;
+  }
+  this.loading = true;
+  this.serverError = '';
+  this.serverInfo = '';
 
-  const payload = {
-    phone: this.pendingPhone,
-    userId:this.currentUser._id,
-    otp: this.otpForm.value.otp,
-    userType:2,
+  const payload = {
+    phone: this.pendingPhone,
+    userId:this.currentUser._id,
+    otp: this.otpForm.value.otp,
+    userType:2,
 
-  };
+  };
 
-  
-// https://api.nectarplus.health/api/v1/registration/changePhoneVerify
+  this.http
+    .post<any>(`${this.BASE_URL}/registration/changePhoneVerify`, payload, { headers: this.authHeaders() })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.profileForm.patchValue({ phone: this.pendingPhone });
+        this.getFormValues = { ...(this.getFormValues || {}), phone: this.pendingPhone };
 
-  this.http
-    .post<any>(`${this.BASE_URL}/registration/changePhoneVerify`, payload, { headers: this.authHeaders() })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (res) => {
-        this.loading = false;
-        // Optionally hit your profile update endpoint instead
-        // If verify already persists, just patch local state:
-        this.profileForm.patchValue({ phone: this.pendingPhone });
-        this.getFormValues = { ...(this.getFormValues || {}), phone: this.pendingPhone };
-
-        this.serverInfo = res?.message || 'Phone verified successfully.';
-        // close and clear modal
-        this.closePhoneModal();
-      },
-      error: (err) => {
-        this.loading = false;
-        this.serverError = err?.error?.message || 'Invalid OTP. Please try again.';
-      },
-    });
+        this.serverInfo = res?.message || 'Phone verified successfully.';
+        this.closePhoneModal();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.serverError = err?.error?.message || 'Invalid OTP. Please try again.';
+      },
+    });
 }
 
 
 resendOtp() {
-  if (!this.pendingPhone || this.resendCooldown > 0) return;
+  if (!this.pendingPhone || this.resendCooldown > 0) return;
 
-  this.loading = true;
-  this.serverError = '';
-  this.serverInfo = '';
+  this.loading = true;
+  this.serverError = '';
+  this.serverInfo = '';
 
-  const body = { phone: this.pendingPhone,countryCode:"+91",userType:2, userId:this.currentUser._id };
-    // http://localhost:8080/api/v1/registration/changePhone
+  const body = { phone: this.pendingPhone,countryCode:"+91",userType:2, userId:this.currentUser._id };
 
-  this.http
-    .post<any>(`${this.BASE_URL}registration/changePhone`, body, { headers: this.authHeaders() })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (res) => {
-        this.loading = false;
-        this.startResendTimer(30);
-        this.serverInfo = res?.message || 'OTP resent.';
-      },
-      error: (err) => {
-        this.loading = false;
-        this.serverError = err?.error?.message || 'Could not resend OTP.';
-      },
-    });
+  this.http
+    .post<any>(`${this.BASE_URL}registration/changePhone`, body, { headers: this.authHeaders() })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.startResendTimer(30);
+        this.serverInfo = res?.message || 'OTP resent.';
+      },
+      error: (err) => {
+        this.loading = false;
+        this.serverError = err?.error?.message || 'Could not resend OTP.';
+      },
+    });
 }
 
 private startResendTimer(seconds = 30) {
-  this.resendCooldown = seconds;
-  this.clearResendTimer();
-  this.resendTimerRef = setInterval(() => {
-    this.resendCooldown--;
-    if (this.resendCooldown <= 0) this.clearResendTimer();
-  }, 1000);
+  this.resendCooldown = seconds;
+  this.clearResendTimer();
+  this.resendTimerRef = setInterval(() => {
+    this.resendCooldown--;
+    if (this.resendCooldown <= 0) this.clearResendTimer();
+  }, 1000);
 }
 
 private clearResendTimer() {
-  if (this.resendTimerRef) {
-    clearInterval(this.resendTimerRef);
-    this.resendTimerRef = null;
-  }
+  if (this.resendTimerRef) {
+    clearInterval(this.resendTimerRef);
+    this.resendTimerRef = null;
+  }
 }
 
 private resetPhoneModal() {
-  this.phoneStep = 1;
-  this.loading = false;
-  this.resendCooldown = 0;
-  this.serverError = '';
-  this.serverInfo = '';
-  this.pendingPhone = '';
-  this.phoneForm.reset({ phone: '' });
-  this.otpForm.reset({ otp: '' });
+  this.phoneStep = 1;
+  this.loading = false;
+  this.resendCooldown = 0;
+  this.serverError = '';
+  this.serverInfo = '';
+  this.pendingPhone = '';
+  this.phoneForm.reset({ phone: '' });
+  this.otpForm.reset({ otp: '' });
 }
-
 }

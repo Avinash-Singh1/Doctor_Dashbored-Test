@@ -25,7 +25,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { HttpClient, HttpHeaders, HttpClientModule, HttpParams } from '@angular/common/http';
-
+import { CryptoProvider } from '../../core/services/crypto.service';
 // EXTENDED ChartOptions to include more ApexChart properties for professionalism
 export type ChartOptions = {
   series: ApexNonAxisChartSeries | ApexAxisChartSeries;
@@ -52,7 +52,7 @@ export type ChartOptions = {
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-
+  currentUser:any;
   doctor = {
     name: 'Sarah Smith',
     specialization: 'Gynecologist, MBBS, MD',
@@ -184,8 +184,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private auth: AuthService,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private crypto: CryptoProvider
+  ) {
+
+        const rawAuthUser = localStorage.getItem('authUser');
+        this.currentUser = this.crypto.decryptObj(rawAuthUser);
+        console.log("currentUser: ",this.currentUser);
+        
+  }
 
   ngOnInit(): void {
     if (!this.auth.hasValidToken()) {
@@ -255,18 +262,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (resp) => {
           if (resp && resp.data) {
             const d = resp.data;
+            console.log("res of api: ",resp.data);
             
             // 2. FIX: Ensure all numbers are positive integers for the chart
             const todayTotal = Number(d.todayTotalCount ?? d.totalData ?? '0');
-            const completed = Number(d.todayData ?? '0');
+            const completed = 10;
+            // const completed = Number(d.todayData ?? '0');
             
             // Assuming Scheduled = Today's Total - Completed (which are typically the current day's events)
-            const scheduled = Math.max(0, todayTotal - completed);
+            const scheduled = 6;
+            // const scheduled = Math.max(0, todayTotal - completed);
             
             // Assuming Cancelled = Total over a period (if d.totalData is total) - Today's Total
             // Let's rely on the most direct API fields:
             const totalAppointments = Number(d.totalData ?? d.todayTotalCount ?? '0'); // Fallback if fields are unreliable
-            const cancelled = Math.max(0, totalAppointments - todayTotal);
+            const cancelled = 3;
+            // const cancelled = Math.max(0, totalAppointments - todayTotal);
 
 
             // Update stats

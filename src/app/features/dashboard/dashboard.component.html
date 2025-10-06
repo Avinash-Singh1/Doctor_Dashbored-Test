@@ -2,9 +2,9 @@
   <div class="block-header d-flex align-items-center justify-content-between mb-4">
     <ul class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a routerLink="/"><mat-icon class="text-primary fs-5">home</mat-icon></a></li>
-      <li class="breadcrumb-item active">Dashboard</li>
+      <li class="breadcrumb-item active">Doctor Dashboard</li>
     </ul>
-    <h1 class="page-title h3 mb-0">Doctor Dashboard</h1>
+    <!-- <h1 class="page-title h3 mb-0">Doctor Dashboard</h1> -->
   </div>
 
   <div class="row g-4">
@@ -13,24 +13,24 @@
         <div class="row align-items-center g-3">
           <div class="col-12 col-md-8 order-md-1 order-2">
             <p class="font-b-500 text-muted mb-1">Welcome back</p>
-            <h2 class="col-blue display-6 fw-bold mb-2">Dr. {{ doctor.name }}!</h2>
+            <h2 class="col-blue display-6 fw-bold mb-2">Dr. {{ currentUser.fullName }}!</h2>
             <p class="mb-4 lead text-secondary">{{ doctor.specialization }}</p>
             <div class="row text-center g-3 mt-3">
               <div class="col-12 col-sm-4">
                 <div class="mini-stat bg-primary p-3 shadow-sm">
-                  <span class="d-block text-uppercase fw-light mb-1">Appointments</span>
+                  <span class="d-block text-uppercase fw-light mb-1">Appointments Completed</span>
                   <h5 class="fw-bold mb-0">{{ stats.appointments }}</h5>
                 </div>
               </div>
               <div class="col-12 col-sm-4">
                 <div class="mini-stat bg-danger p-3 shadow-sm">
-                  <span class="d-block text-uppercase fw-light mb-1">Surgeries</span>
+                  <span class="d-block text-uppercase fw-light mb-1">Pending</span>
                   <h5 class="fw-bold mb-0">{{ stats.surgeries }}</h5>
                 </div>
               </div>
               <div class="col-12 col-sm-4">
                 <div class="mini-stat bg-success p-3 shadow-sm">
-                  <span class="d-block text-uppercase fw-light mb-1">Room Visits</span>
+                  <span class="d-block text-uppercase fw-light mb-1">Total Appointments</span>
                   <h5 class="fw-bold mb-0">{{ stats.roomVisits }}</h5>
                 </div>
               </div>

@@ -28,8 +28,8 @@ menuItems = [
     path: null,
     icon: 'settings',
     children: [
-      { label: 'General', path: '/settings/general', icon: 'tune' },
-      { label: 'Notifications', path: '/settings/notifications', icon: 'notifications' },
+      // { label: 'General', path: '/settings/general', icon: 'tune' },
+      // { label: 'Notifications', path: '/settings/notifications', icon: 'notifications' },
       { label: 'Security', path: '/settings/security', icon: 'lock' },
       { label: 'Delete Account', path: '/settings/delete', icon: 'delete' },
     ],

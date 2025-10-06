@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms'; // Required for [(ngModel)]
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; // Required for API calls
 import { Subject, takeUntil } from 'rxjs';
+import { CryptoProvider } from '../../core/services/crypto.service';
 
 // NOTE: You would typically import your real AuthService here
 // import { AuthService } from '../../core/services/auth.service';
@@ -38,9 +39,11 @@ const API_ENDPOINTS = {
 class ApiServiceMock {
   private baseHeaders: HttpHeaders;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,private crypto: CryptoProvider) {
+      const rawAuthUser = localStorage.getItem('authToken');
+      const MOCK_TOKEN = this.crypto.decryptObj(rawAuthUser);
     // NOTE: This token should be fetched dynamically from your AuthService or storage.
-    const MOCK_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTcxNmQ1NjFlZWNlMmZmNDc5ZmJhMDkiLCJ1c2VyVHlwZSI6MiwiZGV2aWNlSWQiOiIxMjM0NTYiLCJkZXZpY2VUeXBlIjoiZGVza3RvcCIsImRldmljZVRva2VuIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKSVV6STFOaUo5LmV5SjBiMnRsYmw5MGVYQmxJam9pWVdOalpYTnpJaXdpWlhod0lqb3hOalk1TmpReE5UVTNMQ0pwWVhRaU9qRTJOamsxTlRVeE5UY3NJbXAwYVNJNklqUmlZMkl6TVRWbU0yTTJNelF3WWpZNU16TTRORGRtWWpJd05EazBOVFV5SWl3aWRYTmxjbDlwWkNJNklqSXhNREExWW1ZeExUVXpNREV0TkRreU1TMWlNRE0xTFdZeE1UbGhOVEpqTnpWbU1TSjkubG91VkVMYkFNV3pwVW9OeGhiRjMtYmlsQkZXVVVKZzRsc1RYQUlCaWU2SSIsImJyb3dzZXIiOiJjaHJvbWUiLCJvcyI6IndpbmRvd3MiLCJ0b2tlblR5cGUiOjEsImZ1bGxOYW1lIjoiRHIuIERhcnNoIEdveWFsIiwiaWF0IjoxNzU5NTcwMjc2LCJleHAiOjE3NjAxNzUwNzZ9.qdF6-b9Cxe50kcNZOfX5JT2Dn75qGKOj22zDQIabXzs';
+    // const MOCK_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTcxNmQ1NjFlZWNlMmZmNDc5ZmJhMDkiLCJ1c2VyVHlwZSI6MiwiZGV2aWNlSWQiOiIxMjM0NTYiLCJkZXZpY2VUeXBlIjoiZGVza3RvcCIsImRldmljZVRva2VuIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKSVV6STFOaUo5LmV5SjBiMnRsYmw5MGVYQmxJam9pWVdOalpYTnpJaXdpWlhod0lqb3hOalk1TmpReE5UVTNMQ0pwWVhRaU9qRTJOamsxTlRVeE5UY3NJbXAwYVNJNklqUmlZMkl6TVRWbU0yTTJNelF3WWpZNU16TTRORGRtWWpJd05EazBOVFV5SWl3aWRYTmxjbDlwWkNJNklqSXhNREExWW1ZeExUVXpNREV0TkRreU1TMWlNRE0xTFdZeE1UbGhOVEpqTnpWbU1TSjkubG91VkVMYkFNV3pwVW9OeGhiRjMtYmlsQkZXVVVKZzRsc1RYQUlCaWU2SSIsImJyb3dzZXIiOiJjaHJvbWUiLCJvcyI6IndpbmRvd3MiLCJ0b2tlblR5cGUiOjEsImZ1bGxOYW1lIjoiRHIuIERhcnNoIEdveWFsIiwiaWF0IjoxNzU5NTcwMjc2LCJleHAiOjE3NjAxNzUwNzZ9.qdF6-b9Cxe50kcNZOfX5JT2Dn75qGKOj22zDQIabXzs';
     this.baseHeaders = new HttpHeaders().set('Authorization', `Bearer ${MOCK_TOKEN}`);
   }
 
@@ -137,10 +140,11 @@ export class ProcedureComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           const all: Procedure[] = res?.result?.data || [];
+          this.filteredProcedures=res?.result?.data;
           
           if (all.length > 0 && this.profileSpecilizationIds.length > 0) {
             this.allProcedures = all.filter((procedure: Procedure) =>
-              this.profileSpecilizationIds.includes(procedure.specializationId)
+              this.profileSpecilizationIds.includes(procedure._id)
             );
           } else {
              this.allProcedures = all;
@@ -159,7 +163,7 @@ export class ProcedureComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           this.procedureList = res?.result?.list || [];
-          this.filterProcedures();
+          // this.filterProcedures();
         },
         error: (err) => console.error('Error fetching doctor procedures:', err)
       });
