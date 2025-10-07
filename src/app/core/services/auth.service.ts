@@ -13,6 +13,16 @@ export interface AuthUser {
   phone?: string;
   [k: string]: any;
 }
+// http://localhost:8080/api/v1/registration/forgetPhone
+// /api/v1/registration/verifyForgetPhone
+const API_ENDPOINTS = {
+    new: {
+        forgetPhone: 'api/v1/registration/forgetPhone', // Example path
+        // forgetPhone: 'auth/v1/doctor/forget-password/send-otp', // Example path
+        verifyForgetPhone: 'api/v1/registration/verifyForgetPhone', // Example path
+        changePasswordForgetPhone: 'api/v1/registration/changePasswordForgetPhone', // Example path
+    }
+};
 
 @Injectable({
   providedIn: 'root',
@@ -232,5 +242,22 @@ export class AuthService {
   hasValidToken(): boolean {
     const t = this.getToken();
     return !!t;
+  }
+
+   private apiUrl = 'http://localhost:8080';
+   // Method 1: Send OTP
+  requestPasswordReset(payload: any): Observable<any> {
+    // You might need to adjust API_ENDPOINTS structure
+    return this.http.post(`${this.apiUrl}/${API_ENDPOINTS.new.forgetPhone}`, payload);
+  }
+
+  // Method 2: Verify OTP
+  verifyPasswordResetOTP(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${API_ENDPOINTS.new.verifyForgetPhone}`, payload);
+  }
+
+  // Method 3: Change Password
+  resetPassword(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${API_ENDPOINTS.new.changePasswordForgetPhone}`, payload);
   }
 }
