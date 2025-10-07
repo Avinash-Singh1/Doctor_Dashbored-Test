@@ -178,8 +178,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   };
 
   // API URLs (adjust to your backend host/port if different)
-  private dashboardUrl = 'http://localhost:3000/doctor/doctor-appointment-dashboard';
-  private appointmentListUrl = 'http://localhost:3000/doctor/appointment/list';
+  private dashboardUrl = 'http://82.112.237.181:3000/doctor/doctor-appointment-dashboard';
+  private appointmentListUrl = 'http://82.112.237.181:3000/doctor/appointment/list';
 
   constructor(
     private router: Router,

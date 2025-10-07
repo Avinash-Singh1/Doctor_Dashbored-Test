@@ -210,7 +210,7 @@ private checkExistingEstablishments() {
   });
 
   // NOTE: change this URL to your actual API endpoint if different.
-  const url = `http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100`; // <- adjust if your API differs
+  const url = `http://82.112.237.181:8080/api/v1/doctor/doctor-establishment-list?size=100`; // <- adjust if your API differs
 
   return this.http.get<any>(url, { headers }).pipe(
     map((resp) => {
@@ -467,7 +467,7 @@ private checkExistingEstablishments() {
     });
 
     // url: use environment or hardcode local dev URL
-    const url = `http://localhost:3000/doctor/doctor-add-establishment`;
+    const url = `http://82.112.237.181:3000/doctor/doctor-add-establishment`;
 
     this.http
       .post(url, payload, { headers })

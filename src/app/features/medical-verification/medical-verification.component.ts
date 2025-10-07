@@ -24,7 +24,7 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
   private readonly API_BASE = 'http://localhost:3000';
 
   // Profile endpoint (from your request)
-  private readonly PROFILE_API = 'http://localhost:8080/api/v1/setting/profile';
+  private readonly PROFILE_API = 'http://82.112.237.181:8080/api/v1/setting/profile';
 
   // Hard-coded AWS default images (from your reference payload)
   private readonly DEFAULT_IDENTITY_URL =

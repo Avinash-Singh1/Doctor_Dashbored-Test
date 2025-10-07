@@ -25,7 +25,7 @@ export class SecurityComponent {
   };
 
   private userId: string = localStorage.getItem('userId') || '68dce05004a1d8470ca42f98';
-  private readonly API_URL = 'http://localhost:8080/api/v1/reset-password/reset-password';
+  private readonly API_URL = 'http://82.112.237.181:8080/api/v1/reset-password/reset-password';
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.passwordForm = this.fb.group(

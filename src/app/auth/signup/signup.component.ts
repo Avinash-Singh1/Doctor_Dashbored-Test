@@ -42,8 +42,8 @@ export class SignupComponent implements OnInit {
   cities: string[] = [];
 
   // API endpoints (update as required)
-  private REGISTER_URL = 'http://localhost:3000/api/v1/register';
-  private VERIFY_OTP_URL = 'http://localhost:3000/api/v1/verify-otp';
+  private REGISTER_URL = 'http://82.112.237.181:3000/api/v1/register';
+  private VERIFY_OTP_URL = 'http://82.112.237.181:3000/api/v1/verify-otp';
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router,) {}
 

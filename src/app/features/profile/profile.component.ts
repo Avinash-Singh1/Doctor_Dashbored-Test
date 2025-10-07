@@ -28,7 +28,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // CONFIG
   // ──────────────────────────────
   private destroy$ = new Subject<void>();
-  private BASE_URL = 'http://localhost:8080/api/v1';
+  private BASE_URL = 'http://82.112.237.181:8080/api/v1';
   private SETTINGS_URL = `${this.BASE_URL}/setting/list`; // The PUT endpoint
 
   // Type constants for the API payload 'type' field

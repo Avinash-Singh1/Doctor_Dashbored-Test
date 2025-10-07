@@ -40,7 +40,7 @@ export class VideosComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   // ---- API config (inline, no external service) ----
-  private readonly API_BASE = 'http://localhost:8080/api/v1';
+  private readonly API_BASE = 'http://82.112.237.181:8080/api/v1';
   private readonly LIST_PATH = '/video/list';
   private readonly EDIT_PATH = '/video'; // PUT
   // private readonly QUERY_LIST_ID = '65716d561eece2ff479fba0b'; // list API "id"

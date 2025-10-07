@@ -19,7 +19,7 @@ interface Procedure {
 }
 
 // --- API Endpoints Configuration
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'http://82.112.237.181:8080/api/v1';
 const API_ENDPOINTS = {
   MASTER: {
     procedure: '/master/procedure',

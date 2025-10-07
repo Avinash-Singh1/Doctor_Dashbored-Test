@@ -135,7 +135,7 @@ currentUser:any
       // this.fallbackUserId;
       this.currentUser.doctorId;
 
-    const url = `http://localhost:8080/api/v1/faq/all-faq?id=${encodeURIComponent(
+    const url = `http://82.112.237.181:8080/api/v1/faq/all-faq?id=${encodeURIComponent(
       userId
     )}&userType=${this.userType}`;
 
@@ -224,7 +224,7 @@ currentUser:any
       // If decryption fails, proceed without header; your interceptor may add it anyway
     }
 
-    const url = 'http://localhost:8080/api/v1/faq';
+    const url = 'http://82.112.237.181:8080/api/v1/faq';
 
     this.http
       .post<AddApiResponse>(url, payload, { headers })
@@ -286,7 +286,7 @@ currentUser:any
   if (!this.selectedFaq || !this.selectedFaq.id) return;
 
   const faqId = this.selectedFaq.id;
-  const url = `http://localhost:8080/api/v1/faq/${faqId}`;
+  const url = `http://82.112.237.181:8080/api/v1/faq/${faqId}`;
 
   let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
   try {

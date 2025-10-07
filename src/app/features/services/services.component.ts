@@ -9,7 +9,7 @@ import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'
 import { FormBuilder } from '@angular/forms'; 
 
 // --- API CONSTANTS ---
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = 'http://82.112.237.181:8080/api';
 const API_ENDPOINTS = {
   COMMON: {
     getAllServices: '/v1/services/get-all-services',

@@ -26,7 +26,7 @@ export class DeleteComponent {
 
   // If you have an environment file, use that instead:
   // private baseUrl = environment.apiBaseUrl;
-  private baseUrl = 'http://localhost:8080/api/v1';
+  private baseUrl = 'http://82.112.237.181:8080/api/v1';
 
   loading = false;
 

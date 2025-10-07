@@ -35,8 +35,8 @@ export class AuthService {
   private loggedIn$ = new BehaviorSubject<boolean>(false);
   private currentUser$ = new BehaviorSubject<AuthUser | null>(null);
 
-  private LOGIN_URL = 'http://localhost:3000/api/v1/login';
-  private LOGOUT_URL = 'http://localhost:3000/api/v1/logout';
+  private LOGIN_URL = 'http://82.112.237.181:3000/api/v1/login';
+  private LOGOUT_URL = 'http://82.112.237.181:3000/api/v1/logout';
 
   constructor(private http: HttpClient, private router: Router, private crypto: CryptoProvider) {
     this.bootstrapFromStorage();
@@ -244,7 +244,7 @@ export class AuthService {
     return !!t;
   }
 
-   private apiUrl = 'http://localhost:8080';
+   private apiUrl = 'http://82.112.237.181:8080';
    // Method 1: Send OTP
   requestPasswordReset(payload: any): Observable<any> {
     // You might need to adjust API_ENDPOINTS structure
