@@ -265,7 +265,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
       Authorization: token ? `Bearer ${token}` : '',
     });
 
-    const url = `http://82.112.237.181:8080/api/v1/doctor/doctor-establishment-list?size=100`;
+    const url = `http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100`;
 
     this.http.get<any>(url, { headers }).pipe(
       catchError((err) => {
@@ -663,7 +663,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
 
 
       // Build query string
-      const base = 'http://82.112.237.181:8080/api/v1/doctor/doctor-edit-establishment';
+      const base = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
       const query = `?establishmentId=${encodeURIComponent(establishmentIdForQuery)}${hospitalIdForQuery ? `&hospitalId=${encodeURIComponent(hospitalIdForQuery)}` : ''}`;
       const updateUrl = `${base}${query}`;
 
@@ -689,7 +689,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     }
 
     // Otherwise create new establishment (existing behaviour)
-    const createUrl = `http://82.112.237.181:3000/doctor/doctor-add-establishment`;
+    const createUrl = `http://localhost:3000/doctor/doctor-add-establishment`;
     // Original payload for creation (use your previous payload shape)
     const createPayload = {
       showVideo: formValue.showVideo,

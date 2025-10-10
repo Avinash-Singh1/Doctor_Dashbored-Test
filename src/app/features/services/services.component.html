@@ -1,81 +1,96 @@
 <div class="inner-wrapper" id="clickToCloseArea">
-  <div class="main-content">
+    <div class="main-content">
 
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
-      <h2 class="h3 mb-0">Services</h2> 
-      <button type="button" class="btn btn-primary" 
-        (click)="openModal('add_services_modal')">
-        <i class="fas fa-plus me-2"></i> Add Service
-      </button>
-    </div>
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 mb-0">Services</h2>
+            <button 
+                type="button" 
+                class="btn btn-primary" 
+                (click)="openModal('add_services_modal')"
+            >
+                <i class="fas fa-plus me-2"></i> Add Service
+            </button>
+        </div>
 
-    <form class="services-form">
-      <div class="row g-3 services-grid">
-        <div class="col-12 col-sm-6 col-lg-3" *ngFor="let service of allServicesList">
-          <label class="service-checkbox-item">
-            <p class="service-name">{{ service.name }}</p> 
-            <input type="checkbox" [checked]="isServiceSelected(service)"
-              (change)="onServiceChange($event, service)" />
-            <span class="checkmark"></span>
-          </label>
-        </div>
-        
-        <div *ngIf="allServicesList.length === 0" class="col-12">
-          <div class="alert alert-info text-center" role="alert">
-            <p class="mb-0">
-              No services found for your current specializations. 
-              Click '<strong>Add Service</strong>' to create a custom service.
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="page-footer">
-        <div class="d-flex gap-2">
-          <a [routerLink]="['/doctor/establishment']" class="btn btn-outline-secondary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1">
-              <path d="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" fill="currentColor" />
-            </svg>
-            Back
-          </a>
-          <a [routerLink]="['/doctor/procedure']" class="btn btn-primary">
-            Next
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ms-1">
-              <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" fill="white" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </form>
+        <form class="services-form" (click)="closeSideBar()">
+            <div class="row g-3 services-grid">
 
-    <div class="modal fade" id="add_services_modal" tabindex="-1" aria-labelledby="add_services_modal_label" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered"> <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="add_services_modal_label">Add Custom Service</h5>
-            <button type="button" class="btn-close" aria-label="Close"
-              (click)="closeModal('add_services_modal')"></button>
-          </div>
-          <div class="modal-body">
-            <div class="input-group mb-3 custom-search-input">
-              <span class="input-group-text search-icon-container">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="currentColor" />
-                </svg>
-              </span>
-              <input [(ngModel)]="newService" type="text" class="form-control"
-                placeholder="Search or Type custom service name..." name="newServiceInput" />
+                <div class="col-12 col-sm-6 col-lg-3" *ngFor="let service of allDisplayServices"> 
+                    <label class="service-checkbox-item">
+                        <p class="service-name">{{ service.name }}</p> 
+                        <input 
+                            type="checkbox" 
+                            [checked]="isServiceSelected(service)" 
+                            (change)="onServiceChange($event, service)" 
+                        />
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+
+                <div *ngIf="allDisplayServices.length === 0" class="col-12"> 
+                    <div class="alert alert-info text-center" role="alert">
+                        <p class="mb-0">
+                            No services found. Click '<strong>Add Service</strong>' to select one.
+                        </p>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-outline-secondary"
-                (click)="closeModal('add_services_modal')">Cancel</button>
-              <button type="button" class="btn btn-primary" (click)="saveList()">Save</button>
+            
+            <div class="page-footer">
+                <div class="d-flex gap-2">
+                    <a [routerLink]="['/doctor/dashboard']" class="btn btn-outline-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1">
+                            <path d="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" fill="currentColor" />
+                        </svg>
+                        Back
+                    </a>
+                    <a [routerLink]="['/doctor/procedures']" class="btn btn-primary">
+                        Next
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ms-1">
+                            <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" fill="white" />
+                        </svg>
+                    </a>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        </form>
 
-  </div>
+        <div class="modal fade" id="add_services_modal" tabindex="-1" aria-labelledby="add_services_modal_label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="add_services_modal_label">Add Services</h5>
+                        <button type="button" class="btn-close" aria-label="Close" (click)="closeModal('add_services_modal')"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="input-group mb-3 custom-search-input">
+                                    <span class="input-group-text search-icon-container">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        placeholder="Add New Service" 
+                                        [(ngModel)]="newService" 
+                                        name="newService"
+                                    />
+                                    
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary" (click)="closeModal('add_services_modal')">Cancel</button>
+                            <button type="button" class="btn btn-primary" (click)="saveList()">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

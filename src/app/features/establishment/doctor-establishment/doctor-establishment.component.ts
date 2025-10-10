@@ -64,8 +64,8 @@ export class DoctorEstablishmentComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  private readonly API_URL = 'http://82.112.237.181:8080/api/v1/doctor/doctor-establishment-list?size=100';
-  private readonly DELETE_URL = 'http://82.112.237.181:8080/api/v1/doctor/doctor-delete-establishment2';
+  private readonly API_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100';
+  private readonly DELETE_URL = 'http://localhost:8080/api/v1/doctor/doctor-delete-establishment2';
   private readonly TOKEN:any;
 
   // 🔑 Hardcoded token
@@ -212,7 +212,7 @@ export class DoctorEstablishmentComponent implements OnInit {
       .set('hospitalId', establishment?.hospitalData?.hospitalId);
 
     // API URL
-    const url = 'http://82.112.237.181:8080/api/v1/doctor/doctor-edit-establishment';
+    const url = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
 
     // Add headers with Bearer token
     const headers = new HttpHeaders().set('Authorization', `Bearer ${this.TOKEN}`);

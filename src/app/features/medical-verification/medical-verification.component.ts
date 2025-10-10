@@ -5,8 +5,13 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
-import { CryptoProvider } from '../../core/services/crypto.service';
+import { HttpClientModule } from '@angular/common/http';
+
+// Import the new service
+import { MedicalVerificationService } from '../../core/services/medical-verification.service';
+
+// CryptoProvider is no longer needed directly in the component
+// import { CryptoProvider } from '../../core/services/crypto.service'; 
 
 @Component({
   selector: 'app-medical-verification',
@@ -20,17 +25,9 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
   profileForm!: FormGroup;
   getFormValues: any;
 
-  // Base URL - change to your environment value if needed
-  private readonly API_BASE = 'http://localhost:3000';
-
-  // Profile endpoint (from your request)
-  private readonly PROFILE_API = 'http://82.112.237.181:8080/api/v1/setting/profile';
-
-  // Hard-coded AWS default images (from your reference payload)
-  private readonly DEFAULT_IDENTITY_URL =
-    'https://nector-prod.s3.ap-south-1.amazonaws.com/0aaa5390-9783-11f0-8e82-1168173a397f-Auli_Skiing_Adventure.jpg';
-  private readonly DEFAULT_MEDICAL_URL =
-    'https://nector-prod.s3.ap-south-1.amazonaws.com/0aa830b0-9783-11f0-8e82-1168173a397f-alleppey-backwater-cruise.jpg';
+  // The constants are now in the service, but the component keeps the list data
+  identityProofOptions = ['Aadhar Card', 'Driving Licence', 'Voter Card', 'Any Other Govt. ID'];
+  medicalProofOptions = ['Medical Council Reg. Certificate', 'Professional Licence', 'Experience Certificate'];
 
   // local menu items (example). Replace with your real menu data if needed.
   menuItems = [
@@ -40,13 +37,10 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
       { label: 'Sub 1', routerLink: '/doctor/settings/sub1', icon: 'assets/images/icon-sub1.svg', alt: 'sub1' }
     ]}
   ];
-
-  identityProofOptions = ['Aadhar Card', 'Driving Licence', 'Voter Card', 'Any Other Govt. ID'];
-  medicalProofOptions = ['Medical Council Reg. Certificate', 'Professional Licence', 'Experience Certificate'];
-
+  
   // These are used for local preview and filename display only
   identityProofUrl: string | null = null; // data URL for preview
-  medicalProofUrl: string | null = null;  // data URL for preview
+  medicalProofUrl: string | null = null;  // data URL for preview
   establishmentProofUrl: string | null = null;
   identityProofFilename: string | null = null;
   medicalProofFilename: string | null = null;
@@ -58,38 +52,18 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
 
   constructor(
     private renderer: Renderer2,
-    private fb: FormBuilder,
+    private fb: FormBuilder, // Keep FormBuilder for local form initialization if needed, but using service now
     private router: Router,
-    private http: HttpClient,
-    private crypto: CryptoProvider,
+    // Inject the new service
+    private verificationService: MedicalVerificationService, 
     @Inject(DOCUMENT) private document: Document
   ) {}
 
   ngOnInit(): void {
-    // Build forms
-    this.consultationForm = this.fb.group({
-      consultationType: ['In-clinic'],
-      consultationDetails: this.fb.group({
-        isVideo: [true],
-        isInClinic: [{ value: true, disabled: true }]
-      }),
-      regNum: ['', Validators.required],
-      regCouncil: ['', Validators.required],
-      regYear: ['', Validators.required],
-      identityProof: ['', Validators.required],
-      medicalProof: ['', Validators.required],
-      identityFile: [null],
-      medicalFile: [null],
-      establishmentFile: [null]
-    });
-
-    this.profileForm = this.fb.group({
-      profilePic: [''],
-      fullName: ['', [Validators.required]],
-      specialization: [null, [Validators.required]],
-      experience: [null, [Validators.required]],
-      about: ['', [Validators.required]]
-    });
+    // Initialize forms using the service
+    const forms = this.verificationService.initializeForms();
+    this.consultationForm = forms.consultationForm;
+    this.profileForm = forms.profileForm;
 
     // Fetch server-side profile and patch forms (replaces previous localStorage patching)
     this.fetchProfileAndPatch();
@@ -102,28 +76,10 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
 
   /**
    * Fetch profile data from configured PROFILE_API and patch forms.
-   * - Uses CryptoProvider to read token if available
-   * - Safely patches values with fallback defaults
+   * - Uses MedicalVerificationService for API call.
    */
   private fetchProfileAndPatch(): void {
-    // Build headers; add auth if available
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-
-    try {
-      const rawToken = localStorage.getItem('authToken');
-      if (rawToken) {
-        const token = this.crypto.decryptObj(rawToken);
-        if (token) {
-          headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-      }
-    } catch (e) {
-      console.warn('Could not read/decrypt auth token', e);
-    }
-
-    this.http.get<any>(this.PROFILE_API, { headers })
+    this.verificationService.fetchProfile()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -133,16 +89,18 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
             this.getFormValues = res.result[0];
 
             // Patch profile form
+            const profileData = this.getFormValues;
+            const doc = profileData?.doctor || {};
+
             this.profileForm.patchValue({
-              profilePic: this.getFormValues?.doctor?.profilePic || this.getFormValues?.doctor?.profilePic || '',
-              fullName: this.getFormValues?.fullName || '',
-              experience: this.getFormValues?.doctor?.experience || '',
-              specialization: this.getFormValues?.doctor?.specialization || [],
-              about: this.getFormValues?.doctor?.about || ''
+              profilePic: profileData?.doctor?.profilePic || '',
+              fullName: profileData?.fullName || '',
+              experience: doc?.experience || '',
+              specialization: doc?.specialization || [],
+              about: doc?.about || ''
             });
 
             // Patch consultation form
-            const doc = this.getFormValues?.doctor || {};
             this.consultationForm.patchValue({
               consultationType: doc?.consultationType || 'In-clinic',
               consultationDetails: {
@@ -177,17 +135,6 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
   }
 
   // local "upload" - read file as data URL for preview only (no base64 sent to backend)
-  private readFileAsDataUrl(file: File) {
-    return new Promise<string | null>((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-  }
-
   async onFileSelected(event: Event, controlName: string) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -199,8 +146,8 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // read locally (for preview and local storage) — keep this behaviour
-    const dataUrl = await this.readFileAsDataUrl(file);
+    // read locally (for preview and local storage) - uses service helper
+    const dataUrl = await this.verificationService.readFileAsDataUrl(file);
     if (!dataUrl) {
       alert('Failed to read file.');
       return;
@@ -250,16 +197,13 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
     this.consultationForm.updateValueAndValidity();
   }
 
-  // Helper to determine if dataURL points to an image (for preview)
+  // Helper to determine if dataURL points to an image (for preview) - uses service helper
   isImage(dataUrl: string | null): boolean {
-    if (!dataUrl) return false;
-    return dataUrl.startsWith('data:image/');
+    return this.verificationService.isImage(dataUrl);
   }
 
   /**
-   * Submit:
-   * - keep local upload/preview behaviour
-   * - build payload but ALWAYS use hard-coded AWS URLs for proofs (do not send base64)
+   * Submit: uses MedicalVerificationService for payload construction and API call.
    */
   onSubmit(): void {
     this.consultationForm.markAllAsTouched();
@@ -269,69 +213,15 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Build payload (use AWS defaults for images; uploaded files used only for preview/filename)
-    const formValue = this.consultationForm.getRawValue();
-
-    const payload = {
-      steps: 2,
-      isEdit:
-        formValue.regNum !== '' &&
-        formValue.regCouncil !== '' &&
-        formValue.consultationType !== '',
-      isSaveAndExit: false,
-      records: {
-        doctor: {
-          medicalRegistration: {
-            registrationNumber: formValue.regNum,
-            council: formValue.regCouncil,
-            year: formValue.regYear
-          },
-          // always send the AWS default URLs (hard-coded)
-          identityProof: [
-            {
-              url: this.DEFAULT_IDENTITY_URL,
-              filename: this.identityProofFilename || 'identity_default.jpg',
-              fileType: 'image',
-              urlType: formValue.identityProof || 'Aadhar Card'
-            }
-          ],
-          medicalProof: [
-            {
-              url: this.DEFAULT_MEDICAL_URL,
-              filename: this.medicalProofFilename || 'medical_default.jpg',
-              fileType: 'image',
-              urlType: formValue.medicalProof || 'Medical Council Reg. Certificate'
-            }
-          ]
-        },
-        consultationType: formValue.consultationType || 'In-clinic',
-        consultationDetails: {
-          isVideo: formValue.consultationDetails?.isVideo ?? true,
-          isInClinic: formValue.consultationDetails?.isInClinic ?? true
-        }
-      },
-      profile: {
-        fullName: this.profileForm.get('fullName')?.value || ''
-      }
+    const consultationFormValue = this.consultationForm.getRawValue();
+    const profileFormValue = this.profileForm.getRawValue();
+    const filenames = {
+      identityProofFilename: this.identityProofFilename,
+      medicalProofFilename: this.medicalProofFilename
     };
 
-    // Save draft locally (still helpful fallback)
-    localStorage.setItem('medicalVerificationDraft', JSON.stringify(payload));
-    console.log('Payload (using AWS defaults for proof images):', payload);
-
-    // Call backend API
-    let token: string | null = null;
-    try {
-      token = this.crypto.decryptObj(localStorage.getItem('authToken'));
-    } catch (e) {
-      console.warn('Failed to decrypt token', e);
-    }
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-
-    this.http.put(`${this.API_BASE}/doctor/update-profile`, payload, { headers })
+    // Use service for payload construction and API call
+    this.verificationService.submitVerification(consultationFormValue, profileFormValue, filenames)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: any) => {
@@ -351,7 +241,7 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
       });
   }
 
-  // UI/menu utilities (copied from reference)
+  // UI/menu utilities (unchanged)
   settingtoggleSubmenu(event: Event): void {
     event.preventDefault();
     this.isSubmenuOpen = !this.isSubmenuOpen;
@@ -401,7 +291,7 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
     }
   }
 
-  // small FB pixel snippet — same as reference (keeps inline script)
+  // small FB pixel snippet (unchanged)
   addFacebookPixelEventScript(): void {
     const fbqScript = this.renderer.createElement('script');
     fbqScript.type = 'text/javascript';
@@ -426,7 +316,7 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
     this.isMenuHidden = !this.isMenuHidden;
   }
 
-  // respond to storage clears (basic)
+  // respond to storage clears (basic) (unchanged)
   private onStorageEvent = (ev: StorageEvent) => {
     const relevantKeys = ['authToken', 'authUser', 'deviceId'];
     if (ev.key === null || relevantKeys.includes(ev.key)) {

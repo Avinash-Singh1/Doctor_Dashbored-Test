@@ -1,10 +1,10 @@
 <div class="content-block container-fluid p-4 p-md-5">
   <div class="block-header d-flex align-items-center justify-content-between mb-4">
     <ul class="breadcrumb mb-0">
+      <!-- NOTE: routerLink requires RouterLink to be in imports of TS file -->
       <li class="breadcrumb-item"><a routerLink="/"><mat-icon class="text-primary fs-5">home</mat-icon></a></li>
       <li class="breadcrumb-item active">Doctor Dashboard</li>
     </ul>
-    <!-- <h1 class="page-title h3 mb-0">Doctor Dashboard</h1> -->
   </div>
 
   <div class="row g-4">
@@ -13,7 +13,8 @@
         <div class="row align-items-center g-3">
           <div class="col-12 col-md-8 order-md-1 order-2">
             <p class="font-b-500 text-muted mb-1">Welcome back</p>
-            <h2 class="col-blue display-6 fw-bold mb-2">Dr. {{ currentUser.fullName }}!</h2>
+            <!-- FIX APPLIED HERE: Used currentUser?.fullName to prevent 'Object is possibly null' error -->
+            <h2 class="col-blue display-6 fw-bold mb-2">Dr. {{ currentUser?.fullName }}!</h2>
             <p class="mb-4 lead text-secondary">{{ doctor.specialization }}</p>
             <div class="row text-center g-3 mt-3">
               <div class="col-12 col-sm-4">

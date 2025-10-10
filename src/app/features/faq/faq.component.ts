@@ -1,45 +1,21 @@
 // src/app/features/faq/faq.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Injectable } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../core/services/auth.service'; // adjust if needed
-import { CryptoProvider } from '../../core/services/crypto.service';   // <-- assumes you have this
+import { HttpClientModule } from '@angular/common/http';
 
-type ApiFaqItem = {
-  _id: string;
-  question: string;
-  answer: string;
-  userType: number;
-  isDeleted: boolean;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { AuthService } from '../../core/services/auth.service';
+import { CryptoProvider } from '../../core/services/crypto.service';
+import { FaqService, FaqItem } from '../../core/services/faq.service';
 
-type ListApiResponse = {
-  success: boolean;
-  status_code: number;
-  message: string;
-  result: { count: number; data: ApiFaqItem[] };
-  time: number;
-};
-
-type AddApiResponse = {
-  success: boolean;
-  status_code: number;
-  message: string;
-  result: ApiFaqItem;
-  time: number;
-};
-
-type FaqItem = {
-  id?: string;
-  question: string;
-  answer: string;
-};
+// --- Mockup Toastr Service (for centralized error messaging) ---
+@Injectable({ providedIn: 'root' })
+class ToastrServiceMock {
+  success(message: string): void { console.log('SUCCESS:', message); }
+  error(message: string): void { console.error('ERROR:', message); }
+}
 
 @Component({
   selector: 'app-faq',
@@ -47,6 +23,7 @@ type FaqItem = {
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './faq.component.html',
   styleUrls: ['./faq.component.scss'],
+  providers: [FaqService, ToastrServiceMock] // Provide the service
 })
 export class FaqComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -61,30 +38,22 @@ export class FaqComponent implements OnInit, OnDestroy {
   faqsList: FaqItem[] = [];
   selectedFaq: FaqItem | null = null;
 
-  // Config
-  private readonly TOKEN_KEY = 'authToken'; // match whatever you actually store under
-  private readonly userType = 2;
+  // Configuration (Removed redundant API constants and user logic)
+  // currentUser is handled by the service's constructor, but kept here for local component context if needed
+  currentUser: any; 
 
-  // If you don't have it in AuthService, this is a safe fallback.
-  private readonly fallbackUserId = '65716d561eece2ff479fba0b';
-
-
-authUser:any;
-currentUser:any
   constructor(
     private router: Router,
     private auth: AuthService,
-    private http: HttpClient,
-    private crypto: CryptoProvider
+    private faqService: FaqService, // Use the new service
+    private crypto: CryptoProvider,
+    private toastr: ToastrServiceMock // Use toastr for user feedback
   ) {
-  this.authUser = localStorage.getItem('authUser');
-
-  this.currentUser = this.crypto.decryptObj(this.authUser);
-  this.currentUser? console.log("currentUser: ",this.currentUser):console.log("Not userfound");
+    // Keep user decoding here for immediate component use (like auth check)
+    const rawAuthUser = localStorage.getItem('authUser');
+    this.currentUser = rawAuthUser ? this.crypto.decryptObj(rawAuthUser) : null;
+    this.currentUser ? console.log("currentUser: ", this.currentUser) : console.log("Not userfound");
   }
-
-
-
 
   ngOnInit(): void {
     // 1) Immediate synchronous check
@@ -124,44 +93,29 @@ currentUser:any
     }
   };
 
-  /** Fetch list */
-  private loadFaqs(): void {
+  /** Fetch list (via Service) */
+  public loadFaqs(): void {
     this.loading = true;
     this.loadError = null;
 
-    const userId =
-      (this as any).auth?.currentUser?.id ||
-      (this as any).auth?.user?.id ||
-      // this.fallbackUserId;
-      this.currentUser.doctorId;
-
-    const url = `http://82.112.237.181:8080/api/v1/faq/all-faq?id=${encodeURIComponent(
-      userId
-    )}&userType=${this.userType}`;
-
-    this.http
-      .get<ListApiResponse>(url)
+    this.faqService.getFaqs()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res) => {
-          const rows = res?.result?.data ?? [];
-          this.faqsList = rows.map((r) => ({
-            id: r._id,
-            question: (r.question ?? '').trim(),
-            answer: (r.answer ?? '').trim(),
-          }));
+        next: (rows) => {
+          this.faqsList = rows;
           this.loading = false;
         },
         error: (err) => {
-          this.loadError =
-            err?.error?.message ?? err?.message ?? 'Failed to load FAQs. Please try again.';
+          const message = err?.error?.message ?? err?.message ?? 'Failed to load FAQs. Please try again.';
+          this.loadError = message;
+          this.toastr.error(message);
           this.loading = false;
           if (this.faqsList.length === 0) this.faqsList = [];
         },
       });
   }
 
-  /** Modal helpers */
+  /** Modal helpers (unchanged) */
   openModal(id: string) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.add('show', 'd-block');
@@ -172,7 +126,7 @@ currentUser:any
     if (modal) modal.classList.remove('show', 'd-block');
   }
 
-  /** UI events */
+  /** UI events (unchanged) */
   onAddFaqs() {
     this.saveError = null;
     this.openModal('addFaqModal');
@@ -183,145 +137,97 @@ currentUser:any
     this.openModal('editFaqModal');
   }
 
-  /** POST /api/v1/faq on Save */
+  /** POST /api/v1/faq on Save (via Service) */
   handleAddFaq(question: string, answer: string) {
     const q = (question || '').trim();
     const a = (answer || '').trim();
     if (!q || !a) {
       this.saveError = 'Question and answer are required.';
+      this.toastr.error('Question and answer are required.');
       return;
     }
 
     this.saving = true;
     this.saveError = null;
 
-    // Resolve userId from auth or fallback
-    const userId =
-      (this as any).auth?.currentUser?.id ||
-      (this as any).auth?.user?.id ||
-      this.currentUser.doctorId
-      // this.fallbackUserId;
-
-    const payload = {
-      question: q,
-      answer: a,
-      userType: this.userType,
-      userId: userId, // required by your API
-    };
-
-    // Build headers with decrypted token, if present
-    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    try {
-      const enc = localStorage.getItem(this.TOKEN_KEY);
-      if (enc) {
-        const token = this.crypto.decryptObj(enc);
-        if (token) {
-          // If your backend expects a different header, adjust here
-          headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-      }
-    } catch (e) {
-      // If decryption fails, proceed without header; your interceptor may add it anyway
-    }
-
-    const url = 'http://82.112.237.181:8080/api/v1/faq';
-
-    this.http
-      .post<AddApiResponse>(url, payload, { headers })
+    this.faqService.addFaq(q, a)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res) => {
-          const r = res?.result;
-          if (r) {
-            // Optimistically add the new item at the top
-            const newItem: FaqItem = {
-              id: r._id,
-              question: (r.question ?? '').trim(),
-              answer: (r.answer ?? '').trim(),
-            };
-            this.faqsList = [newItem, ...this.faqsList];
-          }
+        next: (newItem) => {
+          this.faqsList = [newItem, ...this.faqsList];
+          this.toastr.success('FAQ added successfully.');
           this.saving = false;
           this.closeModal('addFaqModal');
-
-          // Optional: refresh from server to stay in sync
-          // this.loadFaqs();
         },
         error: (err) => {
           this.saving = false;
-          this.saveError =
-            err?.error?.message ?? err?.message ?? 'Failed to add FAQ. Please try again.';
+          const message = err?.error?.message ?? err?.message ?? 'Failed to add FAQ. Please try again.';
+          this.saveError = message;
+          this.toastr.error(message);
         },
       });
   }
 
+  /** PUT /api/v1/faq/id on Save Edit (Refactored to use Service) */
   handleEditFaq(question: string, answer: string) {
-    if (this.selectedFaq) {
-      const idx = this.faqsList.findIndex(
-        (f) =>
-          f.id === this.selectedFaq!.id ||
-          (f.question === (this.selectedFaq as any).question &&
-            f.answer === (this.selectedFaq as any).answer)
-      );
-      if (idx !== -1) {
-        const updated = { ...this.faqsList[idx], question, answer };
-        const copy = [...this.faqsList];
-        copy[idx] = updated;
-        this.faqsList = copy;
-      }
-      this.selectedFaq = null;
+    if (!this.selectedFaq?.id) {
+      this.closeModal('editFaqModal');
+      return;
     }
+
+    const updatedFaq: FaqItem = {
+      id: this.selectedFaq.id,
+      question: (question || '').trim(),
+      answer: (answer || '').trim(),
+    };
+    
+    // NOTE: The original component did a local update and no API call.
+    // We update the local list optimistically and call the service for completeness.
+    
+    // 1. Optimistic Local Update
+    this.faqsList = this.faqsList.map(f => f.id === updatedFaq.id ? updatedFaq : f);
+
+    // 2. Call API to persist changes
+    this.faqService.updateFaq(updatedFaq)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+            next: () => {
+                this.toastr.success('FAQ updated successfully.');
+            },
+            error: (err) => {
+                const message = err?.error?.message ?? 'Failed to update FAQ.';
+                this.toastr.error(message);
+                // 3. Re-fetch or revert on error if necessary
+                this.loadFaqs(); 
+            }
+        });
+
+    this.selectedFaq = null;
     this.closeModal('editFaqModal');
   }
 
-  // onDeleteFaqs() {
-  //   if (!this.selectedFaq) return;
-  //   this.faqsList = this.faqsList.filter(
-  //     (f) => f !== this.selectedFaq && f.id !== this.selectedFaq?.id
-  //   );
-  //   this.closeModal('editFaqModal');
-  // }
-
+  /** DELETE /api/v1/faq/id (via Service) */
   onDeleteFaqs() {
-  if (!this.selectedFaq || !this.selectedFaq.id) return;
+    if (!this.selectedFaq || !this.selectedFaq.id) return;
 
-  const faqId = this.selectedFaq.id;
-  const url = `http://82.112.237.181:8080/api/v1/faq/${faqId}`;
+    const faqId = this.selectedFaq.id;
 
-  let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-  try {
-    const enc = localStorage.getItem(this.TOKEN_KEY);
-    if (enc) {
-      const token = this.crypto.decryptObj(enc);
-      if (token) {
-        headers = headers.set('Authorization', `Bearer ${token}`);
-      }
-    }
-  } catch (e) {
-    console.warn('Failed to decrypt token, continuing without headers');
+    this.faqService.deleteFaq(faqId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.faqsList = this.faqsList.filter((f) => f.id !== faqId);
+          this.toastr.success('FAQ deleted successfully.');
+          this.closeModal('editFaqModal');
+          this.selectedFaq = null;
+        },
+        error: (err) => {
+          const message = err?.error?.message ?? err?.message ?? 'Failed to delete FAQ. Please try again.';
+          this.toastr.error(message);
+          console.error('Failed to delete FAQ:', err);
+        },
+      });
   }
-
-  this.http
-    .delete<{ success: boolean; message: string }>(url, { headers })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (res) => {
-        // If backend confirms delete
-        this.faqsList = this.faqsList.filter((f) => f.id !== faqId);
-        this.closeModal('editFaqModal');
-        this.selectedFaq = null;
-      },
-      error: (err) => {
-        console.error('Failed to delete FAQ:', err);
-        alert(
-          err?.error?.message ??
-            err?.message ??
-            'Failed to delete FAQ. Please try again.'
-        );
-      },
-    });
-}
-
 
   refresh() {
     this.loadFaqs();

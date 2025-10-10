@@ -1,12 +1,10 @@
 // src/app/features/establishment/establishment.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+// HttpClient and HttpHeaders are no longer needed here
 import { finalize } from 'rxjs/operators';
-import { CryptoProvider } from '../../core/services/crypto.service';
+// CryptoProvider is no longer needed here
 import { catchError, map } from 'rxjs/operators';
-import { of } from 'rxjs';
-
 import {
   FormArray,
   FormBuilder,
@@ -25,7 +23,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 
-declare const google: any; // Global Google Maps JS
+// Import the new service
+import { EstablishmentService } from '../../core/services/establishment.service'; 
+// Note: We keep 'declare const google: any;' because the component still uses it 
+// in event handlers, though the core logic is in the service.
+declare const google: any; 
 
 type DayOption = { value: string; label: string };
 
@@ -54,11 +56,12 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
   errorMessage = '';
   establishmentProofUrl: string | null = null;
   establishmentProofFile?: File | null = null;
+  isSubmitting = false; // Moved from private to public/used in template
 
   // form
   establishmentForm: FormGroup;
 
-  // hospital types (updated as requested)
+  // constants (still defined here to avoid importing a huge constant structure just for the component)
   hospitalTypeList = [
     { _id: '64dcaf8e26588edd2dfbe462', name: 'Hospital' },
     { _id: '64632b33d9293fff19dcf556', name: 'Super Speciality Hospital' },
@@ -67,7 +70,7 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
     { _id: '64632b33d9293fff19dcf555', name: 'Clinic' },
   ];
 
-  establishmentProofOptions = ['GST Certificate', 'Trade License','Clinic Registration Certificate', 'Other'];
+  establishmentProofOptions = ['GST Certificate', 'Trade License', 'Clinic Registration Certificate', 'Other'];
 
   additionalOptions: DayOption[] = [
     { value: 'all', label: 'All Days' },
@@ -81,22 +84,10 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
   ];
 
   timingArray = [
-    { name: '09:00 AM' },
-    { name: '09:30 AM' },
-    { name: '10:00 AM' },
-    { name: '10:30 AM' },
-    { name: '11:00 AM' },
-    { name: '11:30 AM' },
-    { name: '12:00 PM' },
-    { name: '12:30 PM' },
-    { name: '01:00 PM' },
-    { name: '01:30 PM' },
-    { name: '02:00 PM' },
-    { name: '02:30 PM' },
-    { name: '03:00 PM' },
-    { name: '03:30 PM' },
-    { name: '04:00 PM' },
-    { name: '04:30 PM' },
+    { name: '09:00 AM' }, { name: '09:30 AM' }, { name: '10:00 AM' }, { name: '10:30 AM' },
+    { name: '11:00 AM' }, { name: '11:30 AM' }, { name: '12:00 PM' }, { name: '12:30 PM' },
+    { name: '01:00 PM' }, { name: '01:30 PM' }, { name: '02:00 PM' }, { name: '02:30 PM' },
+    { name: '03:00 PM' }, { name: '03:30 PM' }, { name: '04:00 PM' }, { name: '04:30 PM' },
     { name: '05:00 PM' },
   ];
 
@@ -108,32 +99,12 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
   location: number[] = [77.216721, 28.6448]; // [lng, lat]
   stateList: Array<{ _id: string; name: string }> = []; // populate from API if available
 
-  // helper arrays used when parsing address components
-  private readonly streetArray = [
-    'sublocality_level_3',
-    'premise',
-    'plus_code',
-    'route',
-    'neighborhood',
-    'street_number',
-    'subpremise',
-  ];
 
-  private readonly landMarkArray = [
-    'landmark',
-    'sublocality',
-    'sublocality_level_1',
-    'sublocality_level_2',
-  ];
-
-  // keys / ids
-  private readonly DRAFT_PREFIX = 'establishmentDraft::'; // will append userId or deviceId
-
+  // Inject service instead of http and crypto
   constructor(
     private router: Router,
     private fb: FormBuilder,
-    private http: HttpClient,
-    private crypto: CryptoProvider
+    private establishmentService: EstablishmentService, // <-- New Service
   ) {
     this.establishmentForm = this.fb.group({
       showInClinic: [true],
@@ -157,101 +128,36 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ngOnInit(): void {
-  //   if (!this.hasValidToken()) {
-  //     this.clearToken();
-  //     this.router.navigate(['/auth/login']);
-  //     return;
-  //   }
-
-  //   // Load draft if present for this user
-  //   this.loadDraftIfExists();
-
-  //   window.addEventListener('storage', this.onStorageEvent);
-  // }
   ngOnInit(): void {
-  if (!this.hasValidToken()) {
-    this.clearToken();
-    this.router.navigate(['/auth/login']);
-    return;
-  }
-
-  // Check if user already has establishments; if yes -> redirect to list page
-  this.checkExistingEstablishments().subscribe((hasAny: boolean) => {
-    if (hasAny) {
-      // redirect to listing / doc-establishment
-      this.router.navigate(['/doc-establishment']);
+    if (!this.establishmentService.hasValidToken()) {
+      this.clearToken();
+      this.router.navigate(['/auth/login']);
       return;
     }
 
-    // otherwise continue component initialization
-    this.loadDraftIfExists();
-    window.addEventListener('storage', this.onStorageEvent);
-  });
-}
+    // Check if user already has establishments
+    this.establishmentService.checkExistingEstablishments()
+      .subscribe((hasAny: boolean) => {
+        if (hasAny) {
+          this.router.navigate(['/doc-establishment']);
+          return;
+        }
 
-/**
- * Call backend to determine if the current user/doctor already has any establishments.
- * Normalizes several possible response shapes:
- *  - { count: number }
- *  - { total: number }
- *  - { data: [...] }
- *  - [...array of establishments]
- *
- * Returns an observable<boolean> that emits true if count > 0, false otherwise.
- */
-private checkExistingEstablishments() {
-  // token handling: reuse safeDecrypt
-  const rawToken = localStorage.getItem('authToken');
-  const token = this.safeDecrypt(rawToken);
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    Authorization: token ? `Bearer ${token}` : '',
-  });
+        this.loadDraftIfExists();
+        window.addEventListener('storage', this.onStorageEvent);
+      });
+  }
 
-  // NOTE: change this URL to your actual API endpoint if different.
-  const url = `http://82.112.237.181:8080/api/v1/doctor/doctor-establishment-list?size=100`; // <- adjust if your API differs
-
-  return this.http.get<any>(url, { headers }).pipe(
-    map((resp) => {
-      // try several shapes
-      if (!resp) return false;
-
-      // if response is array -> check length
-      if (Array.isArray(resp)) return resp.length > 0;
-      console.log("heath: ",resp.result);
-      if(!(resp.result.count >0)) return false;
-
-      // common restful shape: { data: [...], count: n }
-      if (Array.isArray(resp.data)) return resp.data.length > 0;
-      if (typeof resp.count === 'number') return resp.count > 0;
-      if (typeof resp.total === 'number') return resp.total > 0;
-
-      // some backends return { status: 'ok', result: [...] }
-      if (Array.isArray((resp as any).result)) return (resp as any).result.length > 0;
-
-      // fallback: check for any top-level array-like props
-      const keys = Object.keys(resp);
-      for (const k of keys) {
-        if (Array.isArray((resp as any)[k]) && (resp as any)[k].length > 0) return true;
-      }
-
-      return true;
-    }),
-    catchError((err) => {
-      console.warn('Could not check existing establishments; assuming none. Error:', err);
-      // Fail open: assume no establishments so user can continue adding.
-      return of(false);
-    })
-  );
-}
-
-
+  // Auth helpers (simplified)
+  private clearToken(): void {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+  }
 
   private onStorageEvent = (ev: StorageEvent) => {
     const relevantKeys = ['authToken', 'authUser', 'deviceId'];
     if (ev.key === null || relevantKeys.includes(ev.key)) {
-      if (!this.hasValidToken()) {
+      if (!this.establishmentService.hasValidToken()) {
         this.clearToken();
         if (!this.router.url.startsWith('/auth/login')) {
           this.router.navigate(['/auth/login']);
@@ -267,19 +173,7 @@ private checkExistingEstablishments() {
   }
 
   // ----------------------------
-  // Auth helpers
-  // ----------------------------
-  private hasValidToken(): boolean {
-    const token = localStorage.getItem('authToken');
-    return !!token;
-  }
-  private clearToken(): void {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-  }
-
-  // ----------------------------
-  // Form helpers: days & timeSlots
+  // Form helpers: days & timeSlots (MUST remain here as they manipulate the FormGroup)
   // ----------------------------
   get daysControls(): FormArray {
     return this.establishmentForm.get('days') as FormArray;
@@ -316,8 +210,6 @@ private checkExistingEstablishments() {
       arr.removeAt(slotIndex);
     }
   }
-
-  // disable a day option if used by another row (keeps logic simple)
   isOptionDisabled(optionValue: string, rowIndex: number): boolean {
     const used = this.daysControls.controls.some((ctrl, idx) => {
       if (idx === rowIndex) return false;
@@ -325,6 +217,9 @@ private checkExistingEstablishments() {
       return val === optionValue;
     });
     return used;
+  }
+  getDayControl(i: number): FormGroup {
+    return this.daysControls.at(i) as FormGroup;
   }
 
   // ----------------------------
@@ -360,12 +255,8 @@ private checkExistingEstablishments() {
 
     this.errorMessage = '';
 
-    // store draft before advancing
-    try {
-      this.saveDraft();
-    } catch (err) {
-      console.warn('Failed to save draft to localStorage', err);
-    }
+    // Delegate draft saving to service
+    this.saveDraft();
 
     this.currentSlide = 2;
     this.count = 2;
@@ -383,119 +274,44 @@ private checkExistingEstablishments() {
   }
 
   // ----------------------------
-  // onSubmit -> builds payload in requested format and logs it
+  // Submission
   // ----------------------------
-  isSubmitting = false;
-
   onSubmit(): void {
-    // Save draft at submit time too (per your request)
-    try {
-      this.saveDraft();
-    } catch (err) {
-      console.warn('Failed to save draft to localStorage on submit', err);
-    }
-
-    const formValue = this.establishmentForm.value;
-
-    // process days/timeSlots (supporting 'all' selection)
-    const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    const daysData: any = {};
-    this.daysControls.controls.forEach((dayCtrl: any) => {
-      const day = dayCtrl.get('day')?.value;
-      const slots = (dayCtrl.get('timeSlots') as any).value.map((s: any) => ({
-        slot: 'morning', // keep same mapping as before
-        from: s.from,
-        to: s.to,
-      }));
-
-      if (day === 'all') {
-        weekDays.forEach((wd) => (daysData[wd] = slots));
-      } else {
-        daysData[day] = slots;
-      }
-    });
-
-    const payload = {
-      showVideo: formValue.showVideo,
-      Consultation_type: formValue.Consultation_type,
-      name: formValue.name,
-      hospitalTypeId: formValue.hospitalTypeId,
-      hospitalId: null,
-      address: {
-        landmark: formValue.address.landmark,
-        locality: formValue.address.locality || '',
-        city: formValue.address.city,
-        state: "649eb68f91de0b6d62d284e7",
-        // state: formValue.address.state,
-        sampleCityName: formValue.address.sampleCityName || formValue.address.city || '',
-        pincode: formValue.address.pincode,
-        country: 'India',
-      },
-      establishmentMobile: '',
-      establishmentEmail: '',
-      location: {
-        // keep the same coords order you used elsewhere
-        coordinates: [this.location[0], this.location[1]],
-      },
-      consultationFees: formValue.consultationFees,
-      videoConsultationFees: formValue.videoConsultationFees,
-      establishmentProof: this.establishmentProofUrl
-        ? [
-            {
-            "url": "https://nector-prod.s3.ap-south-1.amazonaws.com/911fda60-9843-11f0-889e-b56686d58677-alleppey-backwater-cruise.jpg",
-            "fileType": "image",
-            "urlType": "Clinic Registration Certificate"
-        }
-        ]
-        : [],
-      proofType: formValue.proofType,
-      ...daysData,
-      isOwner: 1,
-    };
-
-    console.log('Final payload:', payload);
-
-    // optional UI flags
+    this.saveDraft(); // Save draft at submit time too
+    
     this.isSubmitting = true;
 
-    // get token (adjust storage key as used in your app)
-    const token = this.safeDecrypt(localStorage.getItem('authToken'));
+    // 1. Build Payload using the service
+    const payload = this.establishmentService.buildPayload(
+        this.establishmentForm.getRawValue(),
+        this.daysControls,
+        this.location,
+        this.establishmentProofUrl
+    );
+    
+    console.log('Final payload:', payload);
 
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    });
-
-    // url: use environment or hardcode local dev URL
-    const url = `http://82.112.237.181:3000/doctor/doctor-add-establishment`;
-
-    this.http
-      .post(url, payload, { headers })
+    // 2. Submit via service
+    this.establishmentService.submitEstablishment(payload)
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: (resp: any) => {
           console.log('API success response:', resp);
 
-          // push to local list (keep same shape you used)
           this.establishmentsList.push({
             name: payload.name || 'Unnamed',
             consultationType: payload.Consultation_type || 'own',
           });
           console.log('Establishment saved locally:', payload);
 
-          // clear draft after successful save
-          try {
-            this.clearDraftForCurrentUser();
-          } catch (err) {
-            console.warn('Failed to clear draft', err);
-          }
+          // Clear draft via service
+          this.establishmentService.clearDraft();
 
-          // navigate after success
           this.router.navigate(['/doc-establishment']);
         },
         error: (err) => {
           console.error('API error:', err);
-          // show friendly message to user
+          this.errorMessage = 'Failed to submit establishment. Please try again.';
         },
       });
   }
@@ -544,42 +360,16 @@ private checkExistingEstablishments() {
     this.establishmentForm.get('showVideo')?.setValue(!current);
   }
 
-  getDayControl(i: number): FormGroup {
-    return this.daysControls.at(i) as FormGroup;
-  }
-
   closeModal(_id?: string) {
     // placeholder for modal close
   }
 
-  // ---------- Places autocomplete helpers ----------
+  // ---------- Places autocomplete helpers (Delegating core logic) ----------
   onSearch(event: any, listName: 'predicationList' | 'predicationCityList') {
-    if (typeof google === 'undefined') {
-      console.error('Google Maps API not loaded');
-      return;
-    }
-
     const search = (event.target?.value || '').trim();
-    if (!search) {
-      (this as any)[listName] = [];
-      return;
-    }
-
-    const service = new google.maps.places.AutocompleteService();
-    const options = {
-      input: search,
-      componentRestrictions: { country: 'IN' },
-    };
-
-    service.getPlacePredictions(options, (predictions: any[], status: any) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-        (this as any)[listName] = predictions.map((prediction) => ({
-          description: prediction.description,
-          place_id: prediction.place_id,
-        }));
-      } else {
-        (this as any)[listName] = [];
-      }
+    
+    this.establishmentService.getPlacePredictions(search, listName, (predictions) => {
+        (this as any)[listName] = predictions;
     });
   }
 
@@ -587,11 +377,10 @@ private checkExistingEstablishments() {
     return place ? place.description || '' : '';
   }
 
-  // pincode input normalizer (removes non-digits)
+  // pincode input normalizer
   onPincodeInput(event: Event) {
     const input = event.target as HTMLInputElement;
     input.value = input.value.replace(/\D/g, '');
-    // also update the form control value
     const addr = this.establishmentForm.get('address');
     if (addr) {
       addr.get('pincode')?.setValue(input.value);
@@ -602,88 +391,22 @@ private checkExistingEstablishments() {
    * onSelectPlace
    */
   onSelectPlace(placeObj: { description?: string; place_id?: string } | any, source: 'landmark' | 'city' = 'landmark') {
-    if (!placeObj || typeof google === 'undefined') return;
-
     const placeId = placeObj.place_id ?? placeObj.placeId ?? null;
     if (!placeId) return;
 
-    const placeService = new google.maps.places.PlacesService(document.createElement('div'));
-    placeService.getDetails({ placeId }, (placeDetails: any, status: any) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
-        const addressComponents = placeDetails.address_components || [];
-
-        const address: any = {
-          landmark: '',
-          locality: '',
-          city: '',
-          state: null,
-          pincode: '',
-          country: 'India',
-          formatted_address: placeDetails.formatted_address || '',
-        };
-
-        // parse components
-        for (const component of addressComponents) {
-          // combine street-like parts into landmark
-          if (this.streetArray.some((i) => component.types.includes(i))) {
-            address.landmark += component.long_name + ', ';
-            continue;
-          }
-          // combine locality parts
-          if (this.landMarkArray.some((i) => component.types.includes(i))) {
-            address.locality += component.long_name + ', ';
-            continue;
-          }
-
-          const componentType = component.types[0];
-          switch (componentType) {
-            case 'locality':
-            case 'administrative_area_level_3':
-            case 'administrative_area_level_2':
-              if (!address.city) address.city = component.long_name;
-              break;
-            case 'postal_code':
-              address.pincode = component.long_name;
-              break;
-            case 'administrative_area_level_1':
-              // map to stateList if available; otherwise keep name
-              if (this.stateList && this.stateList.length) {
-                const match = this.stateList.find((s) => s.name.toLowerCase() === component.long_name.toLowerCase());
-                address.state = match ? match._id : component.long_name;
-              } else {
-                address.state = component.long_name;
-              }
-              break;
-            case 'country':
-              address.country = component.long_name;
-              break;
-          }
+    this.establishmentService.getPlaceDetails(placeId, this.stateList, (details) => {
+        if (details) {
+            this.applyAddressToForm(details.address, source);
+            this.location = details.location;
         }
-
-        // clean trailing commas
-        address.landmark = address.landmark.replace(/,\s*$/, '').trim();
-        address.locality = address.locality.replace(/,\s*$/, '').trim();
-
-        // Patch the form depending on source
-        this.applyAddressToForm(address, placeDetails, source);
-
-        // coordinates
-        if (placeDetails.geometry && placeDetails.geometry.location) {
-          const lat = placeDetails.geometry.location.lat();
-          const lng = placeDetails.geometry.location.lng();
-          this.location = [lng, lat];
-          const locControl = this.establishmentForm.get('location');
-          if (locControl) locControl.patchValue({ coordinates: [lng, lat] });
-        }
-
+        
         // clear suggestions
         this.predicationList = [];
         this.predicationCityList = [];
-      }
     });
   }
 
-  private applyAddressToForm(address: any, placeDetails: any, source: 'landmark' | 'city') {
+  private applyAddressToForm(address: any, source: 'landmark' | 'city') {
     const addrGroup = this.establishmentForm.get('address');
     if (!addrGroup) return;
 
@@ -706,116 +429,35 @@ private checkExistingEstablishments() {
   }
 
   // ----------------------------
-  // Local storage: draft management
+  // Local storage: draft management (Delegated to service)
   // ----------------------------
 
-  /**
-   * Returns a best-effort current user identifier.
-   * - Tries to get a user id from localStorage 'authUser' (decrypted if needed).
-   * - Falls back to a persistent deviceId stored in localStorage (will create it if missing).
-   */
-  private getCurrentUserIdentifier(): string {
-    // Try to read authUser (common key). Many apps keep user object in authUser.
-    try {
-      const rawAuthUser = localStorage.getItem('authUser');
-      if (rawAuthUser) {
-        // try decrypting if crypto provider expects it
-        try {
-          const dec = this.crypto.decryptObj(rawAuthUser);
-          if (dec && typeof dec === 'object' && (dec._id || dec.id || dec.userId)) {
-            return String(dec._id || dec.id || dec.userId);
-          }
-        } catch (e) {
-          // fallback: try parse as JSON
-          try {
-            const parsed = JSON.parse(rawAuthUser);
-            if (parsed && (parsed._id || parsed.id || parsed.userId)) {
-              return String(parsed._id || parsed.id || parsed.userId);
-            }
-          } catch (ee) {
-            // not JSON - ignore
-          }
-        }
-      }
-    } catch (err) {
-      // intentionally silent - we'll fallback
-    }
-
-    // fallback to deviceId stored in localStorage (create one if missing)
-    let deviceId = localStorage.getItem('deviceId');
-    if (!deviceId) {
-      deviceId = this.generateUUID();
-      try {
-        localStorage.setItem('deviceId', deviceId);
-      } catch (e) {
-        // storage might be denied — return a short random fallback (non-persistent)
-        return 'device-fallback-' + this.generateUUID();
-      }
-    }
-    return deviceId;
-  }
-
-  private draftKeyForCurrentUser(): string {
-    const id = this.getCurrentUserIdentifier();
-    return `${this.DRAFT_PREFIX}${id}`;
-  }
-
   private saveDraft(): void {
-    const key = this.draftKeyForCurrentUser();
-
-    const draftObj: any = {
-      meta: {
-        savedAt: new Date().toISOString(),
-        userId: this.getCurrentUserIdentifier(),
-      },
-      form: this.establishmentForm.getRawValue(),
-      // store proof preview and file name (can't store actual File object)
-      proof: {
-        url: this.establishmentProofUrl,
-        fileName: this.establishmentForm.get('establishmentProof')?.value || null,
-      },
-      // store location coords
-      location: this.location,
-    };
-
     try {
-      localStorage.setItem(key, JSON.stringify(draftObj));
+      this.establishmentService.saveDraft(
+        this.establishmentForm.getRawValue(),
+        this.establishmentProofUrl,
+        this.location
+      );
     } catch (err) {
-      // possible QUOTA_EXCEEDED_ERR
-      console.warn('Could not save establishment draft to localStorage', err);
+      console.warn('Failed to save draft to localStorage', err);
     }
   }
 
   private loadDraftIfExists(): void {
-    const key = this.draftKeyForCurrentUser();
-    const raw = localStorage.getItem(key);
-    if (!raw) return;
+    const parsed = this.establishmentService.loadDraft();
+    if (!parsed) return;
 
     try {
-      const parsed = JSON.parse(raw);
-
-      // ensure meta.userId matches current identifier (defensive)
-      const currentId = this.getCurrentUserIdentifier();
-      if (!parsed.meta || parsed.meta.userId !== currentId) {
-        // mismatch -> do not bind
-        return;
-      }
-
       const savedForm = parsed.form || {};
       const savedProof = parsed.proof || {};
       const savedLocation = parsed.location || null;
 
       // Patch simple controls
       const simpleKeys = [
-        'showInClinic',
-        'showVideo',
-        'Consultation_type',
-        'name',
-        'hospitalTypeId',
-        'proofType',
-        'establishmentProof',
-        'consultationFees',
-        'videoConsultationFees',
+        'showInClinic', 'showVideo', 'Consultation_type', 'name', 
+        'hospitalTypeId', 'proofType', 'establishmentProof', 
+        'consultationFees', 'videoConsultationFees',
       ];
 
       simpleKeys.forEach((k) => {
@@ -842,11 +484,10 @@ private checkExistingEstablishments() {
 
       // days/timeSlots: replace FormArray with saved data if present
       if (Array.isArray(savedForm.days) && savedForm.days.length) {
-        // clear current
         while (this.daysControls.length > 0) {
           this.daysControls.removeAt(0);
         }
-        // recreate from saved
+        
         savedForm.days.forEach((d: any) => {
           const dayGroup = this.fb.group({
             day: [d.day || '', Validators.required],
@@ -878,66 +519,13 @@ private checkExistingEstablishments() {
       // proof image preview and file name
       if (savedProof && savedProof.url) {
         this.establishmentProofUrl = savedProof.url;
-        // If user previously saved file name into establishmentProof control, restore it
         if (savedProof.fileName) {
           this.establishmentForm.patchValue({ establishmentProof: savedProof.fileName });
         }
       }
 
-      // Optionally: decide which slide to show - keep on step 1 unless days are present
-      if (Array.isArray(savedForm.days) && savedForm.days.length > 0) {
-        // don't auto-advance UI, just keep form populated — user will press next
-      }
     } catch (err) {
-      console.warn('Failed to parse establishment draft from localStorage', err);
+      console.warn('Failed to apply establishment draft:', err);
     }
   }
-
-  private clearDraftForCurrentUser(): void {
-    const k = this.draftKeyForCurrentUser();
-    try {
-      localStorage.removeItem(k);
-    } catch (err) {
-      console.warn('Failed to remove draft key', k, err);
-    }
-  }
-
-  // ----------------------------
-  // Utilities
-  // ----------------------------
-  private generateUUID(): string {
-    // RFC4122 v4-ish simple implementation
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  }
-
-  /**
-   * Try to decrypt using crypto provider if available; otherwise return raw
-   */
-  private safeDecrypt(maybeEncrypted: string | null): string {
-    if (!maybeEncrypted) return '';
-    try {
-      const dec = this.crypto.decryptObj(maybeEncrypted);
-      if (typeof dec === 'string') return dec;
-      // if decrypt returns object with token property
-      if (dec && typeof dec === 'object' && dec.token) return String(dec.token);
-      return String(dec);
-    } catch (e) {
-      // fallback: maybe it's plain token already
-      return maybeEncrypted;
-    }
-  }
-
-
-//   onConsultationChange(value: 'In-clinic' | 'video'): void {
-//   if (value === 'In-clinic') {
-//     this.establishmentForm.patchValue({ showInClinic: true, showVideo: false });
-//   } else {
-//     this.establishmentForm.patchValue({ showInClinic: false, showVideo: true });
-//   }
-// }
-
 }

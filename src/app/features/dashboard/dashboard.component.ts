@@ -1,5 +1,3 @@
-// src/app/features/dashboard/dashboard.component.ts
-
 import {
   ApexChart,
   ApexNonAxisChartSeries,
@@ -21,12 +19,41 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router'; // Ensure RouterLink is imported
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { HttpClient, HttpHeaders, HttpClientModule, HttpParams } from '@angular/common/http';
+// REMOVED: HttpClient, HttpHeaders, HttpClientModule, HttpParams
 import { CryptoProvider } from '../../core/services/crypto.service';
-// EXTENDED ChartOptions to include more ApexChart properties for professionalism
+// IMPORTING the service and its model
+import { DashboardService, DashboardModel } from '../../core/services/dashboard.service'; 
+
+
+// --- Data Interfaces ---
+interface User {
+  fullName: string;
+}
+
+interface Doctor {
+  name: string;
+  specialization: string;
+}
+
+interface Stats {
+  appointments: string; // Today's total
+  surgeries: string; // Pending data
+  roomVisits: string; // Total appointments
+}
+
+interface Revenue {
+  amount: number;
+}
+
+interface Feedback {
+  score: number;
+}
+// --------------------------------------------------
+
+
 export type ChartOptions = {
   series: ApexNonAxisChartSeries | ApexAxisChartSeries;
   chart: ApexChart;
@@ -46,42 +73,44 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, NgApexchartsModule, HttpClientModule],
+  // REMOVED HttpClientModule, added RouterLink
+  imports: [CommonModule, MatCardModule, MatIconModule, NgApexchartsModule, RouterLink], 
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  currentUser:any;
-  doctor = {
+  currentUser: User | null = null; 
+
+  doctor: Doctor = {
     name: 'Sarah Smith',
     specialization: 'Gynecologist, MBBS, MD',
   };
 
-  stats = {
+  stats: Stats = {
     appointments: '12+',
     surgeries: '3+',
     roomVisits: '12+',
   };
 
-  revenue = {
+  revenue: Revenue = {
     amount: 4250,
   };
 
-  feedback = {
+  feedback: Feedback = {
     score: 4.8,
   };
 
-  // 1. APPOINTMENTS CHART FIXES: Added plotOptions and a higher base height
+  // 1. APPOINTMENTS CHART
   appointmentsChart: ChartOptions = {
     series: [28, 24, 4],
     chart: {
       type: 'donut' as ChartType,
-      height: 250, // Increased height for better visibility
+      height: 250, 
     },
     labels: ['Scheduled', 'Completed', 'Cancelled'],
     colors: ['#42a5f5', '#66bb6a', '#ef5350'],
-    plotOptions: { // Add configuration to make the donut visible even with small slices
+    plotOptions: { 
       pie: {
         donut: {
           size: '65%',
@@ -90,8 +119,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             total: {
               show: true,
               label: 'Total',
-              formatter: function (w) {
-                // Calculate total from series data
+              formatter: function (w: any) {
                 return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0).toString();
               }
             }
@@ -100,11 +128,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     },
     legend: {
-      position: 'bottom' // Professional placement of the legend
+      position: 'bottom' 
     }
   };
 
-  // 2. PERFORMANCE CHART: Added axis and stroke for a professional line chart look
+  // 2. PERFORMANCE CHART
   performanceChart: ChartOptions = {
     series: [
       {
@@ -126,11 +154,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       labels: { show: true }
     },
     yaxis: {
-      labels: { show: false } // Keeping the chart clean
+      labels: { show: false } 
     },
   };
 
-  // 3. REVENUE CHART: Added axis and fill for a professional area chart look
+  // 3. REVENUE CHART
   revenueChart: ChartOptions = {
     series: [
       {
@@ -158,12 +186,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     },
     tooltip: {
       y: {
-        formatter: (val) => `$${val}`
+        formatter: (val: any) => `$${val}`
       }
     }
   };
 
-  // 4. FEEDBACK CHART: Increased height for consistency
+  // 4. FEEDBACK CHART
   feedbackChart: ChartOptions = {
     series: [70, 20, 10],
     chart: {
@@ -177,21 +205,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   };
 
-  // API URLs (adjust to your backend host/port if different)
-  private dashboardUrl = 'http://82.112.237.181:3000/doctor/doctor-appointment-dashboard';
-  private appointmentListUrl = 'http://82.112.237.181:3000/doctor/appointment/list';
+  // REMOVED private dashboardUrl and private appointmentListUrl
 
   constructor(
     private router: Router,
     private auth: AuthService,
-    private http: HttpClient,
+    // REMOVED: private http: HttpClient (service handles this now)
+    private dashboardService: DashboardService, // Dependency injection for the service
     private crypto: CryptoProvider
   ) {
-
         const rawAuthUser = localStorage.getItem('authUser');
-        this.currentUser = this.crypto.decryptObj(rawAuthUser);
+        try {
+          this.currentUser = this.crypto.decryptObj(rawAuthUser) as User;
+          this.doctor.name = this.currentUser?.fullName || this.doctor.name;
+        } catch {
+          this.currentUser = null;
+        }
         console.log("currentUser: ",this.currentUser);
-        
   }
 
   ngOnInit(): void {
@@ -203,7 +233,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.fetchDoctorDashboard();
 
-    // The rest of your existing logic remains the same (login check, storage listeners)
     this.auth
       .isLoggedIn$()
       .pipe(takeUntil(this.destroy$))
@@ -216,8 +245,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     window.addEventListener('storage', this.onStorageEvent);
   }
-
-  // ... (onStorageEvent and ngOnDestroy remain unchanged)
 
   private onStorageEvent = (ev: StorageEvent) => {
     const relevantKeys = ['authToken', 'authUser', 'deviceId'];
@@ -239,71 +266,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
 
   /**
-   * Fetch dashboard counts from backend and update local UI state.
+   * Fetches dashboard data using the injected DashboardService.
    */
   fetchDoctorDashboard(today?: string): void {
-    const token = this.getToken();
-    if (!token) {
-      console.warn('No token available for dashboard API call.');
-      return;
-    }
-
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    });
-
-    const params: any = { today: today ?? new Date().toISOString().slice(0, 10) };
-
-    this.http
-      .get<any>(this.dashboardUrl, { headers, params })
+    
+    // Using the service method, which encapsulates the URL, headers, and data processing
+    this.dashboardService.getDoctorDashboard(today)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (resp) => {
-          if (resp && resp.data) {
-            const d = resp.data;
-            console.log("res of api: ",resp.data);
-            
-            // 2. FIX: Ensure all numbers are positive integers for the chart
-            const todayTotal = Number(d.todayTotalCount ?? d.totalData ?? '0');
-            const completed = 10;
-            // const completed = Number(d.todayData ?? '0');
-            
-            // Assuming Scheduled = Today's Total - Completed (which are typically the current day's events)
-            const scheduled = 6;
-            // const scheduled = Math.max(0, todayTotal - completed);
-            
-            // Assuming Cancelled = Total over a period (if d.totalData is total) - Today's Total
-            // Let's rely on the most direct API fields:
-            const totalAppointments = Number(d.totalData ?? d.todayTotalCount ?? '0'); // Fallback if fields are unreliable
-            const cancelled = 3;
-            // const cancelled = Math.max(0, totalAppointments - todayTotal);
+        next: (model: DashboardModel) => {
+          // Data from service model (model: DashboardModel)
+          const todayTotal = model.todayTotalCount ?? 0;
+          const pending = model.pendingData ?? 0;
+          const totalAppointments = model.totalAppointments ?? 0;
 
+          // Update stats using model data
+          this.stats.appointments = `${todayTotal > 0 ? todayTotal : '0'}+`;
+          this.stats.surgeries = `${pending > 0 ? pending : '0'}+`; 
+          this.stats.roomVisits = `${totalAppointments > 0 ? totalAppointments : '0'}+`;
 
-            // Update stats
-            this.stats.appointments = `${todayTotal > 0 ? todayTotal : '0'}+`;
-            this.stats.roomVisits = `${d.pendingData ?? '0'}`;
+          // Derive chart slice values (using client-side heuristics)
+          const completed = Math.min(10, todayTotal); 
+          const scheduled = Math.max(0, todayTotal - completed);
+          const cancelled = Math.max(0, totalAppointments - todayTotal);
 
-            // Update appointments chart series: [Scheduled, Completed, Cancelled]
-            // We cast to number[] because the series definition can be mixed.
-            (this.appointmentsChart.series as number[]) = [scheduled, completed, cancelled];
+          // Update appointments chart series
+          (this.appointmentsChart.series as number[]) = [scheduled, completed, cancelled];
 
-            console.debug('dashboard fetched and chart updated:', { scheduled, completed, cancelled });
-          } else {
-            console.warn('Unexpected dashboard response or empty data', resp);
-          }
+          console.debug('Dashboard fetched and chart updated:', model);
         },
         error: (err) => {
           console.error('Error fetching dashboard:', err);
         },
       });
-  }
-
-  /**
-   * Fetch appointment list for a given patientId. (Logic remains the same)
-   */
-  fetchAppointmentList(patientId?: string, page = 1, size = 10): void {
-    // ... (logic remains unchanged, as this is secondary to the main dashboard call)
   }
 
   /**
@@ -313,16 +308,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.fetchDoctorDashboard();
   }
 
-  /**
-   * Helper to retrieve token from AuthService or localStorage
-   */
-  private getToken(): string | null {
-    try {
-      const maybe = (this.auth as any).getToken ? (this.auth as any).getToken() : null;
-      if (maybe) return maybe;
-    } catch (e) {
-      // ignore
-    }
-    return localStorage.getItem('authToken');
-  }
+  // REMOVED private getToken() helper
 }
