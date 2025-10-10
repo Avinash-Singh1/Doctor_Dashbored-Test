@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, forkJoin, map, switchMap, catchError, of, throwError } from 'rxjs';
-
+import { environment } from '../../../environments/environment';
 // --- Interfaces for Data Structure ---
 
 export interface ServiceItem {
@@ -29,7 +29,7 @@ export interface DoctorSettingListItem {
 
 
 // --- API CONSTANTS ---
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = `${environment.baseUrl2}/api`;
 const API_ENDPOINTS = {
   COMMON: {
     getAllServices: '/v1/services/get-all-services',

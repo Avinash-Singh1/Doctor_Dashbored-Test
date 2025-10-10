@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { CryptoProvider } from '../../core/services/crypto.service';   // <-- assumes you have this
-
+import { environment } from '../../../environments/environment';
 // If you already have AuthService in your app, you can keep it injected;
 // otherwise this comp works without it (it will call the APIs without auth headers).
 class AuthServiceLike {
@@ -28,7 +28,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // CONFIG
   // ──────────────────────────────
   private destroy$ = new Subject<void>();
-  private BASE_URL = 'http://localhost:8080/api/v1';
+  private BASE_URL = `${environment.baseUrl2}/api/v1`;
   private SETTINGS_URL = `${this.BASE_URL}/setting/list`; // The PUT endpoint
 
   // Type constants for the API payload 'type' field

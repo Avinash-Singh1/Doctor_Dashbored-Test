@@ -6,7 +6,7 @@ import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CryptoProvider } from './crypto.service'; 
-
+import { environment } from '../../../environments/environment';
 // Global Google Maps JS declaration
 declare const google: any;
 
@@ -123,7 +123,7 @@ export class EstablishmentService2 {
    */
   getEstablishmentList(): Observable<EstablishmentItem[] | null> {
     const headers = this.getAuthHeaders();
-    const url = `http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100`;
+    const url = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`;
 
     return this.http.get<any>(url, { headers }).pipe(
       catchError((err) => {
@@ -160,7 +160,7 @@ export class EstablishmentService2 {
     // --- Edit Mode (PUT) ---
     if (isEditMode && establishmentId) {
         const hospitalIdForQuery = lastPatchedItem?.hospitalData?.hospitalId || lastPatchedItem?._id || '';
-        const base = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
+        const base = `${environment.baseUrl2}/api/v1/doctor/doctor-edit-establishment`;
         const query = `?establishmentId=${encodeURIComponent(establishmentId)}${hospitalIdForQuery ? `&hospitalId=${encodeURIComponent(hospitalIdForQuery)}` : ''}`;
         const updateUrl = `${base}${query}`;
         
@@ -182,7 +182,7 @@ export class EstablishmentService2 {
     }
 
     // --- Create Mode (POST) ---
-    const createUrl = `http://localhost:3000/doctor/doctor-add-establishment`;
+    const createUrl = `${environment.baseUrl}/doctor/doctor-add-establishment`;
     const formValue = payload.formValue;
     
     const createPayload = {

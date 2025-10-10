@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
   // Base URL for production
-  baseUrl: 'http://82.112.237.181:3000', 
-  baseUrl2: 'http://82.112.237.181:8080',
+  baseUrl: 'https://doctorapi.nectarplus.health', 
+  baseUrl2:'https://api.nectarplus.health',
   apiUrl: 'https://doctorapi.nectarplus.health/',
   featureXEnabled: true,
 };

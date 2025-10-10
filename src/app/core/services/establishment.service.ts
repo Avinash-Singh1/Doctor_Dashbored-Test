@@ -4,7 +4,7 @@ import { FormArray, FormGroup } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CryptoProvider } from '../../core/services/crypto.service';
-
+import { environment } from '../../../environments/environment'; 
 // Global Google Maps JS declaration (moved here as service uses it)
 declare const google: any; 
 
@@ -48,8 +48,9 @@ interface EstablishmentPayload {
 export class EstablishmentService {
   // Constants (Moved from Component)
   private readonly API_BASE = 'http://localhost:3000';
-  private readonly LIST_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100'; // Existing check URL
-  private readonly SUBMIT_URL = `${this.API_BASE}/doctor/doctor-add-establishment`;
+  private readonly LIST_URL = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`; // Existing check URL
+  // private readonly LIST_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100'; // Existing check URL
+  private readonly SUBMIT_URL = `${environment.baseUrl}/doctor/doctor-add-establishment`;
   private readonly DRAFT_PREFIX = 'establishmentDraft::';
   
   private readonly streetArray = [

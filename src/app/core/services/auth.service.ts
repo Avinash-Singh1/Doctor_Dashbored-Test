@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { CryptoProvider } from './crypto.service';
-
+import { environment } from '../../../environments/environment';
 export interface AuthUser {
   _id?: string;
   fullName?: string;
@@ -35,8 +35,8 @@ export class AuthService {
   private loggedIn$ = new BehaviorSubject<boolean>(false);
   private currentUser$ = new BehaviorSubject<AuthUser | null>(null);
 
-  private LOGIN_URL = 'http://82.112.237.181:3000/api/v1/login';
-  private LOGOUT_URL = 'http://82.112.237.181:3000/api/v1/logout';
+  private LOGIN_URL = `${environment.baseUrl}/api/v1/login`;
+  private LOGOUT_URL = `${environment.baseUrl}/api/v1/logout`;
 
   constructor(private http: HttpClient, private router: Router, private crypto: CryptoProvider) {
     this.bootstrapFromStorage();

@@ -6,7 +6,7 @@ import { finalize } from 'rxjs/operators';
 import { CryptoProvider } from '../../../core/services/crypto.service';
 import { catchError } from 'rxjs/operators';
 import { of, Subject, Subscription } from 'rxjs';
-
+import { environment } from '../../../../environments/environment';
 import {
   FormArray,
   FormBuilder,
@@ -265,7 +265,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
       Authorization: token ? `Bearer ${token}` : '',
     });
 
-    const url = `http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100`;
+    const url = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`;
 
     this.http.get<any>(url, { headers }).pipe(
       catchError((err) => {
@@ -663,7 +663,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
 
 
       // Build query string
-      const base = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
+      const base = `${environment.baseUrl2}/api/v1/doctor/doctor-edit-establishment`;
       const query = `?establishmentId=${encodeURIComponent(establishmentIdForQuery)}${hospitalIdForQuery ? `&hospitalId=${encodeURIComponent(hospitalIdForQuery)}` : ''}`;
       const updateUrl = `${base}${query}`;
 
@@ -689,7 +689,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     }
 
     // Otherwise create new establishment (existing behaviour)
-    const createUrl = `http://localhost:3000/doctor/doctor-add-establishment`;
+    const createUrl = `${environment.baseUrl}/doctor/doctor-add-establishment`;
     // Original payload for creation (use your previous payload shape)
     const createPayload = {
       showVideo: formValue.showVideo,

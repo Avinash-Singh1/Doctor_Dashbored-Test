@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, forkJoin, map, switchMap, catchError, throwError } from 'rxjs';
 import { CryptoProvider } from '../../core/services/crypto.service'; // Assuming this path is correct for your real CryptoProvider
 // NOTE: Replace ApiServiceMock and ToastrServiceMock imports and usage with your real services.
-
+import { environment } from '../../../environments/environment';
 // --- Interface for Procedure Data
 export interface Procedure {
   _id: string;
@@ -20,7 +20,7 @@ export interface DoctorProcedureListItem {
 }
 
 // --- API Endpoints Configuration
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = `${environment.baseUrl2}/api/v1`;
 const API_ENDPOINTS = {
   MASTER: {
     procedure: '/master/procedure',

@@ -4,7 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CryptoProvider } from '../../core/services/crypto.service';
 import { AuthService } from '../../core/services/auth.service'; // Needed for token clearing/navigation
-
+import { environment } from '../../../environments/environment';
 // --- Interface for Video Data (FAQ) ---
 export interface VideoItem {
   _id: string;
@@ -17,7 +17,7 @@ export interface VideoItem {
 }
 
 // --- API Endpoints Configuration ---
-const API_BASE = 'http://localhost:8080/api/v1';
+const API_BASE = `${environment.baseUrl2}/api/v1`;
 const API_ENDPOINTS = {
   LIST: '/video/list', // GET
   CRUD: '/video',     // POST, PUT, DELETE

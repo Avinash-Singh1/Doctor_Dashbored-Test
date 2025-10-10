@@ -3,9 +3,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { forkJoin, Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CryptoProvider } from '../../core/services/crypto.service';
-
+import { environment } from '../../../environments/environment';
 // --- Type Constants ---
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = `${environment.baseUrl2}/api/v1`;
 const SETTINGS_URL = `${API_BASE_URL}/setting/list`;
 const USER_TYPE = 2;
 

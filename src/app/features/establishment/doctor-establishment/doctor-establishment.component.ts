@@ -5,6 +5,7 @@ import { HttpClient,HttpParams, HttpErrorResponse, HttpHeaders, HttpClientModule
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { CryptoProvider } from '../../../core/services/crypto.service';
+import { environment } from '../../../../environments/environment';
 interface TimeSlot {
   from: string;
   to: string;
@@ -64,8 +65,8 @@ export class DoctorEstablishmentComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  private readonly API_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100';
-  private readonly DELETE_URL = 'http://localhost:8080/api/v1/doctor/doctor-delete-establishment2';
+  private readonly API_URL = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`;
+  private readonly DELETE_URL = `${environment.baseUrl2}/api/v1/doctor/doctor-delete-establishment2`;
   private readonly TOKEN:any;
 
   // 🔑 Hardcoded token
@@ -212,7 +213,7 @@ export class DoctorEstablishmentComponent implements OnInit {
       .set('hospitalId', establishment?.hospitalData?.hospitalId);
 
     // API URL
-    const url = 'http://localhost:8080/api/v1/doctor/doctor-edit-establishment';
+    const url = `${environment.baseUrl2}/api/v1/doctor/doctor-edit-establishment`;
 
     // Add headers with Bearer token
     const headers = new HttpHeaders().set('Authorization', `Bearer ${this.TOKEN}`);

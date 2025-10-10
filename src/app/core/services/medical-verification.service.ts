@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CryptoProvider } from './crypto.service'; // Assuming path to your existing service
-
+import { environment } from '../../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
@@ -13,9 +13,9 @@ export class MedicalVerificationService {
   private readonly API_BASE = 'http://localhost:3000';
   private readonly API_BASE2 = 'http://localhost:8080';
   // Profile endpoint (from your request)
-  private readonly PROFILE_API = `${this.API_BASE2}/api/v1/setting/profile`;
+  private readonly PROFILE_API = `${environment.baseUrl2}/api/v1/setting/profile`;
   // Profile update endpoint
-  private readonly UPDATE_PROFILE_API = `${this.API_BASE}/doctor/update-profile`;
+  private readonly UPDATE_PROFILE_API = `${environment.baseUrl}/doctor/update-profile`;
 
   // Hard-coded AWS default images (from your reference payload)
   public readonly DEFAULT_IDENTITY_URL =

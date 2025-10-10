@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CryptoProvider } from '../../core/services/crypto.service';
+import { environment } from '../../../environments/environment'; 
 
 // --- Interfaces ---
 
@@ -31,7 +32,7 @@ interface AddApiResponse {
 }
 
 // --- API Configuration ---
-const API_BASE = 'http://localhost:8080/api/v1';
+const API_BASE = `${environment.baseUrl2}/api/v1`;
 const API_ENDPOINTS = {
   LIST: '/faq/all-faq', // GET
   CRUD: '/faq',         // POST, DELETE (via path), PUT (unconfirmed, but common)
