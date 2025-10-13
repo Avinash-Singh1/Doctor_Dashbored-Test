@@ -1,0 +1,39 @@
+<div class="patient-list-wrapper">
+  <div *ngIf="patientList && patientList.length > 0; else noAppointments" class="patient-list">
+    <div class="patient-count">
+      {{ patientList.length }} Appointment(s)
+    </div>
+
+    <div class="patient-items">
+      <ng-container *ngFor="let appointment of patientList">
+        <div class="patient" [ngClass]="getStatusClass(appointment.status)">
+          
+          <div class="img-wrapper">
+            <img
+              class="profile-img"
+              [src]="appointment.patientDetails?.profilePic"
+              alt="Profile"
+              *ngIf="appointment.patientDetails?.profilePic"
+            />
+            <span
+              class="initials"
+              *ngIf="!appointment.patientDetails?.profilePic"
+            >
+              {{ getInitials(appointment.fullName) | uppercase }}
+            </span>
+          </div>
+
+          <span class="patient-name">
+            {{ appointment.fullName | titlecase }}
+          </span>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <ng-template #noAppointments>
+    <div class="no-appointments-message">
+      No appointments for this day.
+    </div>
+  </ng-template>
+</div>

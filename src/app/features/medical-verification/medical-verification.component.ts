@@ -6,7 +6,8 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { HttpClientModule } from '@angular/common/http';
-
+import { switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 // Import the new service
 import { MedicalVerificationService } from '../../core/services/medical-verification.service';
 
@@ -135,55 +136,130 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
   }
 
   // local "upload" - read file as data URL for preview only (no base64 sent to backend)
-  async onFileSelected(event: Event, controlName: string) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+  // async onFileSelected(event: Event, controlName: string) {
+  //   const input = event.target as HTMLInputElement;
+  //   const file = input.files?.[0];
+  //   if (!file) return;
 
-    const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Please upload a valid file (PNG, JPG, JPEG, or PDF).');
-      return;
+  //   const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'application/pdf'];
+  //   if (!allowedTypes.includes(file.type)) {
+  //     alert('Please upload a valid file (PNG, JPG, JPEG, or PDF).');
+  //     return;
+  //   }
+
+  //   // read locally (for preview and local storage) - uses service helper
+  //   const dataUrl = await this.verificationService.readFileAsDataUrl(file);
+  //   if (!dataUrl) {
+  //     alert('Failed to read file.');
+  //     return;
+  //   }
+
+  //   if (controlName === 'identityProof') {
+  //     // keep previewing the uploaded file locally
+  //     this.identityProofUrl = dataUrl;
+  //     this.identityProofFilename = file.name;
+  //     this.consultationForm.patchValue({ identityFile: file });
+  //   } else if (controlName === 'medicalProof') {
+  //     this.medicalProofUrl = dataUrl;
+  //     this.medicalProofFilename = file.name;
+  //     this.consultationForm.patchValue({ medicalFile: file });
+  //   } else if (controlName === 'establishmentProof') {
+  //     this.establishmentProofUrl = dataUrl;
+  //     this.consultationForm.patchValue({ establishmentFile: file });
+  //   }
+  // }
+
+  // removeFile(controlName: string) {
+  //   if (controlName === 'identityProof') {
+  //     this.identityProofUrl = null;
+  //     this.identityProofFilename = null;
+  //     this.consultationForm.patchValue({ identityFile: null, identityProof: '' });
+  //   }
+  //   if (controlName === 'medicalProof') {
+  //     this.medicalProofUrl = null;
+  //     this.medicalProofFilename = null;
+  //     this.consultationForm.patchValue({ medicalFile: null, medicalProof: '' });
+  //   }
+  //   if (controlName === 'establishmentProof') {
+  //     this.establishmentProofUrl = null;
+  //     this.consultationForm.patchValue({ establishmentFile: null });
+  //   }
+  // }
+
+  // ADD the new onFileSelected (requires injection of your actual ToastrService)
+onFileSelected(event: Event, controlName: string): void {
+    const inputElement = event.target as HTMLInputElement;
+    const file = inputElement.files?.[0];
+
+    if (file) {
+      // Allowed file types
+      const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        // Replace with your actual Toastr service
+        alert("Please upload a valid file (PNG, JPG, JPEG, or PDF).");
+        return; // Exit the function if the file type is not allowed
+      }
+      
+      const filename = file.name;
+      console.log('Uploading file:', filename);
+
+      // Upload file logic
+      this.verificationService.uploadFile(file).subscribe((fileUrl) => {
+        console.log('File uploaded successfully. URL:', fileUrl);
+          if (!fileUrl) {
+            // Replace with your actual Toastr service
+            alert("File upload failed. Please try again.");
+            // Clear the input to allow re-selection
+            inputElement.value = '';
+            return;
+          }
+
+          if (controlName === 'identityProof') {
+            this.identityProofUrl = fileUrl;
+            this.identityProofFilename = filename; // Store filename for display/payload
+            this.consultationForm.get('identityFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          if (controlName === 'medicalProof') {
+            this.medicalProofUrl = fileUrl;
+            this.medicalProofFilename = filename; // Store filename for display/payload
+            this.consultationForm.get('medicalFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          if (controlName === 'establishmentProof') {
+            this.establishmentProofUrl = fileUrl;
+            this.consultationForm.get('establishmentFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          // Mark the file type dropdown as touched/dirty for validation (if required)
+          if (this.consultationForm.get(controlName)) {
+              this.consultationForm.get(controlName)?.markAsTouched();
+              this.consultationForm.get(controlName)?.updateValueAndValidity();
+          }
+      });
     }
+}
 
-    // read locally (for preview and local storage) - uses service helper
-    const dataUrl = await this.verificationService.readFileAsDataUrl(file);
-    if (!dataUrl) {
-      alert('Failed to read file.');
-      return;
-    }
 
-    if (controlName === 'identityProof') {
-      // keep previewing the uploaded file locally
-      this.identityProofUrl = dataUrl;
-      this.identityProofFilename = file.name;
-      this.consultationForm.patchValue({ identityFile: file });
-    } else if (controlName === 'medicalProof') {
-      this.medicalProofUrl = dataUrl;
-      this.medicalProofFilename = file.name;
-      this.consultationForm.patchValue({ medicalFile: file });
-    } else if (controlName === 'establishmentProof') {
-      this.establishmentProofUrl = dataUrl;
-      this.consultationForm.patchValue({ establishmentFile: file });
-    }
-  }
-
-  removeFile(controlName: string) {
-    if (controlName === 'identityProof') {
-      this.identityProofUrl = null;
+// ADD the updated removeFile (as requested)
+removeFile(controlName: string) {
+    if (controlName == 'identityProof') {
+      this.identityProofUrl = null; // Clear the image URL for preview
       this.identityProofFilename = null;
-      this.consultationForm.patchValue({ identityFile: null, identityProof: '' });
+      this.consultationForm.get('identityFile')?.setValue(null); // Clear the URL from the form control
+      // Reset the file input element to allow re-upload
+      (document.getElementById('file_upload_1') as HTMLInputElement).value = '';
     }
-    if (controlName === 'medicalProof') {
-      this.medicalProofUrl = null;
+    if (controlName == 'medicalProof') {
+      this.medicalProofUrl = null; // Clear the image URL for preview
       this.medicalProofFilename = null;
-      this.consultationForm.patchValue({ medicalFile: null, medicalProof: '' });
+      this.consultationForm.get('medicalFile')?.setValue(null); // Clear the URL from the form control
+      (document.getElementById('file_upload_2') as HTMLInputElement).value = '';
     }
-    if (controlName === 'establishmentProof') {
-      this.establishmentProofUrl = null;
-      this.consultationForm.patchValue({ establishmentFile: null });
+    if (controlName == 'establishmentProof') {
+      this.establishmentProofUrl = null; // Clear the image URL for preview
+      this.consultationForm.get('establishmentFile')?.setValue(null); // Clear the URL from the form control
+      // Note: You would need to add an ID for the establishment file input if you want to clear it
     }
-  }
+}
+
 
   confirmRemove(controlName: string): void {
     const label = controlName === 'identityProof' ? 'identity proof' : (controlName === 'medicalProof' ? 'medical proof' : 'establishment proof');
