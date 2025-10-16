@@ -10,6 +10,7 @@ import { switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 // Import the new service
 import { MedicalVerificationService } from '../../core/services/medical-verification.service';
+import { CryptoProvider } from '../../core/services/crypto.service';
 
 // CryptoProvider is no longer needed directly in the component
 // import { CryptoProvider } from '../../core/services/crypto.service'; 
@@ -55,6 +56,7 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private fb: FormBuilder, // Keep FormBuilder for local form initialization if needed, but using service now
     private router: Router,
+    private crypto: CryptoProvider,
     // Inject the new service
     private verificationService: MedicalVerificationService, 
     @Inject(DOCUMENT) private document: Document
@@ -79,11 +81,30 @@ export class MedicalVerificationComponent implements OnInit, OnDestroy {
    * Fetch profile data from configured PROFILE_API and patch forms.
    * - Uses MedicalVerificationService for API call.
    */
+
+  private isLocalStorageAvailable(): boolean {
+    return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  }
+  private setEncryptedItem(key: string, value: any): void {
+    if (!this.isLocalStorageAvailable()) return;
+    try {
+      const enc = this.crypto.encryptObj(value);
+      localStorage.setItem(key, enc);
+    } catch (err) {
+      console.error('Failed to encrypt & set item', key, err);
+    }
+  }
+
+  currentUser:any;
   private fetchProfileAndPatch(): void {
     this.verificationService.fetchProfile()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
+          console.log('Profile API response:', res.result[0].doctor);
+          this.currentUser = res.result[0].doctor;
+          this.setEncryptedItem("current_user", this.currentUser);
+          // this.verificationService.setCurrentUser(this.currentUser);
           // Expecting the structure you provided: res.result is an array
           if (res?.success && Array.isArray(res.result) && res.result.length > 0) {
             // take first result object

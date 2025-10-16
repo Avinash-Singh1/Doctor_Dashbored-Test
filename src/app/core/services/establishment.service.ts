@@ -98,29 +98,68 @@ export class EstablishmentService {
   // API CALLS
   // ----------------------------
 
-  public checkExistingEstablishments(): Observable<boolean> {
-    const headers = this.buildHeaders();
+  // public checkExistingEstablishments(): Observable<boolean> {
+  //   const headers = this.buildHeaders();
 
-    return this.http.get<any>(this.LIST_URL, { headers }).pipe(
-      map((resp) => {
-        if (!resp) return false;
-        if (Array.isArray(resp)) return resp.length > 0;
-        // Check for common nested structures
-        if (resp.result && resp.result.count > 0) return true;
-        if (Array.isArray(resp.data)) return resp.data.length > 0;
-        if (typeof resp.count === 'number') return resp.count > 0;
-        if (typeof resp.total === 'number') return resp.total > 0;
+  //   return this.http.get<any>(this.LIST_URL, { headers }).pipe(
+  //     map((resp) => {
+  //       if (!resp) return false;
+  //       if (Array.isArray(resp)) return resp.length > 0;
+  //       // Check for common nested structures
+  //       if (resp.result && resp.result.count > 0) return true;
+  //       if (Array.isArray(resp.data)) return resp.data.length > 0;
+  //       if (typeof resp.count === 'number') return resp.count > 0;
+  //       if (typeof resp.total === 'number') return resp.total > 0;
         
-        // Final fallback: if we got a successful response object, assume true 
-        // if no data is present but the response structure is complex.
-        return true; 
-      }),
-      catchError((err) => {
-        console.warn('Could not check existing establishments; assuming none. Error:', err);
-        return of(false);
-      })
-    );
-  }
+  //       // Final fallback: if we got a successful response object, assume true 
+  //       // if no data is present but the response structure is complex.
+  //       return true; 
+  //     }),
+  //     catchError((err) => {
+  //       console.warn('Could not check existing establishments; assuming none. Error:', err);
+  //       return of(false);
+  //     })
+  //   );
+  // }
+
+  public checkExistingEstablishments(): Observable<boolean> {
+  const headers = this.buildHeaders();
+
+  return this.http.get<any>(this.LIST_URL, { headers }).pipe(
+    map((resp) => {
+      // --- Validate response safely ---
+      if (!resp || typeof resp !== 'object') {
+        console.warn('Invalid API response format:', resp);
+        return false;
+      }
+
+      // --- Handle your specific response structure ---
+      if ('success' in resp && resp.success === true) {
+        const data = resp?.result?.data;
+
+        if (Array.isArray(data)) {
+          return data.length > 0; // ✅ true if data has items
+        }
+      }
+
+      // --- Handle alternate structures gracefully ---
+      if (Array.isArray(resp)) return resp.length > 0;
+      if (resp?.result?.count && typeof resp.result.count === 'number') return resp.result.count > 0;
+      if (Array.isArray(resp?.data)) return resp.data.length > 0;
+      if (typeof resp?.count === 'number') return resp.count > 0;
+      if (typeof resp?.total === 'number') return resp.total > 0;
+
+      // --- Last resort ---
+      console.warn('Unknown API structure, assuming no establishments:', resp);
+      return false;
+    }),
+    catchError((err) => {
+      console.error('Error checking existing establishments:', err);
+      return of(false);
+    })
+  );
+}
+
 
   public submitEstablishment(payload: any): Observable<any> {
     const headers = this.buildHeaders();

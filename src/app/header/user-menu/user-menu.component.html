@@ -45,7 +45,13 @@
     </div>
 
     <nav class="panel-actions" role="menu">
-      <a class="action" routerLink="/profile" role="menuitem">View my profile</a>
+    <a class="action" 
+   href="https://nectarplus.health/{{ currentUser.city.toLowerCase() }}/doctor/{{ currentUser.profileSlug.toLowerCase() }}" 
+   target="_blank" 
+   rel="noopener noreferrer"
+   role="menuitem">
+    View my profile
+</a>
       <a class="action" routerLink="/settings" role="menuitem">Account settings</a>
       <button class="action action-danger" (click)="logout()" role="menuitem">Sign out</button>
     </nav>

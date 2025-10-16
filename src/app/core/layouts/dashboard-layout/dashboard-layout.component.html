@@ -1,8 +1,9 @@
 <div class="dashboard-layout">
   <!-- Sidebar wrapper -->
-  <aside class="sidebar" [class.mobile-open]="isMobileOpen">
-    <app-sidebar></app-sidebar>
-  </aside>
+<aside class="sidebar" [class.mobile-open]="isMobileOpen">
+  <app-sidebar (closeSidebar)="closeSidebar()"></app-sidebar>
+</aside>
+
 
   <!-- Main Content -->
   <main class="main-content">

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, forkJoin, map, switchMap, catchError, of, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { CryptoProvider } from './crypto.service';
 // --- Interfaces for Data Structure ---
 
 export interface ServiceItem {
@@ -43,7 +44,7 @@ const API_ENDPOINTS = {
   },
 };
 // NOTE: Ideally, the token should come from an AuthService.
-const BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzBmY2QxNjFmYWI2NDEwOTgyNjQxMmEiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gRCBEaGFuYW1qYXlhIiwiaWF0IjoxNzU5NTU5NDQ3LCJleHAiOjE3NjAxNjQyNDd9.vu80EnV_QtzepytHxfiTaGE17bG8U1rkNVEdSeRMNEw';
+// const BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzBmY2QxNjFmYWI2NDEwOTgyNjQxMmEiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gRCBEaGFuYW1qYXlhIiwiaWF0IjoxNzU5NTU5NDQ3LCJleHAiOjE3NjAxNjQyNDd9.vu80EnV_QtzepytHxfiTaGE17bG8U1rkNVEdSeRMNEw';
 
 // --- ApiService Wrapper ---
 @Injectable({
@@ -52,7 +53,10 @@ const BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzBmY
 class ApiService {
   private headers: HttpHeaders;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,private crypto: CryptoProvider) {
+     const BEARER_TOKEN =
+      (typeof localStorage !== 'undefined' && this.crypto.decryptObj(localStorage.getItem('authToken'))) ||
+      '';
     this.headers = new HttpHeaders({
       'Authorization': `Bearer ${BEARER_TOKEN}`
     });

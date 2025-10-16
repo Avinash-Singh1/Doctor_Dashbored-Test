@@ -1,3 +1,66 @@
+/* --- Toggle Switch Styling --- */
+.dark-mode-toggle-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+
+  /* Hide default HTML checkbox */
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc; /* Light background for OFF state */
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+}
+
+/* --- Toggle ON State (Black) --- */
+input:checked + .slider {
+  background-color: #000; /* Black background for ON state */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+
+/* --- Base Component Styling (Existing) --- */
 .settings-page {
   max-width: 600px;
   margin: 2rem auto;
@@ -5,36 +68,41 @@
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: background 0.3s, color 0.3s; /* Add transition for smooth mode change */
 
   h2 {
     margin-bottom: 1.5rem;
     color: #2c3e50;
+    transition: color 0.3s;
   }
+  
+  // ... (rest of the .settings-page styles)
+}
 
-  .form-group {
-    margin-bottom: 1.2rem;
+/* --- Dark Mode Styles (Applied when 'dark-mode' class is on the body) --- */
 
-    label {
-      font-weight: 500;
-      cursor: pointer;
-    }
+:host-context(.dark-mode) .settings-page {
+  background: #2c3e50; // Dark background for the settings panel
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
 
-    select, input[type="checkbox"] {
-      margin-left: 0.5rem;
-    }
-  }
+:host-context(.dark-mode) .settings-page h2,
+:host-context(.dark-mode) .settings-page label {
+  color: #ecf0f1; // Light text color
+}
 
-  button {
-    padding: 0.7rem 1.5rem;
-    background: #1976d2;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s;
+:host-context(.dark-mode) .settings-page select,
+:host-context(.dark-mode) .settings-page input[type="text"] {
+  background-color: #34495e;
+  color: #ecf0f1;
+  border: 1px solid #7f8c8d;
+}
 
-    &:hover {
-      background: #1565c0;
-    }
-  }
+/* You may also want to style the global body/background */
+:host-context(.dark-mode) {
+  /* This targets the host component itself when the body has dark-mode, 
+     but for the global background you need a global style or target the body directly.
+     For simplicity here, we'll assume the component background is enough. 
+     For a true full dark mode, you'd add this to a global style file: */
+  /* body.dark-mode { background-color: #121212; } */
 }

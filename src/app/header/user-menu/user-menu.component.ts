@@ -5,6 +5,7 @@ import { RouterModule, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import { AuthService, AuthUser } from '../../core/services/auth.service';
+import { CryptoProvider } from '../../core/services/crypto.service';
 
 @Component({
   selector: 'app-user-menu',
@@ -19,8 +20,11 @@ export class UserMenuComponent implements OnInit, OnDestroy {
   avatarUrl?: string | null = null;
   isOpen = false;
   private destroy$ = new Subject<void>();
-
-  constructor(private router: Router, private auth: AuthService) {}
+  currentUser: any;
+  constructor(private router: Router, private auth: AuthService, private crypto: CryptoProvider) {
+    this.currentUser = this.crypto.decryptObj(localStorage.getItem('current_user')) || '';
+      '';
+  }
 
   ngOnInit(): void {
     const u = this.auth.getUserSync();
@@ -34,6 +38,9 @@ export class UserMenuComponent implements OnInit, OnDestroy {
         this.avatarUrl = null;
       }
     });
+
+
+    console.log("User from localStorage in UserMenuComponent:", this.currentUser);
   }
 
   private applyUser(user: AuthUser): void {
@@ -112,4 +119,7 @@ export class UserMenuComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+
+  
 }

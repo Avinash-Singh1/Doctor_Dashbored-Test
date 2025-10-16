@@ -5,7 +5,7 @@
 
   <ul class="sidebar-menu">
     <li *ngFor="let item of menuItems">
-      <!-- If item has children (dropdown) -->
+
       <ng-container *ngIf="item.children; else normalItem">
         <a href="javascript:void(0)" (click)="toggleDropdown(item)">
           <span class="material-icons">{{ item.icon }}</span>
@@ -13,20 +13,21 @@
           <span class="arrow" [class.open]="item.expanded">▸</span>
         </a>
 
-        <!-- Submenu -->
         <div class="submenu" *ngIf="item.expanded">
           <a *ngFor="let child of item.children"
              [routerLink]="child.path"
-             routerLinkActive="active">
+             routerLinkActive="active"
+             (click)="onMenuClick()"> <!-- 👈 added -->
             <span class="material-icons">{{ child.icon }}</span>
             <span>{{ child.label }}</span>
           </a>
         </div>
       </ng-container>
 
-      <!-- Normal items -->
       <ng-template #normalItem>
-        <a [routerLink]="item.path" routerLinkActive="active">
+        <a [routerLink]="item.path"
+           routerLinkActive="active"
+           (click)="onMenuClick()"> <!-- 👈 added -->
           <span class="material-icons">{{ item.icon }}</span>
           <span class="label">{{ item.label }}</span>
         </a>

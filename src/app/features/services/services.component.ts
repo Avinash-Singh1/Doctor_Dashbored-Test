@@ -70,7 +70,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.allDisplayServices = data.allDisplayServices;
           this.doctorSelectedServices = data.doctorSelectedServices;
-          console.log("Services loaded successfully.");
+          console.log("Services loaded successfully.: ",data);
         },
         error: (err) => {
           console.error("Failed to load initial data:", err);

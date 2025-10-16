@@ -25,6 +25,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 // Import the new service
 import { EstablishmentService } from '../../core/services/establishment.service'; 
+import { MedicalVerificationService } from '../../core/services/medical-verification.service';
 // Note: We keep 'declare const google: any;' because the component still uses it 
 // in event handlers, though the core logic is in the service.
 declare const google: any; 
@@ -104,7 +105,8 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private fb: FormBuilder,
-    private establishmentService: EstablishmentService, // <-- New Service
+    private establishmentService: EstablishmentService,
+    private verificationService: MedicalVerificationService, 
   ) {
     this.establishmentForm = this.fb.group({
       showInClinic: [true],
@@ -236,6 +238,7 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
 
   // Save draft before moving to next slide
   nextSlide(): void {
+    console.log('Next slide clicked, validating Step 1');
     const nameCtrl = this.establishmentForm.get('name');
     const typeCtrl = this.establishmentForm.get('hospitalTypeId');
     const proofTypeCtrl = this.establishmentForm.get('proofType');
@@ -319,23 +322,102 @@ export class EstablishmentComponent implements OnInit, OnDestroy {
   // ----------------------------
   // File handling (upload & preview)
   // ----------------------------
-  onFileSelected(ev: Event): void {
-    const input = ev.target as HTMLInputElement;
-    if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-    this.establishmentProofFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.establishmentProofUrl = String(e.target?.result || null);
-      this.establishmentForm.patchValue({ establishmentProof: file.name });
-    };
-    reader.readAsDataURL(file);
-  }
-  removeFile(): void {
-    this.establishmentProofFile = null;
-    this.establishmentProofUrl = null;
-    this.establishmentForm.patchValue({ establishmentProof: '' });
-  }
+  // onFileSelected(ev: Event): void {
+  //   const input = ev.target as HTMLInputElement;
+  //   if (!input.files || !input.files[0]) return;
+  //   const file = input.files[0];
+  //   this.establishmentProofFile = file;
+  //   const reader = new FileReader();
+  //   reader.onload = (e) => {
+  //     this.establishmentProofUrl = String(e.target?.result || null);
+  //     this.establishmentForm.patchValue({ establishmentProof: file.name });
+  //   };
+  //   reader.readAsDataURL(file);
+  // }
+  // removeFile(): void {
+  //   this.establishmentProofFile = null;
+  //   this.establishmentProofUrl = null;
+  //   this.establishmentForm.patchValue({ establishmentProof: '' });
+  // }
+
+  identityProofUrl: string | null = null; // data URL for preview
+  medicalProofUrl: string | null = null;  // data URL for preview
+  // establishmentProofUrl: string | null = null;
+    identityProofFilename: string | null = null;
+  medicalProofFilename: string | null = null;
+
+onFileSelected(event: Event, controlName: string): void {
+    const inputElement = event.target as HTMLInputElement;
+    const file = inputElement.files?.[0];
+
+    if (file) {
+      // Allowed file types
+      const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        // Replace with your actual Toastr service
+        alert("Please upload a valid file (PNG, JPG, JPEG, or PDF).");
+        return; // Exit the function if the file type is not allowed
+      }
+      
+      const filename = file.name;
+      console.log('Uploading file:', filename);
+
+      // Upload file logic
+      this.verificationService.uploadFile(file).subscribe((fileUrl) => {
+        console.log('File uploaded successfully. URL:', fileUrl);
+          if (!fileUrl) {
+            // Replace with your actual Toastr service
+            alert("File upload failed. Please try again.");
+            // Clear the input to allow re-selection
+            inputElement.value = '';
+            return;
+          }
+
+          if (controlName === 'identityProof') {
+            this.identityProofUrl = fileUrl;
+            this.identityProofFilename = filename; // Store filename for display/payload
+            this.establishmentForm.get('identityFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          if (controlName === 'medicalProof') {
+            this.medicalProofUrl = fileUrl;
+            this.medicalProofFilename = filename; // Store filename for display/payload
+            this.establishmentForm.get('medicalFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          if (controlName === 'establishmentProof') {
+            this.establishmentProofUrl = fileUrl;
+            this.establishmentForm.get('establishmentFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          // Mark the file type dropdown as touched/dirty for validation (if required)
+          if (this.establishmentForm.get(controlName)) {
+              this.establishmentForm.get(controlName)?.markAsTouched();
+              this.establishmentForm.get(controlName)?.updateValueAndValidity();
+          }
+      });
+    }
+}
+
+
+// ADD the updated removeFile (as requested)
+removeFile(controlName: string) {
+    if (controlName == 'identityProof') {
+      this.identityProofUrl = null; // Clear the image URL for preview
+      this.identityProofFilename = null;
+      this.establishmentForm.get('identityFile')?.setValue(null); // Clear the URL from the form control
+      // Reset the file input element to allow re-upload
+      (document.getElementById('file_upload_1') as HTMLInputElement).value = '';
+    }
+    if (controlName == 'medicalProof') {
+      this.medicalProofUrl = null; // Clear the image URL for preview
+      this.medicalProofFilename = null;
+      this.establishmentForm.get('medicalFile')?.setValue(null); // Clear the URL from the form control
+      (document.getElementById('file_upload_2') as HTMLInputElement).value = '';
+    }
+    if (controlName == 'establishmentProof') {
+      this.establishmentProofUrl = null; // Clear the image URL for preview
+      this.establishmentForm.get('establishmentFile')?.setValue(null); // Clear the URL from the form control
+      // Note: You would need to add an ID for the establishment file input if you want to clear it
+    }
+}
 
   shouldShowInClinicField(): boolean {
     return this.establishmentForm.get('showInClinic')?.value ?? true;

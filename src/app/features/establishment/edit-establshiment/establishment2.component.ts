@@ -23,6 +23,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MedicalVerificationService } from '../../../core/services/medical-verification.service';
 
 declare const google: any; // Global Google Maps JS
 
@@ -191,6 +192,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private http: HttpClient,
+    private verificationService: MedicalVerificationService, 
     private crypto: CryptoProvider
   ) {
     this.establishmentForm = this.fb.group({
@@ -310,151 +312,337 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     });
   }
 
+  // private patchEditFormValues(item: any): void {
+  //   if (!item) return;
+
+  //   this.isEditMode = true;
+  //   this.lastPatchedItem = item;
+
+  //   // 1) Basic
+  //   if (item.hospitalData?.name) {
+  //     this.establishmentForm.get('name')?.patchValue(item.hospitalData.name);
+  //   }
+  //   if (item.hospitalTypeId) {
+  //     this.establishmentForm.get('hospitalTypeId')?.patchValue(item.hospitalTypeId);
+  //   }
+
+  //   // 2) clinic/video flags and fees
+  //   const hasClinicFees = item.consultationFees !== undefined && item.consultationFees !== null && item.consultationFees !== -1;
+  //   const hasVideoFees = item.videoConsultationFees !== undefined && item.videoConsultationFees !== null;
+
+  //   this.establishmentForm.get('showInClinic')?.patchValue(!!hasClinicFees);
+  //   this.establishmentForm.get('showVideo')?.patchValue(!!hasVideoFees);
+
+  //   this.establishmentForm.get('consultationFees')?.patchValue(hasClinicFees ? item.consultationFees : '');
+  //   this.establishmentForm.get('videoConsultationFees')?.patchValue(hasVideoFees ? item.videoConsultationFees : '');
+
+  //   // 3) Address
+  //   if (item.hospitalData?.address) {
+  //     const addr = item.hospitalData.address;
+  //     const addrGroup = this.establishmentForm.get('address');
+  //     if (addrGroup) {
+  //       addrGroup.patchValue({
+  //         landmark: addr.landmark ?? '',
+  //         locality: addr.locality ?? '',
+  //         city: addr.city ?? '',
+  //         state: addr.state ?? '',
+  //         pincode: addr.pincode ?? '',
+  //         sampleCityName: addr.city ?? addr.sampleCityName ?? '',
+  //       });
+  //     }
+  //   }
+
+  //   // 4) Location
+  //   if (item.hospitalData?.location?.coordinates && Array.isArray(item.hospitalData.location.coordinates)) {
+  //     this.location = item.hospitalData.location.coordinates.slice(0, 2);
+  //   }
+
+  //   // 5) proof
+  //   if (Array.isArray(item.establishmentProof) && item.establishmentProof.length > 0) {
+  //     const pr = item.establishmentProof[0];
+  //     if (pr.url) {
+  //       this.establishmentProofUrl = pr.url;
+  //       const proofControl = this.establishmentForm.get('establishmentProof');
+  //       if (proofControl) {
+  //         proofControl.patchValue(pr.fileName ?? pr.url ?? '');
+  //         proofControl.clearValidators();
+  //         proofControl.updateValueAndValidity();
+  //       }
+  //     }
+  //     if (pr.urlType) {
+  //       const ptCtrl = this.establishmentForm.get('proofType');
+  //       if (ptCtrl) {
+  //         ptCtrl.patchValue(pr.urlType);
+  //         ptCtrl.clearValidators();
+  //         ptCtrl.updateValueAndValidity();
+  //       }
+  //     }
+  //   } else {
+  //     const proofCtrl = this.establishmentForm.get('establishmentProof');
+  //     const ptCtrl = this.establishmentForm.get('proofType');
+  //     if (proofCtrl && !proofCtrl.validator) {
+  //       proofCtrl.setValidators([Validators.required]);
+  //       proofCtrl.updateValueAndValidity();
+  //     }
+  //     if (ptCtrl && !ptCtrl.validator) {
+  //       ptCtrl.setValidators([Validators.required]);
+  //       ptCtrl.updateValueAndValidity();
+  //     }
+  //   }
+
+  //   // 6) days/timeSlots
+  //   const daysArr = this.establishmentForm.get('days') as FormArray;
+  //   // Clear existing form array controls
+  //   while (daysArr.length > 0) daysArr.removeAt(0);
+
+  //   const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  //   let anyDayPatched = false;
+
+  //   // Iterate through API response properties (mon, tue, wed, etc.)
+  //   for (const wd of weekDays) {
+  //     const slots = item[wd];
+  //     if (Array.isArray(slots) && slots.length > 0) {
+  //       const dayGroup = this.fb.group({
+  //         day: [wd, Validators.required],
+  //         timeSlots: this.fb.array([]),
+  //       });
+  //       const slotsArr = dayGroup.get('timeSlots') as FormArray;
+        
+  //       // Patch time slots
+  //       slots.forEach((s: any) => {
+  //         slotsArr.push(this.fb.group({
+  //           // Ensure `from` and `to` are correctly patched
+  //           from: [s.from || '', Validators.required], 
+  //           to: [s.to || '', Validators.required],
+  //         }));
+  //       });
+        
+  //       daysArr.push(dayGroup);
+  //       anyDayPatched = true;
+  //     }
+  //   }
+
+  //   if (!anyDayPatched) {
+  //     // Fallback logic if the data came in a different structure (your existing logic)
+  //     if (Array.isArray(item.days) && item.days.length) {
+  //       item.days.forEach((d: any) => {
+  //         const dayKey = d.day || d.name || 'mon';
+  //         const group = this.fb.group({
+  //           day: [dayKey, Validators.required],
+  //           timeSlots: this.fb.array([]),
+  //         });
+  //         const arr = group.get('timeSlots') as FormArray;
+  //         const tSlots = d.timeSlots || d.slots || d.slotsArray || [];
+  //         if (Array.isArray(tSlots) && tSlots.length) {
+  //           tSlots.forEach((ts: any) => {
+  //             arr.push(this.fb.group({
+  //               from: [ts.from || '', Validators.required],
+  //               to: [ts.to || '', Validators.required],
+  //             }));
+  //           });
+  //         } else {
+  //           arr.push(this.createTimeSlotGroup());
+  //         }
+  //         daysArr.push(group);
+  //       });
+  //     } else {
+  //       // Default to one empty day group if no data exists
+  //       daysArr.push(this.createDayGroup());
+  //     }
+  //   }
+
+  //   // keep step1 visible
+  //   this.currentSlide = 1;
+  //   this.count = 1;
+
+  //   console.log('Patched form with establishment item:', item);
+  // }
+
+  
   private patchEditFormValues(item: any): void {
-    if (!item) return;
+        if (!item) return;
 
-    this.isEditMode = true;
-    this.lastPatchedItem = item;
+        this.isEditMode = true;
+        this.lastPatchedItem = item;
 
-    // 1) Basic
-    if (item.hospitalData?.name) {
-      this.establishmentForm.get('name')?.patchValue(item.hospitalData.name);
-    }
-    if (item.hospitalTypeId) {
-      this.establishmentForm.get('hospitalTypeId')?.patchValue(item.hospitalTypeId);
-    }
-
-    // 2) clinic/video flags and fees
-    const hasClinicFees = item.consultationFees !== undefined && item.consultationFees !== null && item.consultationFees !== -1;
-    const hasVideoFees = item.videoConsultationFees !== undefined && item.videoConsultationFees !== null;
-
-    this.establishmentForm.get('showInClinic')?.patchValue(!!hasClinicFees);
-    this.establishmentForm.get('showVideo')?.patchValue(!!hasVideoFees);
-
-    this.establishmentForm.get('consultationFees')?.patchValue(hasClinicFees ? item.consultationFees : '');
-    this.establishmentForm.get('videoConsultationFees')?.patchValue(hasVideoFees ? item.videoConsultationFees : '');
-
-    // 3) Address
-    if (item.hospitalData?.address) {
-      const addr = item.hospitalData.address;
-      const addrGroup = this.establishmentForm.get('address');
-      if (addrGroup) {
-        addrGroup.patchValue({
-          landmark: addr.landmark ?? '',
-          locality: addr.locality ?? '',
-          city: addr.city ?? '',
-          state: addr.state ?? '',
-          pincode: addr.pincode ?? '',
-          sampleCityName: addr.city ?? addr.sampleCityName ?? '',
-        });
-      }
-    }
-
-    // 4) Location
-    if (item.hospitalData?.location?.coordinates && Array.isArray(item.hospitalData.location.coordinates)) {
-      this.location = item.hospitalData.location.coordinates.slice(0, 2);
-    }
-
-    // 5) proof
-    if (Array.isArray(item.establishmentProof) && item.establishmentProof.length > 0) {
-      const pr = item.establishmentProof[0];
-      if (pr.url) {
-        this.establishmentProofUrl = pr.url;
-        const proofControl = this.establishmentForm.get('establishmentProof');
-        if (proofControl) {
-          proofControl.patchValue(pr.fileName ?? pr.url ?? '');
-          proofControl.clearValidators();
-          proofControl.updateValueAndValidity();
+        // 1) Basic
+        if (item.hospitalData?.name) {
+            this.establishmentForm.get('name')?.patchValue(item.hospitalData.name);
         }
-      }
-      if (pr.urlType) {
-        const ptCtrl = this.establishmentForm.get('proofType');
-        if (ptCtrl) {
-          ptCtrl.patchValue(pr.urlType);
-          ptCtrl.clearValidators();
-          ptCtrl.updateValueAndValidity();
+        if (item.hospitalTypeId) {
+            this.establishmentForm.get('hospitalTypeId')?.patchValue(item.hospitalTypeId);
         }
-      }
-    } else {
-      const proofCtrl = this.establishmentForm.get('establishmentProof');
-      const ptCtrl = this.establishmentForm.get('proofType');
-      if (proofCtrl && !proofCtrl.validator) {
-        proofCtrl.setValidators([Validators.required]);
-        proofCtrl.updateValueAndValidity();
-      }
-      if (ptCtrl && !ptCtrl.validator) {
-        ptCtrl.setValidators([Validators.required]);
-        ptCtrl.updateValueAndValidity();
-      }
+
+        // 2) clinic/video flags and fees
+        const hasClinicFees = item.consultationFees !== undefined && item.consultationFees !== null && item.consultationFees !== -1;
+        const hasVideoFees = item.videoConsultationFees !== undefined && item.videoConsultationFees !== null;
+
+        this.establishmentForm.get('showInClinic')?.patchValue(!!hasClinicFees);
+        this.establishmentForm.get('showVideo')?.patchValue(!!hasVideoFees);
+
+        this.establishmentForm.get('consultationFees')?.patchValue(hasClinicFees ? item.consultationFees : '');
+        this.establishmentForm.get('videoConsultationFees')?.patchValue(hasVideoFees ? item.videoConsultationFees : '');
+
+        // 3) Address
+        if (item.hospitalData?.address) {
+            const addr = item.hospitalData.address;
+            const addrGroup = this.establishmentForm.get('address');
+            if (addrGroup) {
+                addrGroup.patchValue({
+                    landmark: addr.landmark ?? '',
+                    locality: addr.locality ?? '',
+                    city: addr.city ?? '',
+                    state: addr.state ?? '',
+                    pincode: addr.pincode ?? '',
+                    sampleCityName: addr.city ?? addr.sampleCityName ?? '',
+                });
+            }
+        }
+
+        // 4) Location
+        if (item.hospitalData?.location?.coordinates && Array.isArray(item.hospitalData.location.coordinates)) {
+            this.location = item.hospitalData.location.coordinates.slice(0, 2);
+        }
+
+        // 5) proof
+        if (Array.isArray(item.establishmentProof) && item.establishmentProof.length > 0) {
+            const pr = item.establishmentProof[0];
+            if (pr.url) {
+                this.establishmentProofUrl = pr.url;
+                const proofControl = this.establishmentForm.get('establishmentProof');
+                if (proofControl) {
+                    proofControl.patchValue(pr.fileName ?? pr.url ?? '');
+                    proofControl.clearValidators();
+                    proofControl.updateValueAndValidity();
+                }
+            }
+            if (pr.urlType) {
+                const ptCtrl = this.establishmentForm.get('proofType');
+                if (ptCtrl) {
+                    ptCtrl.patchValue(pr.urlType);
+                    ptCtrl.clearValidators();
+                    ptCtrl.updateValueAndValidity();
+                }
+            }
+        } else {
+            const proofCtrl = this.establishmentForm.get('establishmentProof');
+            const ptCtrl = this.establishmentForm.get('proofType');
+            if (proofCtrl && !proofCtrl.validator) {
+                proofCtrl.setValidators([Validators.required]);
+                proofCtrl.updateValueAndValidity();
+            }
+            if (ptCtrl && !ptCtrl.validator) {
+                ptCtrl.setValidators([Validators.required]);
+                ptCtrl.updateValueAndValidity();
+            }
+        }
+
+        // 6) days/timeSlots
+        const daysArr = this.establishmentForm.get('days') as FormArray;
+        // Clear existing form array controls
+        while (daysArr.length > 0) daysArr.removeAt(0);
+
+        const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        
+        // **FIX**: Declare the variable here
+        let anyDayPatched = false; 
+
+        // Iterate through API response properties (mon, tue, wed, etc.)
+        for (const wd of weekDays) {
+            const slots = item[wd];
+            if (Array.isArray(slots) && slots.length > 0) {
+                const dayGroup = this.fb.group({
+                    day: [wd, Validators.required],
+                    timeSlots: this.fb.array([]),
+                });
+                const slotsArr = dayGroup.get('timeSlots') as FormArray;
+                
+                // Patch time slots
+                slots.forEach((s: any) => {
+                    slotsArr.push(this.fb.group({
+                        // Ensure `from` and `to` are correctly patched
+                        from: [s.from || '', Validators.required], 
+                        to: [s.to || '', Validators.required],
+                    }));
+                });
+                
+                daysArr.push(dayGroup);
+                anyDayPatched = true;
+            }
+        }
+
+        if (!anyDayPatched) {
+            // Fallback logic if the data came in a different structure (your existing logic)
+            if (Array.isArray(item.days) && item.days.length) {
+                item.days.forEach((d: any) => {
+                    const dayKey = d.day || d.name || 'mon';
+                    const group = this.fb.group({
+                        day: [dayKey, Validators.required],
+                        timeSlots: this.fb.array([]),
+                    });
+                    const arr = group.get('timeSlots') as FormArray;
+                    const tSlots = d.timeSlots || d.slots || d.slotsArray || [];
+                    if (Array.isArray(tSlots) && tSlots.length) {
+                        tSlots.forEach((ts: any) => {
+                            arr.push(this.fb.group({
+                                from: [ts.from || '', Validators.required],
+                                to: [ts.to || '', Validators.required],
+                            }));
+                        });
+                    } else {
+                        arr.push(this.createTimeSlotGroup());
+                    }
+                    daysArr.push(group);
+                });
+                // Since we entered this fallback block, we should consider it patched
+                anyDayPatched = true; 
+            }
+        }
+        
+        // Only push default if neither of the above patching methods found any data.
+        if (!anyDayPatched) { 
+             // Default to one empty day group if no data exists
+             daysArr.push(this.createDayGroup());
+        }
+
+        // --- NEW LOGIC: Disable controls for Step 1 when in edit mode ---
+        if (this.isEditMode) {
+            this.disableStepOneFields();
+        }
+        // --- END NEW LOGIC ---
+
+
+        // keep step1 visible
+        this.currentSlide = 1;
+        this.count = 1;
+
+        console.log('Patched form with establishment item:', item);
     }
 
-    // 6) days/timeSlots
-    const daysArr = this.establishmentForm.get('days') as FormArray;
-    // Clear existing form array controls
-    while (daysArr.length > 0) daysArr.removeAt(0);
-
-    const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    let anyDayPatched = false;
-
-    // Iterate through API response properties (mon, tue, wed, etc.)
-    for (const wd of weekDays) {
-      const slots = item[wd];
-      if (Array.isArray(slots) && slots.length > 0) {
-        const dayGroup = this.fb.group({
-          day: [wd, Validators.required],
-          timeSlots: this.fb.array([]),
-        });
-        const slotsArr = dayGroup.get('timeSlots') as FormArray;
+    private disableStepOneFields(): void {
+        // Controls for Step 1: Consultation Type, Practice Details, Address, and Proof
         
-        // Patch time slots
-        slots.forEach((s: any) => {
-          slotsArr.push(this.fb.group({
-            // Ensure `from` and `to` are correctly patched
-            from: [s.from || '', Validators.required], 
-            to: [s.to || '', Validators.required],
-          }));
-        });
-        
-        daysArr.push(dayGroup);
-        anyDayPatched = true;
-      }
-    }
+        // 1. Consultation Type Radio/Checkboxes
+        this.establishmentForm.get('showInClinic')?.disable();
+        this.establishmentForm.get('showVideo')?.disable();
+        this.establishmentForm.get('Consultation_type')?.disable(); // Assuming this is tied to the consultation type radios
 
-    if (!anyDayPatched) {
-      // Fallback logic if the data came in a different structure (your existing logic)
-      if (Array.isArray(item.days) && item.days.length) {
-        item.days.forEach((d: any) => {
-          const dayKey = d.day || d.name || 'mon';
-          const group = this.fb.group({
-            day: [dayKey, Validators.required],
-            timeSlots: this.fb.array([]),
-          });
-          const arr = group.get('timeSlots') as FormArray;
-          const tSlots = d.timeSlots || d.slots || d.slotsArray || [];
-          if (Array.isArray(tSlots) && tSlots.length) {
-            tSlots.forEach((ts: any) => {
-              arr.push(this.fb.group({
-                from: [ts.from || '', Validators.required],
-                to: [ts.to || '', Validators.required],
-              }));
+        // 2. Practice Details
+        this.establishmentForm.get('name')?.disable();
+        this.establishmentForm.get('hospitalTypeId')?.disable();
+
+        // 3. Address Information
+        const addressGroup = this.establishmentForm.get('address') as FormGroup;
+        if (addressGroup) {
+            Object.keys(addressGroup.controls).forEach(key => {
+                addressGroup.get(key)?.disable();
             });
-          } else {
-            arr.push(this.createTimeSlotGroup());
-          }
-          daysArr.push(group);
-        });
-      } else {
-        // Default to one empty day group if no data exists
-        daysArr.push(this.createDayGroup());
-      }
+        }
+
+        // 4. Proof
+        this.establishmentForm.get('proofType')?.disable();
+        this.establishmentForm.get('establishmentProof')?.disable(); // This is the hidden control holding the URL/filename
     }
-
-    // keep step1 visible
-    this.currentSlide = 1;
-    this.count = 1;
-
-    console.log('Patched form with establishment item:', item);
-  }
 
   private extractFileNameFromUrl(url: string): string | null {
     try {
@@ -552,17 +740,65 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     }
   }
 
+  // nextSlide(): void {
+  //   console.log('Next slide clicked, validating Step 1');
+  //   const nameCtrl = this.establishmentForm.get('name');
+  //   const typeCtrl = this.establishmentForm.get('hospitalTypeId');
+  //   const proofTypeCtrl = this.establishmentForm.get('proofType');
+  //   const proofCtrl = this.establishmentForm.get('establishmentProof');
+
+  //   const validStep1 =
+  //     !!nameCtrl && nameCtrl.valid &&
+  //     !!typeCtrl && typeCtrl.valid &&
+  //     !!proofTypeCtrl && proofTypeCtrl.valid &&
+  //     !!proofCtrl && proofCtrl.valid;
+
+  //   console.log('Next slide clicked, validating Step 1',validStep1);
+  //   if (!validStep1) {
+  //     this.errorMessage = 'Please fill required fields on Step 1';
+  //     this.markAllAsTouched(this.establishmentForm);
+  //     return;
+  //   }
+
+  //   this.errorMessage = '';
+
+  //   try {
+  //     this.saveDraft();
+  //   } catch (err) {
+  //     console.warn('Failed to save draft to localStorage', err);
+  //   }
+
+  //   this.currentSlide = 2;
+  //   this.count = 2;
+  //   console.log('Next slide clicked, validating Step 1',this.currentSlide);
+  //   console.log('Next slide clicked, validating Step 1',this.count);
+
+  // }
+  // src/app/features/establishment/establishment.component.ts
+
+// ... (existing code)
+
   nextSlide(): void {
     const nameCtrl = this.establishmentForm.get('name');
     const typeCtrl = this.establishmentForm.get('hospitalTypeId');
     const proofTypeCtrl = this.establishmentForm.get('proofType');
     const proofCtrl = this.establishmentForm.get('establishmentProof');
 
-    const validStep1 =
-      !!nameCtrl && nameCtrl.valid &&
-      !!typeCtrl && typeCtrl.valid &&
-      !!proofTypeCtrl && proofTypeCtrl.valid &&
-      !!proofCtrl && proofCtrl.valid;
+    let validStep1: boolean;
+
+    if (this.isEditMode) {
+        // --- FIX: When in EDIT mode, we assume Step 1 data is valid since it was loaded
+        validStep1 = true;
+        this.errorMessage = ''; // Clear any previous error
+    } else {
+        // Original logic for ADD mode
+        validStep1 =
+            !!nameCtrl && nameCtrl.valid &&
+            !!typeCtrl && typeCtrl.valid &&
+            !!proofTypeCtrl && proofTypeCtrl.valid &&
+            !!proofCtrl && proofCtrl.valid;
+    }
+
 
     if (!validStep1) {
       this.errorMessage = 'Please fill required fields on Step 1';
@@ -603,6 +839,8 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
     }
 
     const formValue = this.establishmentForm.value;
+    console.log('Form value on submit estab 2 edit:', formValue);
+    console.log('Form value on submit estab 2 editestablishmentProofUrl :', this.establishmentProofUrl);
 
     // Build days mapping to mon,tue,... arrays for API
     const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -635,6 +873,8 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
       // merge in days arrays (mon,tue,...)
       ...daysData,
     };
+
+    console.log('Form value on establishment2 edit:', payload);
 
     // If form is invalid, stop submission
     if (this.establishmentForm.invalid) {
@@ -758,37 +998,117 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
   // ----------------------------
   // File handling (upload & preview)
   // ----------------------------
-  onFileSelected(ev: Event): void {
-    const input = ev.target as HTMLInputElement;
-    if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-    this.establishmentProofFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.establishmentProofUrl = String(e.target?.result || null);
-      this.establishmentForm.patchValue({ establishmentProof: file.name });
-      // remove required validator when user has chosen a file
-      const proofCtrl = this.establishmentForm.get('establishmentProof');
-      if (proofCtrl) {
-        proofCtrl.clearValidators();
-        proofCtrl.updateValueAndValidity();
+  // onFileSelected(ev: Event): void {
+  //   const input = ev.target as HTMLInputElement;
+  //   if (!input.files || !input.files[0]) return;
+  //   const file = input.files[0];
+  //   this.establishmentProofFile = file;
+  //   const reader = new FileReader();
+  //   reader.onload = (e) => {
+  //     this.establishmentProofUrl = String(e.target?.result || null);
+  //     this.establishmentForm.patchValue({ establishmentProof: file.name });
+  //     // remove required validator when user has chosen a file
+  //     const proofCtrl = this.establishmentForm.get('establishmentProof');
+  //     if (proofCtrl) {
+  //       proofCtrl.clearValidators();
+  //       proofCtrl.updateValueAndValidity();
+  //     }
+  //   };
+  //   reader.readAsDataURL(file);
+  // }
+  // removeFile(): void {
+  //   this.establishmentProofFile = null;
+  //   this.establishmentProofUrl = null;
+  //   this.establishmentForm.patchValue({ establishmentProof: '' });
+  //   // restore required if in create mode
+  //   if (!this.isEditMode) {
+  //     const proofCtrl = this.establishmentForm.get('establishmentProof');
+  //     if (proofCtrl) {
+  //       proofCtrl.setValidators([Validators.required]);
+  //       proofCtrl.updateValueAndValidity();
+  //     }
+  //   }
+  // }
+
+
+  identityProofUrl: string | null = null; // data URL for preview
+  medicalProofUrl: string | null = null;  // data URL for preview
+  // establishmentProofUrl: string | null = null;
+  identityProofFilename: string | null = null;
+  medicalProofFilename: string | null = null;
+
+onFileSelected(event: Event, controlName: string): void {
+    const inputElement = event.target as HTMLInputElement;
+    const file = inputElement.files?.[0];
+
+    if (file) {
+      // Allowed file types
+      const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        // Replace with your actual Toastr service
+        alert("Please upload a valid file (PNG, JPG, JPEG, or PDF).");
+        return; // Exit the function if the file type is not allowed
       }
-    };
-    reader.readAsDataURL(file);
-  }
-  removeFile(): void {
-    this.establishmentProofFile = null;
-    this.establishmentProofUrl = null;
-    this.establishmentForm.patchValue({ establishmentProof: '' });
-    // restore required if in create mode
-    if (!this.isEditMode) {
-      const proofCtrl = this.establishmentForm.get('establishmentProof');
-      if (proofCtrl) {
-        proofCtrl.setValidators([Validators.required]);
-        proofCtrl.updateValueAndValidity();
-      }
+      
+      const filename = file.name;
+      console.log('Uploading file:', filename);
+
+      // Upload file logic
+      this.verificationService.uploadFile(file).subscribe((fileUrl) => {
+        console.log('File uploaded successfully. URL:', fileUrl);
+          if (!fileUrl) {
+            // Replace with your actual Toastr service
+            alert("File upload failed. Please try again.");
+            // Clear the input to allow re-selection
+            inputElement.value = '';
+            return;
+          }
+
+          if (controlName === 'identityProof') {
+            this.identityProofUrl = fileUrl;
+            this.identityProofFilename = filename; // Store filename for display/payload
+            this.establishmentForm.get('identityFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          if (controlName === 'medicalProof') {
+            this.medicalProofUrl = fileUrl;
+            this.medicalProofFilename = filename; // Store filename for display/payload
+            this.establishmentForm.get('medicalFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          if (controlName === 'establishmentProof') {
+            this.establishmentProofUrl = fileUrl;
+            this.establishmentForm.get('establishmentFile')?.setValue(fileUrl); // Store URL in hidden control
+          }
+          // Mark the file type dropdown as touched/dirty for validation (if required)
+          if (this.establishmentForm.get(controlName)) {
+              this.establishmentForm.get(controlName)?.markAsTouched();
+              this.establishmentForm.get(controlName)?.updateValueAndValidity();
+          }
+      });
     }
-  }
+}
+
+
+// ADD the updated removeFile (as requested)
+removeFile(controlName: string) {
+    if (controlName == 'identityProof') {
+      this.identityProofUrl = null; // Clear the image URL for preview
+      this.identityProofFilename = null;
+      this.establishmentForm.get('identityFile')?.setValue(null); // Clear the URL from the form control
+      // Reset the file input element to allow re-upload
+      (document.getElementById('file_upload_1') as HTMLInputElement).value = '';
+    }
+    if (controlName == 'medicalProof') {
+      this.medicalProofUrl = null; // Clear the image URL for preview
+      this.medicalProofFilename = null;
+      this.establishmentForm.get('medicalFile')?.setValue(null); // Clear the URL from the form control
+      (document.getElementById('file_upload_2') as HTMLInputElement).value = '';
+    }
+    if (controlName == 'establishmentProof') {
+      this.establishmentProofUrl = null; // Clear the image URL for preview
+      this.establishmentForm.get('establishmentFile')?.setValue(null); // Clear the URL from the form control
+      // Note: You would need to add an ID for the establishment file input if you want to clear it
+    }
+}
 
   shouldShowInClinicField(): boolean {
     return this.establishmentForm.get('showInClinic')?.value ?? true;

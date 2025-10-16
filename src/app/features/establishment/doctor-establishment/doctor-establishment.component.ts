@@ -271,6 +271,8 @@ export class DoctorEstablishmentComponent implements OnInit {
         if (res?.success) {
           // close modal first
           this.closeModal();
+          this.router.navigate(['/establishment']);
+
           // refresh the establishment list from server to reflect changes
           this.fetchEstablishments();
         } else {

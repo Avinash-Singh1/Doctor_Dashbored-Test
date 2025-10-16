@@ -9,13 +9,13 @@
       </label>
     </div>
 
-    <div class="form-group">
-      <label>
-        <input type="checkbox" [(ngModel)]="settings.darkMode" name="darkMode" />
-        Dark Mode
+    <div class="form-group dark-mode-toggle-group">
+      <label>Dark Mode</label>
+      <label class="toggle-switch">
+        <input type="checkbox" [(ngModel)]="settings.darkMode" name="darkMode" (change)="toggleDarkMode()" />
+        <span class="slider round"></span>
       </label>
     </div>
-
     <div class="form-group">
       <label for="language">Preferred Language</label>
       <select [(ngModel)]="settings.language" name="language" id="language">
