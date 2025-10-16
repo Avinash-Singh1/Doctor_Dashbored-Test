@@ -144,7 +144,8 @@
               </div>
 
               <div class="action-buttons-group">
-                <button class="btn btn-icon-secondary" [routerLink]="['edit']">
+                <button class="btn btn-icon-secondary" [routerLink]="['/establishment/edit']"
+                  [queryParams]="{ id: item['establishmentId'] }">
                   <span class="material-icons">edit</span>
                 </button>
                 <button class="btn btn-icon-danger" (click)="deleteEstablishment(item)">

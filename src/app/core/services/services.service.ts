@@ -43,8 +43,6 @@ const API_ENDPOINTS = {
     settingList: '/v1/setting/list',
   },
 };
-// NOTE: Ideally, the token should come from an AuthService.
-// const BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzBmY2QxNjFmYWI2NDEwOTgyNjQxMmEiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJEci4gRCBEaGFuYW1qYXlhIiwiaWF0IjoxNzU5NTU5NDQ3LCJleHAiOjE3NjAxNjQyNDd9.vu80EnV_QtzepytHxfiTaGE17bG8U1rkNVEdSeRMNEw';
 
 // --- ApiService Wrapper ---
 @Injectable({
