@@ -45,6 +45,12 @@
       <nectar-month-view *ngIf="viewmode == 'month'" [appointments]="appointments" [today]="today"></nectar-month-view>
       <nectar-week-view *ngIf="viewmode == 'week'" [appointments]="appointments" [today]="today"></nectar-week-view>
       <nectar-day-view *ngIf="viewmode == 'day'" [appointments]="appointments" [today]="today"></nectar-day-view>
+      
+      <!-- Loading Overlay for Calendar View -->
+      <div class="loading-overlay" *ngIf="isLoading">
+        <mat-icon>autorenew</mat-icon>
+        <span>Loading calendar data...</span>
+      </div>
     </div>
 
     <!-- Appointment Details -->
@@ -64,38 +70,83 @@
       </div>
 
       <div class="appointment-content">
-        <ng-container *ngFor="let appt of appointmentConstant">
-          <div class="pending">
-            <div class="sub-heading-label" [ngClass]="'border-' + appt.status">
-              <mat-icon>{{ appt.icon }}</mat-icon>
-              {{ appt.label }}
-            </div>
+        <!-- Loading Indicator for Appointment List -->
+        <div class="loading-state text-center py-5" *ngIf="isLoading">
+          <mat-icon>hourglass_top</mat-icon>
+          <p>Fetching schedule for this day...</p>
+        </div>
 
-            <div *ngFor="let item of getAppointmentsByStatus(appt.status)" class="event-details" [ngClass]="item.status">
-              <div class="event-left">
-                <div class="time-label">
-                  <span>{{ item.date | date : "h:mm a" }}</span>
-                  <span class="badge badge-primary" *ngIf="item.consultationType == 'in_clinic'">Clinic</span>
-                  <span class="badge badge-success" *ngIf="item.consultationType == 'video'">Video</span>
-                </div>
-                <div class="event-info">
-                  <span class="sub-heading-label">{{ item.fullName }}</span>
-                  <span>{{ item.reason }}</span>
-                  <span>{{ item.doctorName }}</span>
-                </div>
-              </div>
-              <div class="event-status">
+        <ng-container *ngIf="!isLoading">
+          <ng-container *ngFor="let appt of appointmentConstant; let i = index">
+            <div class="pending">
+              <div
+                class="sub-heading-label px-24 py-3"
+                [ngClass]="['border-' + appt.status]" 
+              >
                 <mat-icon>{{ appt.icon }}</mat-icon>
-                <span class="status">{{ appt.label }}</span>
+                {{ appt.label }} 
               </div>
-            </div>
 
-            <div class="no-appointments" *ngIf="getAppointmentsByStatus(appt.status).length === 0">
-              No {{ appt.label }} Appointments
-            </div>
-          </div>
-        </ng-container>
-      </div>
-    </div>
-  </div>
-</div>
+              <!-- Appointment List for this Status (FIXED STRUCTURE) -->
+              <ng-container
+                *ngFor="
+                  let item of getAppointmentsByStatus(appt.status);
+                  let j = index
+                "
+              >
+                <div
+                  class="d-flex px-24 py-3 justify-content-between cursor-pointer event-details"
+                  [attr.data-details]="stringify(item)"
+                >
+                  <div class="d-flex gap-3">
+                    <!-- Left side: Time and consultation type icons -->
+                    <div class="sub-heading-label whitespace-nowrap" style="display: flex; flex-direction: column; justify-content: center; align-items: end;">
+                        <span>{{ item.date | date : "h:mm a" }}</span> 
+                        <span class="badge badge-primary" *ngIf="item.consultationType == 'in_clinic'">
+                          <mat-icon style="font-size: 15px; width: 15px; height: 15px;">location_on</mat-icon>
+                        </span>
+                        <span class="badge badge-success" *ngIf="item.consultationType == 'video'">
+                          <mat-icon style="font-size: 15px; width: 15px; height: 15px;">videocam</mat-icon>
+                        </span>
+                    </div>
+                    
+                    <!-- Middle section: Patient/Doctor Details -->
+                    <div class="text-18 d-flex gap-1 flex-column">
+                      <span class="sub-heading-label line-clamp-1 me-2">{{
+                        item.patientDetails.fullName || item.fullName | titlecase
+                      }}</span>
+                      <span *ngIf="item.reason">{{ item.reason }}</span>
+                      <!-- FIX: Removed redundant ?? "N/A" -->
+                      <span>{{
+                        item.doctorDetails.fullName | titlecase
+                      }}</span>
+                    </div>
+                  </div> <!-- CLOSES d-flex gap-3 -->
+                  
+                  <!-- Right side: Status label and icon -->
+                  <div class="d-flex text-14 font-600">
+                    <span class="me-1 status">
+                      {{ appt.label }}
+                    </span>
+                    <div class="mt-minus-2">
+                      <mat-icon>{{ appt.icon }}</mat-icon>
+                    </div>
+                  </div>
+                </div> <!-- CLOSES event-details -->
+              </ng-container> <!-- CLOSES *ngFor=item -->
+
+              <!-- No Appointments message -->
+              <div
+                class="mx-auto px-24 py-3 text-18 text-center"
+                *ngIf="getAppointmentsByStatus(appt.status).length === 0"
+                [ngClass]="['border-' + appt.status]"
+              >
+                No {{ appt.label }} Appointments
+              </div>
+            </div> <!-- CLOSES pending -->
+          </ng-container> <!-- CLOSES *ngFor=appt -->
+        </ng-container> <!-- CLOSES *ngIf=!isLoading -->
+      </div> <!-- CLOSES appointment-content -->
+    </div> <!-- CLOSES appointment-details -->
+  </div> <!-- CLOSES content -->
+</div> <!-- CLOSES calendar-wrapper -->

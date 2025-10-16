@@ -1,14 +1,20 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
-interface Appointment {
-  id: number;
+export interface Appointment {
+  // Required fields for type compatibility with child view components:
+  id: string; 
+  doctorName: string; 
+  
+  // Fields mapped from the API response and used in the side panel:
+  _id: string; 
+  date: string;
   fullName: string;
-  doctorName: string;
-  reason: string;
-  date: Date;
-  status: 'booked' | 'completed' | 'cancelled';
+  reason: string | null;
+  status: number; // 0, 1, 2...
   consultationType: 'in_clinic' | 'video';
+  doctorDetails: { fullName: string; phone: string; };
+  patientDetails: { fullName: string; phone: string; };
 }
 
 @Component({
