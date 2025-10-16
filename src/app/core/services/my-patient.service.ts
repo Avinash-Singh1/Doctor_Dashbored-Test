@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, Observable, map } from 'rxjs';
 import { CryptoProvider } from '../../core/services/crypto.service';
+import { environment } from '../../../environments/environment';
 
 // --- Interfaces ---
 
@@ -39,7 +40,7 @@ export interface ProfileStatus {
 })
 export class MyPatientService {
   // Constants and Maps (Moved from Component)
-  private readonly API_BASE = 'http://localhost:3000';
+  private readonly API_BASE = `${environment.baseUrl}`;
   private readonly ENDPOINTS = {
     doctorList: '/doctor/list',
     patientProfile: '/doctor/record',

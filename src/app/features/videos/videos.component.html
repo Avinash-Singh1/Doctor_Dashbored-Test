@@ -19,6 +19,15 @@
 
   <!-- Video Grid (uses your .videos-screen + .video-card styles) -->
   <div class="page-form videos-screen">
+    <!-- 👇 Show alert when no videos are found -->
+    <div *ngIf="!faqsList || faqsList.length === 0" class="col-12">
+      <div class="alert alert-info text-center" role="alert">
+        <p class="mb-0">No Videos found.</p>
+      </div>
+    </div>
+
+    <!-- 👇 Show videos when available -->
+
     <div class="video-card" *ngFor="let video of faqsList; trackBy: trackById">
       <div class="video-wrapper">
         <iframe

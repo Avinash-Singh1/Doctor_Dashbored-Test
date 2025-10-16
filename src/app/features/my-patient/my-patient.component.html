@@ -58,6 +58,11 @@
   </div>
 
   <!-- Patients Card View (Mobile) -->
+  <div *ngIf="filteredPatientDetails?.length === 0" class="col-12">
+  <div class="alert alert-info text-center" role="alert">
+    <p class="mb-0">No Patient found.</p>
+  </div>
+</div>
   <div class="patient-cards" *ngIf="!hideView">
     <div class="patient-card" *ngFor="let item of filteredPatientDetails">
       <div class="card-header">

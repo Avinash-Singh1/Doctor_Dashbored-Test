@@ -6,6 +6,7 @@ import { finalize } from 'rxjs/operators';
 import { CryptoProvider } from '../../../core/services/crypto.service'; 
 import { catchError, map } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 import {
   FormArray,
@@ -192,7 +193,7 @@ export class AddEstablishmentComponent implements OnInit, OnDestroy {
       Authorization: token ? `Bearer ${token}` : '',
     });
 
-    const url = `http://82.112.237.181:8080/api/v1/doctor/doctor-establishment-list?size=100`;
+    const url = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`;
     this.http.get<any>(url, { headers }).pipe(
       // don't transform result here; handle shapes defensively
     ).subscribe({
@@ -577,7 +578,7 @@ export class AddEstablishmentComponent implements OnInit, OnDestroy {
     });
 
     // url: use environment or hardcode local dev URL
-    const url = `http://82.112.237.181:3000/doctor/doctor-add-establishment`;
+    const url = `${environment.baseUrl}/doctor/doctor-add-establishment`;
 
     this.http
       .post(url, payload, { headers })
