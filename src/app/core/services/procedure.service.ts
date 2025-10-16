@@ -44,9 +44,11 @@ class ApiServiceMock {
   constructor(private http: HttpClient, private crypto: CryptoProvider) {
       const rawAuthUser = localStorage.getItem('authToken');
       // Decrypt the token - keeping the logic from your component
-      const MOCK_TOKEN = this.crypto.decryptObj(rawAuthUser);
+      const BEARER_TOKEN = this.crypto.decryptObj(rawAuthUser);
       // NOTE: This token should be fetched dynamically from your AuthService or storage.
-      this.baseHeaders = new HttpHeaders().set('Authorization', `Bearer ${MOCK_TOKEN}`);
+      this.baseHeaders = new HttpHeaders({
+      'Authorization': `Bearer ${BEARER_TOKEN}`
+    });
   }
 
   get(endpoint: string): Observable<any> {

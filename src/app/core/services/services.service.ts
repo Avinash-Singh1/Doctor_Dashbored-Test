@@ -54,9 +54,8 @@ class ApiService {
   private headers: HttpHeaders;
 
   constructor(private http: HttpClient,private crypto: CryptoProvider) {
-     const BEARER_TOKEN =
-      (typeof localStorage !== 'undefined' && this.crypto.decryptObj(localStorage.getItem('authToken'))) ||
-      '';
+     const BEARER_TOKEN = this.crypto.decryptObj(localStorage.getItem('authToken'));
+     
     this.headers = new HttpHeaders({
       'Authorization': `Bearer ${BEARER_TOKEN}`
     });
