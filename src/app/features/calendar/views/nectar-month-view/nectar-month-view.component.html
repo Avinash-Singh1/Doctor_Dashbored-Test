@@ -1,15 +1,40 @@
-<div class="month-grid">
-  <div class="day-header" *ngFor="let day of ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']">
-    {{ day }}
-  </div>
-
-  <div class="day-cell"
-       *ngFor="let date of monthDays"
-       [ngClass]="{
-         today: (date | date:'yyyy-MM-dd') === (today | date:'yyyy-MM-dd'),
-         hasEvent: hasAppointments(date)
-       }">
-    {{ date | date:'d' }}
-    <div class="dot" *ngIf="hasAppointments(date)"></div>
+<div class="d-flex flex-column">
+  <div class="month-view">
+    <table class="calendar-table table">
+      <thead>
+        <tr class="font-400">
+          <th *ngFor="let day of dayHeaders" class="">{{ day }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let week of weeks">
+          <td
+            *ngFor="let day of week"
+            class="calendar-day"
+            [ngClass]="{
+              'past-date': day.prevMonth || day.nextMonth,
+              // FIX: Removed '?' (safe navigation operator) to resolve 'Object is possibly undefined' error
+              'event-appointment': day.appointmentsCount > 0, 
+              today:
+                (day.date | date : 'dd/MM/yyyy') ==
+                (today | date : 'dd/MM/yyyy')
+            }"
+            [attr.data-patient-list]="day.details | json"
+          >
+            <div class="calendar-day-header d-flex flex-column justify-content-between h-100">
+              <div class="d-flex justify-content-end">
+                <strong>{{ day.date | date : "d" }}</strong>
+              </div>
+              <div class="d-flex w-fit">
+                <span class="fs-10">
+                  {{ day.appointmentsCount > 0 ? day.appointmentsCount : "" }}
+                </span>
+                <span *ngIf="day.appointmentsCount > 0" class="fs-10"> APPTS</span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
