@@ -1,105 +1,41 @@
 import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-
-// === 1. INTERFACES ===
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewContainerRef, ComponentRef } from '@angular/core';
+import tippy, { hideAll, Instance as TippyInstance } from 'tippy.js';
+import { NectarPatientListComponent, PatientDetail } from '../patients/nectar-patient-list.component';
 
 export interface Appointment {
-  id: string; 
-  doctorName: string; 
-  _id: string; 
-  date: string; // The date of the appointment
+  id: string; // mapped from _id
+  doctorName: string;
+  _id: string;
+  date: string;
   fullName: string;
   reason: string | null;
-  status: number; 
+  status: number;
   consultationType: 'in_clinic' | 'video';
   doctorDetails: { fullName: string; phone: string; };
   patientDetails: { fullName: string; phone: string; };
 }
 
-export interface PatientDetail {
-  _id: string;
-  fullName: string;
-  consultationType: 'in_clinic' | 'video';
-  time: string; // e.g., "10:00 AM"
-}
-
-// Interface for a day object in the 'weeks' array
 interface CalendarDay {
   date: Date;
   isToday: boolean;
   prevMonth: boolean;
   nextMonth: boolean;
   appointmentsCount: number;
-  details: PatientDetail[]; 
+  details: PatientDetail[];
 }
-
-// === 2. NECTAR PATIENT LIST COMPONENT (MOCK) ===
-
-@Component({
-  selector: 'nectar-patient-list',
-  standalone: true,
-  imports: [CommonModule], 
-  template: `
-    <div class="patient-list-container">
-      <div *ngIf="patientList && patientList.length > 0; else noPatients">
-        <div *ngFor="let patient of patientList" class="patient-item">
-          <strong>{{ patient.fullName }}</strong>
-          <span> ({{ patient.time }})</span>
-          <span class="type">{{ patient.consultationType | titlecase }}</span>
-        </div>
-      </div>
-      <ng-template #noPatients>
-        <div class="no-patients">No appointments for this day.</div>
-      </ng-template>
-    </div>
-  `,
-  styles: [`
-    .patient-list-container {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background-color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      min-width: 200px;
-    }
-    .patient-item {
-      margin-bottom: 5px;
-    }
-    .patient-item:last-child {
-      margin-bottom: 0;
-    }
-    .type {
-      font-size: 0.8em;
-      margin-left: 5px;
-      color: gray;
-    }
-    .no-patients {
-      color: #999;
-    }
-  `]
-})
-export class NectarPatientListComponent {
-  @Input() patientList: PatientDetail[] = [
-    { _id: '1', fullName: 'John Doe', consultationType: 'in_clinic', time: '10:00 AM' },
-    { _id: '2', fullName: 'Jane Smith', consultationType: 'video', time: '11:30 AM' }
-  ];
-}
-
-
-// === 3. NECTAR MONTH VIEW COMPONENT ===
 
 @Component({
   selector: 'nectar-month-view',
   standalone: true,
-  // JsonPipe is kept as it is used for [attr.data-patient-list]="day.details | json"
-  imports: [CommonModule, DatePipe, JsonPipe], 
+  imports: [CommonModule, DatePipe, JsonPipe],
   template: `
     <div class="d-flex flex-column">
       <div class="month-view">
         <table class="calendar-table table">
           <thead>
             <tr class="font-400">
-              <th *ngFor="let day of dayHeaders" class="">{{ day }}</th>
+              <th *ngFor="let day of dayHeaders">{{ day }}</th>
             </tr>
           </thead>
           <tbody>
@@ -110,20 +46,17 @@ export class NectarPatientListComponent {
                 [ngClass]="{
                   'past-date': day.prevMonth || day.nextMonth,
                   'event-appointment': day.appointmentsCount > 0, 
-                  today:
-                    (day.date | date : 'dd/MM/yyyy') ==
-                    (today | date : 'dd/MM/yyyy')
+                  today: (day.date | date:'dd/MM/yyyy') === (today | date:'dd/MM/yyyy')
                 }"
                 [attr.data-patient-list]="day.details | json"
+                (click)="openAppointments(day, $event)"
               >
                 <div class="calendar-day-header d-flex flex-column justify-content-between h-100">
                   <div class="d-flex justify-content-end">
-                    <strong>{{ day.date | date : "d" }}</strong>
+                    <strong>{{ day.date | date:"d" }}</strong>
                   </div>
                   <div class="d-flex w-fit">
-                    <span class="fs-10">
-                      {{ day.appointmentsCount > 0 ? day.appointmentsCount : "" }}
-                    </span>
+                    <span class="fs-10">{{ day.appointmentsCount > 0 ? day.appointmentsCount : '' }}</span>
                     <span *ngIf="day.appointmentsCount > 0" class="fs-10"> APPTS</span>
                   </div>
                 </div>
@@ -135,49 +68,15 @@ export class NectarPatientListComponent {
     </div>
   `,
   styles: [`
-    /* Basic styles to visualize the calendar structure using standard CSS/Tailwind concepts */
-    .calendar-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-    .calendar-table th, .calendar-table td {
-      border: 1px solid #e0e0e0;
-      padding: 0;
-      height: 100px; /* fixed height for better visibility */
-      text-align: right;
-      vertical-align: top;
-      cursor: pointer;
-      position: relative;
-    }
-    .calendar-day {
-      padding: 8px;
-    }
-    .calendar-day-header {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 4px;
-    }
-    .past-date {
-      background-color: #f7f7f7;
-      color: #999;
-    }
-    .today {
-      border: 2px solid #3b82f6; /* Blue border for today */
-      background-color: #eff6ff;
-    }
-    .event-appointment {
-      background-color: #f0fdf4; /* Light green background for appointments */
-    }
-    .event-appointment strong {
-      color: #15803d; /* Darker number for event day */
-    }
-    .fs-10 {
-      font-size: 10px;
-      margin-right: 2px;
-    }
+    .calendar-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .calendar-table th, .calendar-table td { border: 1px solid #e0e0e0; padding: 0; height: 100px; text-align: right; vertical-align: top; cursor: pointer; position: relative; }
+    .calendar-day { padding: 8px; }
+    .calendar-day-header { height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 4px; }
+    .past-date { background-color: #f7f7f7; color: #999; }
+    .today { border: 2px solid #3b82f6; background-color: #eff6ff; }
+    .event-appointment { background-color: #f0fdf4; }
+    .event-appointment strong { color: #15803d; }
+    .fs-10 { font-size: 10px; margin-right: 2px; }
     .d-flex { display: flex; }
     .flex-column { flex-direction: column; }
     .justify-content-end { justify-content: flex-end; }
@@ -193,80 +92,91 @@ export class NectarMonthViewComponent implements OnInit, OnChanges {
   @Input() currentMonth: Date = new Date();
 
   weeks: CalendarDay[][] = [];
-  dayHeaders: string[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  dayHeaders: string[] = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 
-  // Mock patient list for days with appointments, to simulate 'day.details'
-  mockPatientList: PatientDetail[] = [
-    { _id: '1', fullName: 'John Doe', consultationType: 'in_clinic', time: '10:00 AM' },
-    { _id: '2', fullName: 'Jane Smith', consultationType: 'video', time: '11:30 AM' }
-  ];
+  tooltips: TippyInstance[] = [];
 
-  constructor(private datePipe: DatePipe) {}
+  constructor(private datePipe: DatePipe, private vcr: ViewContainerRef) { }
 
-  ngOnInit(): void {
-    this.generateMonthTable();
-  }
+  ngOnInit(): void { this.generateMonthTable(); }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['appointments'] || changes['currentMonth']) {
-      this.generateMonthTable();
-    }
+    if (changes['appointments'] || changes['currentMonth']) this.generateMonthTable();
+    console.log('NectarMonthViewComponent initialized with appointments:', this.appointments);
   }
 
-  /**
-   * Calculates the number of appointments for a given date.
-   */
   getAppointmentsCount(day: Date): number {
-    const dayDateString = this.datePipe.transform(day, 'yyyy-MM-dd');
-    return this.appointments.filter(
-      a => this.datePipe.transform(a.date, 'yyyy-MM-dd') === dayDateString
-    ).length;
+    const dayStr = this.datePipe.transform(day,'yyyy-MM-dd');
+    return this.appointments.filter(a => this.datePipe.transform(a.date,'yyyy-MM-dd') === dayStr).length;
   }
 
-  /**
-   * Generates the calendar structure (weeks and days) and populates it with appointment counts.
-   */
   generateMonthTable(): void {
     const year = this.currentMonth.getFullYear();
     const month = this.currentMonth.getMonth();
-
-    // 1. Get the first day of the month and its day of the week (0=Sun, 6=Sat)
     const firstDayOfMonth = new Date(year, month, 1);
-    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 for Sunday
-
-    // 2. Calculate the start date of the calendar grid (the Sunday before the 1st, or the 1st itself)
+    const startDayOfWeek = firstDayOfMonth.getDay();
     const startDate = new Date(firstDayOfMonth);
     startDate.setDate(startDate.getDate() - startDayOfWeek);
 
     const weeks: CalendarDay[][] = [];
     let currentDay = new Date(startDate);
 
-    // Loop for up to 6 weeks to cover all possibilities
     for (let i = 0; i < 6; i++) {
       const week: CalendarDay[] = [];
       for (let j = 0; j < 7; j++) {
-        const appointmentsCount = this.getAppointmentsCount(currentDay);
-        
-        const dayObject: CalendarDay = {
+        const count = this.getAppointmentsCount(currentDay);
+
+        // Populate patient details for this day from real API data
+        const patientDetails: PatientDetail[] = count > 0
+          ? this.appointments
+              .filter(a => this.datePipe.transform(a.date,'yyyy-MM-dd') === this.datePipe.transform(currentDay,'yyyy-MM-dd'))
+              .map(a => ({
+                _id: a.id,
+                fullName: a.patientDetails.fullName,
+                consultationType: a.consultationType,
+                time: this.datePipe.transform(a.date, 'hh:mm a') || ''
+              }))
+          : [];
+
+        const dayObj: CalendarDay = {
           date: new Date(currentDay),
-          isToday: this.datePipe.transform(currentDay, 'dd/MM/yyyy') === this.datePipe.transform(this.today, 'dd/MM/yyyy'),
+          isToday: this.datePipe.transform(currentDay,'dd/MM/yyyy') === this.datePipe.transform(this.today,'dd/MM/yyyy'),
           prevMonth: currentDay.getMonth() < month,
           nextMonth: currentDay.getMonth() > month,
-          appointmentsCount: appointmentsCount,
-          details: appointmentsCount > 0 ? this.mockPatientList : [] 
+          appointmentsCount: count,
+          details: patientDetails
         };
-        
-        week.push(dayObject);
-        currentDay.setDate(currentDay.getDate() + 1); // Move to the next day
+
+        week.push(dayObj);
+        currentDay.setDate(currentDay.getDate() + 1);
       }
 
-      // Stop if the next month's days are completely into the next month's grid row
-      if (week.every(day => day.nextMonth) && weeks.length > 0) {
-        break;
-      }
+      if (week.every(day => day.nextMonth) && weeks.length > 0) break;
       weeks.push(week);
     }
-    
+
     this.weeks = weeks;
+  }
+
+  openAppointments(day: CalendarDay, event: MouseEvent) {
+    if(day.appointmentsCount === 0) return;
+    hideAll();
+
+    const componentRef: ComponentRef<NectarPatientListComponent> = this.vcr.createComponent(NectarPatientListComponent);
+    componentRef.instance.patientList = day.details;
+    componentRef.changeDetectorRef.detectChanges();
+
+    const tooltip = tippy(event.currentTarget as HTMLElement, {
+      content: componentRef.location.nativeElement,
+      trigger: 'manual',
+      interactive: true,
+      placement: 'bottom-start',
+      arrow: false,
+      appendTo: () => document.body,
+      onHidden: () => componentRef.destroy()
+    });
+
+    tooltip.show();
+    this.tooltips.push(tooltip);
   }
 }
