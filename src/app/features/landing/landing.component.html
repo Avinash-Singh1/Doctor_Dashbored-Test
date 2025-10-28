@@ -1,0 +1,114 @@
+<div class="landing-wrapper">
+  <!-- Header Section -->
+  <header class="landing-header">
+    <div class="logo">
+      <img src="assets/icons/logo.png" alt="NectarPlus Heath Logo" />
+      <!-- <h2>NectarPlus Heath</h2> -->
+    </div>
+
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#join-now">Join Now</a>
+    </nav>
+
+    <div class="header-buttons">
+      <button class="btn btn-outline" (click)="goToAppointments()">Book Appointment</button>
+      <button class="btn btn-primary" (click)="goToSignup()">Join as Doctor</button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Welcome to NectarPlus Heath Doctor Portal</h1>
+      <p>
+        Streamline your medical practice, manage appointments, and connect with patients — all from one secure platform.
+      </p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary" (click)="goToSignup()">Register as Doctor</button>
+        <button class="btn btn-outline" (click)="goToAppointments()">Book Appointment</button>
+      </div>
+    </div>
+    <!-- <div class="hero-image">
+      <img src="assets/images/hero.png" alt="Doctor Dashboard Illustration" />
+    </div> -->
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <h2>Why Choose NectarPlus Heath?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <img src="assets/icons/check.png" alt="Verification" />
+        <h3>Verified Profiles</h3>
+        <p>
+          Every doctor’s credentials, certificates, and practice licenses are reviewed and verified before approval.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <img src="assets/icons/calendar.png" alt="Appointments" />
+        <h3>Appointment Management</h3>
+        <p>
+          Seamlessly manage patient bookings, reschedules, and cancellations from your personal dashboard.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <img src="assets/icons/shield.png" alt="Security" />
+        <h3>Data Security</h3>
+        <p>
+          We prioritize your privacy. All doctor and patient data are securely stored and encrypted.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <img src="assets/icons/analytic-chart.png" alt="Analytics" />
+        <h3>Performance Insights</h3>
+        <p>
+          Gain valuable insights into your consultation history, revenue trends, and patient engagement.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="how-it-works">
+    <h2>Doctor Onboarding Process</h2>
+    <div class="steps">
+      <div class="step">
+        <span>1</span>
+        <h4>Submit Details</h4>
+        <p>Register and provide your practice information, specialization, and education details.</p>
+      </div>
+
+      <div class="step">
+        <span>2</span>
+        <h4>Upload Certificates</h4>
+        <p>Attach your council registration, certifications, and experience proofs for review.</p>
+      </div>
+
+      <div class="step">
+        <span>3</span>
+        <h4>Admin Verification</h4>
+        <p>Our admin team validates your credentials to ensure authenticity and compliance.</p>
+      </div>
+
+      <div class="step">
+        <span>4</span>
+        <h4>Approval & Visibility</h4>
+        <p>Once approved, your profile becomes visible for users to book consultations instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="join-now" class="join-now">
+    <h2>Start Your Digital Practice Today</h2>
+    <p>
+      Join NectarPlus Heath and reach thousands of patients looking for trusted medical advice.
+    </p>
+    <button class="btn btn-primary" (click)="goToSignup()">Get Started</button>
+  </section>
+</div>

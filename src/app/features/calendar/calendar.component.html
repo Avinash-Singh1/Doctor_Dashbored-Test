@@ -1,93 +1,93 @@
 <div class="calendar-wrapper">
-  <!-- Page Title -->
-  <div class="page-title">
-    <div class="title-left">
-      <h2>
-        Calendar
-      </h2>
+  <!-- Page Title & Controls -->
+  <div class="page-header">
+    <div class="title-group">
+      <h2 class="main-title">Calendar</h2>
 
+      <!-- Today Button -->
       <div class="today-btn" (click)="onChangingMonth(0)">
-        <mat-icon>today</mat-icon>
-        <span>TODAY</span>
+        <mat-icon class="icon-sm">today</mat-icon>
+        <span>Today</span>
       </div>
 
-      <div class="month-switch">
-        <button class="svg-icon-button" (click)="onChangingMonth(-1)">
+      <!-- Month Navigation -->
+      <div class="month-switch-group">
+        <button class="icon-nav-button" (click)="onChangingMonth(-1)">
           <mat-icon>chevron_left</mat-icon>
         </button>
-        <span>{{ monthdetails | date : "MMMM yyyy" }}</span>
-        <button class="svg-icon-button" (click)="onChangingMonth(1)">
+        <span class="current-month-label">{{ monthdetails | date : "MMMM yyyy" }}</span>
+        <button class="icon-nav-button" (click)="onChangingMonth(1)">
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
     </div>
 
-    <div class="button-wrapper">
-      <button class="toggole-button" [ngClass]="{ active: viewmode === 'day' }" (click)="onChangingMode('day')">DAY</button>
-      <button class="toggole-button" [ngClass]="{ active: viewmode === 'week' }" (click)="onChangingMode('week')">WEEK</button>
-      <button class="toggole-button" [ngClass]="{ active: viewmode === 'month' }" (click)="onChangingMode('month')">MONTH</button>
+    <!-- View Mode Toggle (Segmented Control) -->
+    <div class="view-toggle-wrapper">
+      <button class="toggle-button" [ngClass]="{ active: viewmode === 'day' }" (click)="onChangingMode('day')">DAY</button>
+      <button class="toggle-button" [ngClass]="{ active: viewmode === 'week' }" (click)="onChangingMode('week')">WEEK</button>
+      <button class="toggle-button" [ngClass]="{ active: viewmode === 'month' }" (click)="onChangingMode('month')">MONTH</button>
     </div>
   </div>
 
   <!-- Restricted Screen -->
   <div class="screen-blocked" *ngIf="hideView">
     <div class="screen-blocked-inner">
-      <h2>Access Restricted</h2>
-      <p>Complete your profile to open your Dashboard.</p>
-      <button class="btn btn-primary">Complete Profile</button>
+      <h2 class="text-xl font-bold">Access Restricted</h2>
+      <p class="text-base text-medium">Complete your profile to open your Dashboard.</p>
+      <button class="btn-primary">Complete Profile</button>
     </div>
   </div>
 
-  <!-- Calendar & Appointment List -->
-  <div class="content" *ngIf="!hideView">
-    <!-- Calendar -->
-    <div class="calendar">
+  <!-- Calendar & Appointment List Content -->
+  <div class="content-layout" *ngIf="!hideView">
+    <!-- Calendar View Area -->
+    <div class="calendar-panel">
       <nectar-month-view *ngIf="viewmode == 'month'" [appointments]="appointments" [today]="today"></nectar-month-view>
       <nectar-week-view *ngIf="viewmode == 'week'" [appointments]="appointments" [today]="today"></nectar-week-view>
       <nectar-day-view *ngIf="viewmode == 'day'" [appointments]="appointments" [today]="today"></nectar-day-view>
       
       <!-- Loading Overlay for Calendar View -->
       <div class="loading-overlay" *ngIf="isLoading">
-        <mat-icon>autorenew</mat-icon>
+        <mat-icon class="animate-spin">autorenew</mat-icon>
         <span>Loading calendar data...</span>
       </div>
     </div>
 
-    <!-- Appointment Details -->
-    <div class="appointment-details">
-      <div class="header-pad">
-        <span class="sub-heading-label">
+    <!-- Appointment Details Sidebar -->
+    <div class="schedule-sidebar">
+      <!-- Sidebar Header (Date & Navigation) -->
+      <div class="sidebar-header">
+        <span class="date-label">
           {{ (todayDate | date : "d EEEE, yyyy") === (today | date : "d EEEE, yyyy") ? scheduleDay : (todayDate | date : "d EEEE, yyyy") }}
         </span>
-        <div class="switch-btns">
-          <button class="svg-icon-button" (click)="onChangeSchedule(-1)">
+        <div class="date-nav-buttons">
+          <button class="icon-nav-button" (click)="onChangeSchedule(-1)">
             <mat-icon>chevron_left</mat-icon>
           </button>
-          <button class="svg-icon-button" (click)="onChangeSchedule(1)">
+          <button class="icon-nav-button" (click)="onChangeSchedule(1)">
             <mat-icon>chevron_right</mat-icon>
           </button>
         </div>
       </div>
 
-      <div class="appointment-content">
+      <div class="appointment-content-list">
         <!-- Loading Indicator for Appointment List -->
-        <div class="loading-state text-center py-5" *ngIf="isLoading">
-          <mat-icon>hourglass_top</mat-icon>
-          <p>Fetching schedule for this day...</p>
+        <div class="loading-state" *ngIf="isLoading">
+          <mat-icon class="text-4xl text-primary">hourglass_top</mat-icon>
+          <p class="text-sm">Fetching schedule for this day...</p>
         </div>
 
         <ng-container *ngIf="!isLoading">
           <ng-container *ngFor="let appt of appointmentConstant; let i = index">
-            <div class="pending">
-              <div
-                class="sub-heading-label px-24 py-3"
-                [ngClass]="['border-' + appt.status]" 
-              >
+            <div class="appointment-status-group">
+              <!-- Status Section Header -->
+              <div class="status-header" [ngClass]="['border-' + appt.label | lowercase]">
                 <mat-icon>{{ appt.icon }}</mat-icon>
-                {{ appt.label }} 
+                <span class="font-semibold">{{ appt.label }}</span>
               </div>
 
-              <!-- Appointment List for this Status (FIXED STRUCTURE) -->
+              <!-- Appointment List for this Status -->
               <ng-container
                 *ngFor="
                   let item of getAppointmentsByStatus(appt.status);
@@ -95,58 +95,41 @@
                 "
               >
                 <div
-                  class="d-flex px-24 py-3 justify-content-between cursor-pointer event-details"
+                  class="appointment-item"
                   [attr.data-details]="stringify(item)"
                 >
-                  <div class="d-flex gap-3">
-                    <!-- Left side: Time and consultation type icons -->
-                    <div class="sub-heading-label whitespace-nowrap" style="display: flex; flex-direction: column; justify-content: center; align-items: end;">
-                        <span>{{ item.date | date : "h:mm a" }}</span> 
-                        <span class="badge badge-primary" *ngIf="item.consultationType == 'in_clinic'">
-                          <mat-icon style="font-size: 15px; width: 15px; height: 15px;">location_on</mat-icon>
-                        </span>
-                        <span class="badge badge-success" *ngIf="item.consultationType == 'video'">
-                          <mat-icon style="font-size: 15px; width: 15px; height: 15px;">videocam</mat-icon>
-                        </span>
-                    </div>
-                    
-                    <!-- Middle section: Patient/Doctor Details -->
-                    <div class="text-18 d-flex gap-1 flex-column">
-                      <span class="sub-heading-label line-clamp-1 me-2">{{
-                        item.patientDetails.fullName || item.fullName | titlecase
-                      }}</span>
-                      <span *ngIf="item.reason">{{ item.reason }}</span>
-                      <!-- FIX: Removed redundant ?? "N/A" -->
-                      <span>{{
-                        item.doctorDetails.fullName | titlecase
-                      }}</span>
-                    </div>
-                  </div> <!-- CLOSES d-flex gap-3 -->
-                  
-                  <!-- Right side: Status label and icon -->
-                  <div class="d-flex text-14 font-600">
-                    <span class="me-1 status">
-                      {{ appt.label }}
+                  <!-- Time & Type Column -->
+                  <div class="time-column">
+                    <span class="appointment-time">{{ item.date | date : "h:mm a" }}</span>
+                    <span class="consult-badge" [ngClass]="{ 
+                      'badge-clinic': item.consultationType == 'in_clinic',
+                      'badge-video': item.consultationType == 'video'
+                    }">
+                      <mat-icon class="icon-xs">{{ item.consultationType == 'in_clinic' ? 'location_on' : 'videocam' }}</mat-icon>
+                      <span class="hidden sm:inline">{{ item.consultationType | titlecase }}</span>
                     </span>
-                    <div class="mt-minus-2">
-                      <mat-icon>{{ appt.icon }}</mat-icon>
-                    </div>
+                  </div> 
+                  
+                  <!-- Details Column -->
+                  <div class="details-column">
+                    <span class="patient-name line-clamp-1">{{ item.patientDetails.fullName || item.fullName | titlecase }}</span>
+                    <span class="doctor-name text-xs">{{ item.doctorDetails.fullName | titlecase }}</span>
+                    <span class="cancellation-reason text-xs text-rose-600" *ngIf="item.reason">{{ item.reason }}</span>
                   </div>
-                </div> <!-- CLOSES event-details -->
-              </ng-container> <!-- CLOSES *ngFor=item -->
+                </div> 
+              </ng-container>
 
               <!-- No Appointments message -->
               <div
-                class="mx-auto px-24 py-3 text-18 text-center"
+                class="no-appointments-message"
                 *ngIf="getAppointmentsByStatus(appt.status).length === 0"
-                [ngClass]="['border-' + appt.status]"
               >
                 No {{ appt.label }} Appointments
               </div>
-            </div> <!-- CLOSES pending -->
-          </ng-container> <!-- CLOSES *ngFor=appt -->
-        </ng-container> <!-- CLOSES *ngIf=!isLoading -->
-      </div> <!-- CLOSES appointment-content -->
-    </div> <!-- CLOSES appointment-details -->
-  </div> <!-- CLOSES content -->
-</div> <!-- CLOSES calendar-wrapper -->
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

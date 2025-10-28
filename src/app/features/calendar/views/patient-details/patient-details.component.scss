@@ -1,0 +1,288 @@
+/* --- SCSS Variables for Professional Theme (Indigo/Healthcare) --- */
+$primary-color: #4F46E5; // Indigo 600 - Primary accent
+$primary-light: #EEF2FF; // Indigo 50 - Light background for emphasis
+$text-dark: #1F2937; // Dark gray for main text
+$text-medium: #4B5563; // Medium gray for details
+$text-light: #9CA3AF; // Light gray for subtle info (like ID)
+$border-color: #E5E7EB; // Light border color
+$error-color: #EF4444; // Rose 500 - Cancelled status
+$warning-color: #F59E0B; // Amber 500 - Pending status
+$success-color: #10B981; // Emerald 500 - Completed status
+
+/* --- Base Styles --- */
+:host {
+  display: block;
+  padding: 16px;
+  font-family: 'Inter', sans-serif;
+  background-color: #FAFAFA; // Soft background for context
+}
+
+.patient-details-card {
+  width: 100%;
+  max-width: 400px; // Optimized width
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); // Modern, soft shadow
+  overflow: hidden; // Ensures inner elements respect card rounding
+}
+
+/* --- Utility Classes --- */
+.font-600 { font-weight: 600; }
+.font-500 { font-weight: 500; }
+.font-400 { font-weight: 400; }
+
+.line-clamp-2, .line-clamp-1 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.line-clamp-1 { -webkit-line-clamp: 1; }
+.line-clamp-2 { -webkit-line-clamp: 2; }
+
+.subheader-label {
+  font-weight: 700;
+  font-size: 18px;
+  color: $text-dark;
+}
+.patient-id {
+  font-size: 13px;
+  color: $text-light;
+  font-weight: 500;
+}
+.icon-sm {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+
+/* --- 1. Header (Patient Info and Icons) --- */
+.patient-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid $border-color;
+}
+.patient-info-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 80%;
+  transition: opacity 0.2s;
+  &.is-clickable {
+    cursor: pointer;
+    &:hover { opacity: 0.85; }
+  }
+}
+.name-id-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.profile-pic {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: $primary-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  span {
+    font-size: 22px;
+    font-weight: 700;
+    color: $primary-color;
+  }
+}
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Icons Group */
+.icons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.svg-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+  color: $text-medium;
+
+  &:hover {
+    background-color: $border-color;
+    color: $text-dark;
+  }
+}
+
+
+/* --- 2. Contact and Status Section --- */
+.contact-status-section {
+  padding: 16px 24px 20px;
+  border-bottom: 1px solid $border-color;
+}
+
+.profile-status {
+  padding-bottom: 12px;
+  .status-text {
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 9999px; // Pill shape
+    font-weight: 700;
+  }
+  &.complete .status-text {
+    background-color: #D1FAE5;
+    color: $success-color;
+  }
+  &.incomplete .status-text {
+    background-color: #FEF3C7;
+    color: $warning-color;
+  }
+}
+
+.contact-details-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(2, 1fr); // Two columns on wider screens
+    gap: 16px;
+  }
+}
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: $text-medium;
+  svg { color: $text-light; }
+}
+
+
+/* --- 3. Appointment Details --- */
+.appointment-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: $primary-light; // Light indigo background to highlight details
+}
+.appointment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 70%;
+}
+.location-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: $text-medium;
+  font-weight: 500;
+  svg {
+    color: $primary-color; // Icon uses primary color
+  }
+}
+.appointment-time-block {
+  text-align: right;
+  line-height: 1.2;
+  flex-shrink: 0;
+  .time-main {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: $primary-color;
+  }
+  .duration-subtext {
+    font-size: 12px;
+    color: $text-medium;
+    font-weight: 400;
+  }
+}
+
+
+/* --- 4. Cancellation Reason --- */
+.cancel-reason {
+  padding: 16px 24px;
+  background-color: #FEF2F2; // Light Red background for warning
+  border-top: 1px solid $border-color;
+  color: $text-dark;
+  .cancel-reason-header {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: $error-color;
+  }
+  .cancel-reason-text {
+    font-size: 14px;
+    color: $text-medium;
+    margin: 0;
+  }
+}
+
+
+/* --- 5. Button Group --- */
+.buttongroup {
+  display: flex;
+  width: 100%;
+
+  .action-button {
+    padding: 16px 10px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 14px;
+    transition: background-color 0.2s, opacity 0.2s;
+    flex-grow: 1;
+
+    &.opacity-50 {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    &.pending-button {
+      background-color: $warning-color;
+      color: #fff;
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
+      &:hover { background-color: darken($warning-color, 5%); }
+    }
+    &.cancelled-button {
+      background-color: $error-color;
+      color: #fff;
+      &:hover { background-color: darken($error-color, 5%); }
+    }
+    &.completed-button {
+      background-color: $success-color;
+      color: #fff;
+      &:hover { background-color: darken($success-color, 5%); }
+    }
+  }
+
+  // Two button specific layout
+  &.two-buttons {
+    .action-button {
+      flex-basis: 50%;
+      &:first-child { border-radius: 0 0 0 16px; }
+      &:last-child { border-radius: 0 0 16px 0; }
+    }
+  }
+  // Single button specific layout
+  &.one-button {
+    .action-button {
+      border-radius: 0 0 16px 16px;
+    }
+  }
+}

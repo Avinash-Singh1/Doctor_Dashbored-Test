@@ -3,6 +3,7 @@ import { authRoutes } from './auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { DashboardLayoutComponent } from './core/layouts/dashboard-layout/dashboard-layout.component';
 import { AuthLayoutComponent } from './core/layouts/auth-layout/auth-layout.component';
+import { LandingComponent } from './features/landing/landing.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -10,6 +11,10 @@ export const routes: Routes = [
     path: 'auth',
     component: AuthLayoutComponent,
     children: authRoutes
+  },
+  {
+    path: 'landing',
+    component: LandingComponent,
   },
   {
     path: '',

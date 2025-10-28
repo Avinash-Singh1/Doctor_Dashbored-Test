@@ -1,0 +1,106 @@
+<div class="edit-appointment-container">
+  <div class="header">
+    <h2>{{ heading }}</h2>
+  </div>
+
+  <form [formGroup]="editAppointmentForm" (ngSubmit)="onSubmit()" class="form-body">
+    <mat-dialog-content>
+      <div class="form-grid">
+        <!-- Patient Info -->
+        <mat-form-field appearance="outline">
+          <mat-label>Patient Name</mat-label>
+          <input matInput formControlName="fullName" placeholder="Enter patient name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Patient ID</mat-label>
+          <input matInput formControlName="patientId" placeholder="Enter patient ID" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Mobile Number</mat-label>
+          <input matInput formControlName="phone" placeholder="Enter mobile number" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email ID</mat-label>
+          <input matInput formControlName="email" placeholder="Enter email ID" />
+        </mat-form-field>
+      </div>
+
+      <!-- Schedule Section -->
+      <div class="section-title">Scheduled On</div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            formControlName="date"
+            [min]="today"
+            [max]="maxDate"
+            (dateChange)="getTodayAppointment($event.value)"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker [dateClass]="disableDay"></mat-datepicker>
+          <mat-error *ngIf="control['date'].errors?.['required'] && (submitted || control['date'].touched)">
+            Date is required
+          </mat-error>
+        </mat-form-field>
+
+        <div class="ng-select-field">
+          <label>Time <span class="required">*</span></label>
+          <ng-select
+            [items]="timingArray | avaliableSlot : bookedSlot : date"
+            bindLabel="label"
+            bindValue="label"
+            placeholder="Select time"
+            formControlName="time"
+          ></ng-select>
+          <div
+            class="error-hint"
+            *ngIf="control['time'].errors?.['required'] && (submitted || control['time'].touched)"
+          >
+            Time is required
+          </div>
+        </div>
+
+        <div class="ng-select-field">
+          <label>For</label>
+          <ng-select
+            [items]="timespendArray"
+            bindLabel="label"
+            bindValue="id"
+            placeholder="Select duration"
+            formControlName="timespend"
+          ></ng-select>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="section-title">Notes <span class="required">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          formControlName="notes"
+          placeholder="Add notes here"
+          rows="3"
+        ></textarea>
+        <mat-error *ngIf="control['notes'].errors?.['required'] && (submitted || control['notes'].touched)">
+          Notes are required
+        </mat-error>
+      </mat-form-field>
+    </mat-dialog-content>
+
+    <!-- Footer Actions -->
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" color="primary" (click)="matdialogRef.close()">
+        Cancel
+      </button>
+      <button mat-flat-button color="accent" type="submit">
+        Save
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

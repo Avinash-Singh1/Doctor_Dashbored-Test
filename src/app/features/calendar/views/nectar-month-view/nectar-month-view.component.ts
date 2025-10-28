@@ -13,7 +13,7 @@ export interface Appointment {
   status: number;
   consultationType: 'in_clinic' | 'video';
   doctorDetails: { fullName: string; phone: string; };
-  patientDetails: { fullName: string; phone: string; };
+  patientDetails: { fullName: string; phone: string; email: string; profilePic?: string; isverified?: number; };
 }
 
 interface CalendarDay {
@@ -127,14 +127,19 @@ export class NectarMonthViewComponent implements OnInit, OnChanges {
         const count = this.getAppointmentsCount(currentDay);
 
         // Populate patient details for this day from real API data
-        const patientDetails: PatientDetail[] = count > 0
+        const patientDetails: any = count > 0
           ? this.appointments
               .filter(a => this.datePipe.transform(a.date,'yyyy-MM-dd') === this.datePipe.transform(currentDay,'yyyy-MM-dd'))
               .map(a => ({
                 _id: a.id,
                 fullName: a.patientDetails.fullName,
                 consultationType: a.consultationType,
-                time: this.datePipe.transform(a.date, 'hh:mm a') || ''
+                time: this.datePipe.transform(a.date, 'hh:mm a') || '',
+                phone: a.patientDetails.phone,
+                email: a.patientDetails.email || '',
+                status: a.status || '',
+                doctorDetails:a.doctorDetails || '',
+                isverified: a.patientDetails.isverified,
               }))
           : [];
 

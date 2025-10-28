@@ -21,8 +21,10 @@ import { AuthGuard } from '../../core/guards/auth.guard';
 import { DoctorEstablishmentComponent } from '../establishment/doctor-establishment/doctor-establishment.component'; 
 import { EstablishmentComponent2 } from '../establishment/edit-establshiment/establishment2.component';
 import { AddEstablishmentComponent } from '../establishment/add-establishment/addestablishment.component';
+import { LandingComponent } from '../landing/landing.component';
 export const dashboardRoutes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+  { path: 'landing', component: LandingComponent, canActivate: [AuthGuard] },
   { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard] },
   { path: 'my-patient', component: MyPatientComponent, canActivate: [AuthGuard] },
   { path: 'medical-verification', component: MedicalVerificationComponent, canActivate: [AuthGuard] },

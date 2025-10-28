@@ -15,7 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
 class ApiService {
   // Hardcoded token from the user's request. WARNING: This should be managed securely 
   // (e.g., retrieved from a secure Auth Service) in a real application.
-  private hardcodedToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGYwYjdjYTM4MzNlYzhlMGRlOWViNjUiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJNci4gQXZpbmFzaC1UZXN0IiwiaWF0IjoxNzYwNjA4NDkzLCJleHAiOjE3NjEyMTMyOTN9.-8uSamI8_Q85x14oVNNEXy7YngUsN4ZmQCAIo9K1_rU';
+  private hardcodedToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGYwYjdjYTM4MzNlYzhlMGRlOWViNjUiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJNci4gQXZpbmFzaC1UZXN0IiwiaWF0IjoxNzYxMzgyNDQ5LCJleHAiOjE3NjE5ODcyNDl9.tBr1-dJ7MRwkn4nvSxA3PsH3vihx2OrC9SJ79F2KYD4';
   
   // FIX: Perform an actual API request using fetch and return data via Subject
   post(endpoint: string, payload: any): Subject<any> {
@@ -93,7 +93,8 @@ export interface Appointment {
   status: number; // 0, 1, 2...
   consultationType: 'in_clinic' | 'video';
   doctorDetails: { fullName: string; phone: string; };
-  patientDetails: { fullName: string; phone: string; };
+  patientDetails: { fullName: string; phone: string; email: string; profilePic?: string; isverified?: number; };
+
 }
 
 
@@ -159,9 +160,36 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.hideView = !isApproved;
 
     if (isApproved) {
+      // FIX: Call fetchAppointments with the current date to fetch the current month's data
       this.fetchAppointments(this.todayDate);
     }
   }
+
+  /**
+   * Calculates the start and end dates of the month for the given date.
+   * @param date The reference date (e.g., today's date or a date after changing the month).
+   * @returns An object with startDate and endDate formatted as 'yyyy-MM-dd'.
+   */
+  private getStartAndEndDateOfMonth(date: Date): { startDate: string, endDate: string } {
+    // Clone the date to avoid modifying the component's state
+    const referenceDate = new Date(date);
+    
+    // Calculate the first day of the month (YYYY, MM, 1)
+    const startOfMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+    
+    // Calculate the last day of the month (YYYY, MM + 1, 0)
+    const endOfMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
+
+    // Format the dates as 'yyyy-MM-dd' for the API
+    const startDateFormatted = this.datepipe.transform(startOfMonth, 'yyyy-MM-dd') || '';
+    const endDateFormatted = this.datepipe.transform(endOfMonth, 'yyyy-MM-dd') || '';
+
+    return {
+      startDate: startDateFormatted,
+      endDate: endDateFormatted
+    };
+  }
+
 
   // FIX: Implement the stringify method to replace the deprecated 'stringify' pipe
   stringify(obj: any): string {
@@ -184,9 +212,12 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.appointments = []; 
 
+    // FIX: Dynamically generate startDate and endDate for the API payload
+    const { startDate, endDate } = this.getStartAndEndDateOfMonth(date);
+
     const payload = {
-      // The API expects the date in "yyyy-MM-dd" format
-      today: this.datepipe.transform(date, "yyyy-MM-dd"),
+      startDate: startDate,
+      endDate: endDate
     };
     
     this.apiService
@@ -208,6 +239,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
             } as Appointment)); 
           
           this.appointments = fetchedAppointments;
+          console.log("appointment variable values: ",this.appointments);
         },
         error: (error: any) => {
           this.isLoading = false;
@@ -228,7 +260,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.monthdetails = new Date(
       this.monthdetails.setMonth(this.monthdetails.getMonth() + value)
     );
-    // Fetch data for the new month if needed for month/week views
+    // Fetch data for the new month based on the updated monthdetails
     this.fetchAppointments(this.monthdetails);
   }
 
@@ -238,19 +270,19 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.today = new Date();
       this.todayDate = new Date();
     }
-    // Refetch data based on the new view mode's date
+    // Refetch data based on the new view mode's date (will fetch the corresponding month's data)
     this.fetchAppointments(this.todayDate);
   }
 
   onChangeSchedule(res: number = 0): void {
     if (this.hideView) return;
     
-    // Using native Date object manipulation (replacing moment.js logic)
+    // Using native Date object manipulation
     const newDate = new Date(this.todayDate);
     newDate.setDate(newDate.getDate() + res);
     this.todayDate = newDate;
 
-    // Fetch data for the newly selected day
+    // Fetch data for the newly selected day's month
     this.fetchAppointments(this.todayDate);
   }
   
