@@ -6,14 +6,14 @@ import { AuthLayoutComponent } from './core/layouts/auth-layout/auth-layout.comp
 import { LandingComponent } from './features/landing/landing.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
   {
     path: 'auth',
     component: AuthLayoutComponent,
     children: authRoutes
   },
   {
-    path: 'landing',
+    path: 'home',
     component: LandingComponent,
   },
   {

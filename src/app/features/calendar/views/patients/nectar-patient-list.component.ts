@@ -116,7 +116,7 @@ export interface PatientDetail {
     /* COLOR PALETTE (Using CSS Variables for Consistency) */
     /* ---------------------------------------------------- */
     :host {
-      --primary-color: #4F46E5;        /* Indigo 600 */
+      --primary-color: #1852a2;        /* Indigo 600 */
       --primary-light: #EEF2FF;        /* Indigo 50 */
       --text-dark: #1F2937;            /* Dark gray */
       --text-medium: #4B5563;          /* Medium gray */

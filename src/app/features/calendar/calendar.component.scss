@@ -1,7 +1,9 @@
+@use "sass:color";
+
 /* ---------------------------------------------------- */
 /* SCSS Variables Definition (For SCSS functions like darken()) */
 /* ---------------------------------------------------- */
-$primary-color-scss: #4F46E5;
+$primary-color-scss: #1852a2;
 $primary-light-scss: #EEF2FF;
 $text-dark-scss: #1F2937;
 $text-medium-scss: #4B5563;
@@ -55,7 +57,9 @@ $cancelled-color-scss: #EF4444;
   font-weight: 600;
   transition: background 0.2s;
   /* FIXED: Use SCSS variable here */
-  &:hover { background: darken($primary-color-scss, 10%); }
+  // &:hover { background: darken($primary-color-scss, 10%); }
+  &:hover { background: color.adjust($primary-color-scss, $lightness: -10%); }
+
 }
 
 /* ---------------------------------------------------- */

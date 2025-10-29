@@ -1,3 +1,5 @@
+@use "sass:color";
+
 /* --- SCSS Variables for Professional Theme (Indigo/Healthcare) --- */
 $primary-color: #4F46E5; // Indigo 600 - Primary accent
 $primary-light: #EEF2FF; // Indigo 50 - Light background for emphasis
@@ -257,17 +259,17 @@ $success-color: #10B981; // Emerald 500 - Completed status
       background-color: $warning-color;
       color: #fff;
       border-right: 1px solid rgba(0, 0, 0, 0.1);
-      &:hover { background-color: darken($warning-color, 5%); }
+      &:hover { background-color: color.adjust($warning-color, $lightness: -5%); }
     }
     &.cancelled-button {
       background-color: $error-color;
       color: #fff;
-      &:hover { background-color: darken($error-color, 5%); }
+      &:hover { background-color: color.adjust($error-color, $lightness: -5%); }
     }
     &.completed-button {
       background-color: $success-color;
       color: #fff;
-      &:hover { background-color: darken($success-color, 5%); }
+      &:hover { background-color: color.adjust($success-color, $lightness: -5%); }
     }
   }
 
