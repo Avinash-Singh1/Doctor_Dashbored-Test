@@ -9,7 +9,7 @@ import { NectarMonthViewComponent } from './views/nectar-month-view/nectar-month
 import { NectarWeekViewComponent } from './views/nectar-week-view/nectar-week-view.component';
 import { AuthService } from '../../core/services/auth.service';
 import { CryptoProvider } from '../../core/services/crypto.service'; 
-
+import { environment } from '../../../environments/environment';
 // ------------------- PLACEHOLDER / MOCK IMPORTS -------------------
 @Injectable({ providedIn: 'root' })
 class ApiService {
@@ -56,7 +56,7 @@ const APP_CONSTANTS = {
 };
 
 const API_ENDPOINTS = {
-  doctor: { getCalendarData: 'http://localhost:8080/api/v1/doctor/get-calender' },
+  doctor: { getCalendarData: `${environment.baseUrl2}/api/v1/doctor/get-calender` },
 };
 
 declare var moment: any;
