@@ -11,10 +11,10 @@ export class LandingComponent {
   constructor(private router: Router) {}
 
   goToSignup(): void {
-    this.router.navigate(['/doctor-signup']);
+    this.router.navigate(['/auth/signup']);
   }
 
-  goToAppointments(): void {
-    this.router.navigate(['/appointments']);
+  goToLogin(): void {
+    this.router.navigate(['/auth/login']);
   }
 }

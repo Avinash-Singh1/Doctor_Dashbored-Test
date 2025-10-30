@@ -1,6 +1,6 @@
 // src/app/features/calendar/calendar.component.ts
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, OnDestroy, Inject } from '@angular/core'; 
+import { Component, OnInit, OnDestroy, Inject, Injectable } from '@angular/core'; 
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
@@ -13,6 +13,9 @@ import { CryptoProvider } from '../../core/services/crypto.service';
 // ------------------- PLACEHOLDER / MOCK IMPORTS -------------------
 // NOTE: These mock classes simulate your actual services (ApiService, AuthService, LocalStorageService). 
 // You must ensure your actual services correctly handle HttpClient and Bearer tokens.
+@Injectable({
+  providedIn: 'root', // or remove this if you’re listing it in `providers`
+})
 class ApiService {
   private Token:any;
   // Hardcoded token from the user's request. WARNING: This should be managed securely 
