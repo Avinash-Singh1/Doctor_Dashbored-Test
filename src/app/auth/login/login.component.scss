@@ -1,73 +1,85 @@
+// --- Variables for easy theming
+$primary-color: #0077b6; // Professional blue
+$primary-color-dark: #0056b3;
+$secondary-text: #6c757d; // Muted grey for secondary text
+$light-bg: #f8f9fa; // Very light background
+$card-bg: #ffffff;
+$border-color: #ced4da;
+$input-focus-shadow: rgba(0, 123, 255, 0.25);
+$danger-color: #dc3545;
+$breakpoint-md: 992px;
+$breakpoint-sm: 576px;
+
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 1.5rem 1rem; // Responsive padding
   min-height: 100vh;
-  // background: linear-gradient(135deg, #f4f7fb, #e8efff);
-  padding: 2rem;
+  // Subtle gradient for a clean, professional look
+  // background: linear-gradient(135deg, $light-bg, #e9ecef);
 }
 
 .login-card {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: #fff;
-  border-radius: 16px;
+  grid-template-columns: 1fr 1.2fr; // Give the form slightly more space
+  background: $card-bg;
+  border-radius: 12px; // Modern rounded corners
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); // Professional shadow
   max-width: 1000px;
   width: 100%;
 
   .login-info {
-    background: #1976d2;
+    background: $primary-color;
     color: #fff;
-    padding: 3rem;
+    padding: 3.5rem; // Spacious padding
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start;
 
     h2 {
-      font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
+      font-size: 2.25rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
     }
 
     p {
-      font-size: 1rem;
+      font-size: 1.1rem;
       line-height: 1.6;
-      opacity: 0.9;
+      opacity: 0.95;
     }
 
     img {
-      margin-top: 2rem;
-      max-width: 80%;
+      margin-top: 3rem;
+      max-width: 90%;
       align-self: center;
     }
   }
 
   .login-form {
-    padding: 3rem;
-    padding-top: 18rem;
-    @media (max-width: 576px) {
-    padding-top: 0rem;
-    }
+    padding: 3.5rem;
+    // Removed the fixed padding-top: 18rem; which caused visual errors on desktop.
 
     .form-header {
-      text-align: center;
-      margin-bottom: 2rem;
+      text-align: left;
+      margin-bottom: 2.5rem;
 
-      h3 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+      h1 {
+        color: $primary-color;
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
         font-weight: 600;
       }
 
       p {
-        font-size: 0.9rem;
-        color: #666;
+        font-size: 0.95rem;
+        color: $secondary-text;
 
         a {
-          color: #1976d2;
-          font-weight: 500;
+          color: $primary-color;
+          font-weight: 600;
           text-decoration: none;
 
           &:hover {
@@ -78,17 +90,28 @@
     }
 
     .form-row {
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.5rem;
       position: relative;
 
       &.between {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        color: $secondary-text;
+
+        label {
+          display: flex;
+          align-items: center;
+          
+          input[type="checkbox"] {
+            margin-right: 0.5rem;
+          }
+        }
 
         a {
-          color: #1976d2;
+          color: $primary-color;
+          font-weight: 500;
           text-decoration: none;
 
           &:hover {
@@ -99,80 +122,279 @@
 
       input {
         width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        border: 1px solid $border-color;
+        border-radius: 6px;
         font-size: 0.95rem;
-        transition: border 0.3s;
+        color: #343a40;
+        transition: all 0.2s ease-in-out;
 
         &:focus {
-          border-color: #1976d2;
+          border-color: $primary-color;
           outline: none;
-          box-shadow: 0 0 4px rgba(25, 118, 210, 0.3);
+          box-shadow: 0 0 0 3px $input-focus-shadow;
         }
       }
 
       .toggle-password {
+        // Position relative to the .form-row container
         position: absolute;
-        right: 12px;
+        right: 1rem; // Matches input padding
         top: 50%;
         transform: translateY(-50%);
         cursor: pointer;
-        font-size: 1.2rem;
-        color: #777;
+        font-size: 1rem;
+        color: $secondary-text;
 
         &:hover {
-          color: #1976d2;
+          color: $primary-color;
         }
       }
 
       .text-danger {
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        margin-top: 0.4rem;
+        color: $danger-color;
       }
     }
 
     .btn-submit {
       width: 100%;
-      padding: 0.9rem;
-      border-radius: 8px;
-      background: #1976d2;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      border-radius: 6px;
+      background: $primary-color;
       border: none;
       color: #fff;
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: background 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.5px;
 
-      &:hover {
-        background: #125ea9;
+      &:disabled {
+        background: $border-color;
+        cursor: not-allowed;
+      }
+
+      &:hover:not(:disabled) {
+        background: $primary-color-dark;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
     }
   }
 }
 
-/* 📱 Responsive */
-@media (max-width: 992px) {
+
+// 📱 MEDIA QUERIES FOR RESPONSIVENESS
+// ------------------------------------
+
+@media (max-width: $breakpoint-md) {
   .login-card {
-    grid-template-columns: 1fr;
-  }
+    grid-template-columns: 1fr; // Stack layout
+    max-width: 600px;
+    margin: 1.5rem 0;
 
-  .login-info {
-    text-align: center;
-    padding: 2rem;
+    .login-info {
+        padding: 2.5rem;
+        text-align: center;
+        border-radius: 12px 12px 0 0;
+        align-items: center;
 
-    img {
-      max-width: 60%;
+        h2 {
+            font-size: 1.75rem;
+        }
+
+        img {
+            display: none;
+        }
     }
-  }
 
-  .login-form {
-    padding: 2rem;
+    .login-form {
+        padding: 2.5rem;
+        border-radius: 0 0 12px 12px;
+    }
   }
 }
 
-@media (max-width: 576px) {
-  .login-form {
-    padding: 1.5rem;
-  }
+@media (max-width: $breakpoint-sm) {
+    .login-page {
+        padding: 1rem 0.5rem;
+    }
+    
+    .login-card {
+        box-shadow: none;
+        border-radius: 0; 
+        max-width: 100%;
+        margin: 0;
+
+        .login-info, .login-form {
+            padding: 2rem 1.25rem;
+        }
+    }
+    
+    .login-form {
+        .form-header {
+            text-align: center; 
+            margin-bottom: 2rem;
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    }
+}
+
+// --- MODAL STYLING (Professional & Clean) ---
+// These styles override any default modal/bootstrap look to ensure consistency
+
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1050;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.5); // Dark overlay
+
+    .modal-dialog {
+        position: relative;
+        width: auto;
+        margin: 1.75rem auto;
+        max-width: 450px; 
+        transition: transform 0.3s ease-out;
+
+        &.modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 3.5rem);
+        }
+    }
+
+    .modal-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background-color: $card-bg;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid $border-color;
+
+        h5 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        .close {
+            padding: 1rem;
+            margin: -1rem -1rem -1rem auto;
+            background: transparent;
+            border: 0;
+            font-size: 1.5rem;
+            opacity: 0.7;
+            cursor: pointer;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        
+        p {
+            color: $secondary-text;
+            margin-bottom: 1rem;
+        }
+        
+        .form-control { 
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid $border-color;
+            border-radius: 6px;
+        }
+        
+        .text-danger {
+            color: $danger-color;
+            margin-top: 0.5rem;
+        }
+        
+        // Custom classes for button positioning
+        .modal-footer-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+        
+        .modal-otp-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+
+            .change-link {
+                font-weight: 500;
+                color: $primary-color;
+                cursor: pointer;
+                text-decoration: none;
+                
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+            
+            .button-group {
+                display: flex;
+            }
+        }
+
+        .btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 0.75rem; 
+
+            &.btn-primary {
+                background: $primary-color;
+                color: #fff;
+                border: none;
+                
+                &:hover:not(:disabled) {
+                    background: $primary-color-dark;
+                }
+                
+                &:disabled {
+                    background: $border-color;
+                    cursor: not-allowed;
+                }
+            }
+
+            &.btn-secondary {
+                background: $light-bg;
+                color: $secondary-text;
+                border: 1px solid $border-color;
+                
+                &:hover {
+                    background: #e2e6ea;
+                }
+            }
+        }
+    }
 }

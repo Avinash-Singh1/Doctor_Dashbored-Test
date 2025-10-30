@@ -1,68 +1,181 @@
+// --- Variables for easy theming (Optional but Recommended)
+$primary-color: #0077b6; // A professional, common blue
+$primary-color-dark: #0056b3;
+$secondary-text: #6c757d; // Muted grey for secondary text
+$light-bg: #f8f9fa; // Very light background
+$card-bg: #ffffff;
+$border-color: #ced4da;
+$input-focus-shadow: rgba(0, 123, 255, 0.25);
+$breakpoint-md: 992px;
+$breakpoint-sm: 576px;
+
 .signup-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 1.5rem 1rem; // Less vertical padding on mobile
   min-height: 100vh;
-  background: linear-gradient(135deg, #f4f7fb, #e8efff);
+  // Subtle gradient for a clean, professional look
+  // background: linear-gradient(135deg, $light-bg, #e9ecef);
 }
 
 .signup-card {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: #fff;
-  border-radius: 16px;
+  grid-template-columns: 1fr 1.2fr; // Give the form slightly more space
+  background: $card-bg;
+  border-radius: 12px; // Slightly smaller radius for a modern feel
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  max-width: 1100px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); // Stronger, more professional shadow
+  max-width: 1200px;
   width: 100%;
+}
 
-  .signup-info {
-    background: #1976d2;
-    color: #fff;
-    padding: 3rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+// --- Left Side: Intro Section
+.signup-info {
+  // Use the primary blue as the accent color
+  background: $primary-color;
+  color: #fff;
+  padding: 3.5rem; // Increased padding for a more spacious feel
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start; // Align text to the left
 
-    h2 {
+  h2 {
+    font-size: 2.25rem; // Larger, impactful heading
+    margin-bottom: 1.5rem;
+    font-weight: 700; // More prominent font weight
+  }
+
+  p {
+    font-size: 1.1rem; // Slightly larger for better readability
+    line-height: 1.6;
+    opacity: 0.95;
+  }
+
+  img {
+    margin-top: 3rem;
+    max-width: 90%; // Adjust for a cleaner fit
+    align-self: center;
+    // Add a subtle border or drop shadow if the image is visible
+  }
+}
+
+// --- Right Side: Form Section
+.signup-form {
+  padding: 3.5rem;
+
+  .form-header {
+    text-align: left; // Align header to the left for a cleaner look
+    margin-bottom: 2.5rem;
+
+    h1 {
+      // Use $primary-color for the main heading
+      color: $primary-color;
       font-size: 2rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.25rem;
       font-weight: 600;
     }
 
     p {
-      font-size: 1rem;
-      line-height: 1.6;
-      opacity: 0.9;
-    }
+      font-size: 0.95rem;
+      color: $secondary-text;
 
-    img {
-      margin-top: 2rem;
-      max-width: 80%;
-      align-self: center;
+      a {
+        color: $primary-color;
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
     }
   }
 
-  .signup-form {
-    padding: 3rem;
+  .form-row {
+    margin-bottom: 1rem; // Slightly tighter spacing between form rows
+    position: relative;
 
-    .form-header {
-      text-align: center;
-      margin-bottom: 2rem;
+    // Responsive grid layouts
+    &.two-col {
+      display: grid;
+      grid-template-columns: 40% 60%; // Adjusting columns for Title and Name
+      gap: 1rem;
+    }
 
-      h3 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
+    &.three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    // Input and Select base styling
+    input:not([type="radio"]),
+    select {
+      width: 100%;
+      padding: 0.8rem 1rem; // More vertical padding
+      border: 1px solid $border-color;
+      border-radius: 6px; // Slightly less rounded for a professional look
+      font-size: 0.95rem;
+      color: #343a40;
+      transition: all 0.2s ease-in-out;
+      appearance: none; // Remove default select styling
+
+      &:focus {
+        border-color: $primary-color;
+        outline: none;
+        box-shadow: 0 0 0 3px $input-focus-shadow;
+        background-color: #fff;
       }
+    }
 
-      p {
+    // Custom styling for Selects to look better
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 0.65em;
+        padding-right: 2.5rem; // Make space for the icon
+    }
+    
+    // Toggle password icon positioning
+    .toggle-password {
+      position: absolute;
+      right: 1rem; // Adjust to align with padding
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1rem;
+      color: $secondary-text;
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+
+    // Radio button label group
+    .radio-label {
+      margin-right: 1.5rem;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      color: #343a40;
+
+      input[type="radio"] {
+        margin-right: 0.5rem;
+        // Optional: Custom radio button styling for a cleaner look
+      }
+    }
+
+    // Styling for the consent checkbox row
+    &.consent {
         font-size: 0.9rem;
-        color: #666;
+        margin-top: 1.5rem; // More space above the consent
 
         a {
-          color: #1976d2;
+          color: $primary-color;
           font-weight: 500;
           text-decoration: none;
 
@@ -70,115 +183,108 @@
             text-decoration: underline;
           }
         }
-      }
     }
+  }
+  
+  // Submit Button Styling
+  .btn-submit {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1.5rem; // Ensure it stands out
+    border-radius: 6px;
+    background: $primary-color;
+    border: none;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.5px; // Subtle professional touch
 
-    .form-row {
-      margin-bottom: 1.2rem;
-      position: relative;
-
-      &.two-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-      }
-
-      &.three-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 1rem;
-      }
-
-      input,
-      select {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        transition: border 0.3s;
-
-        &:focus {
-          border-color: #1976d2;
-          outline: none;
-          box-shadow: 0 0 4px rgba(25, 118, 210, 0.3);
-        }
-      }
-
-      .toggle-password {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        font-size: 1.2rem;
-        color: #777;
-
-        &:hover {
-          color: #1976d2;
-        }
-      }
-
-      .radio-label {
-        margin-right: 1rem;
-        font-size: 0.9rem;
-      }
-    }
-
-    .consent {
-      font-size: 0.9rem;
-
-      a {
-        color: #1976d2;
-      }
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 0.9rem;
-      border-radius: 8px;
-      background: #1976d2;
-      border: none;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-
-      &:hover {
-        background: #125ea9;
-      }
+    &:hover {
+      background: $primary-color-dark;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
   }
 }
 
-// 📱 Responsive
-@media (max-width: 992px) {
+
+// 📱 MEDIA QUERIES FOR RESPONSIVENESS
+// ------------------------------------
+
+// Tablet/Small Desktop Layout (max-width: 992px)
+@media (max-width: $breakpoint-md) {
   .signup-card {
-    grid-template-columns: 1fr;
-  }
+    grid-template-columns: 1fr; // Stack the intro and form vertically
+    max-width: 600px; // Keep it narrower on smaller screens
+    margin: 1.5rem 0; // Add margin for breathing room
 
-  .signup-info {
-    padding: 2rem;
-    text-align: center;
+    .signup-info {
+        // Make the info section less dominant on tablet
+        padding: 2.5rem;
+        text-align: center;
+        border-radius: 12px 12px 0 0; // Maintain border radius
+        align-items: center;
 
-    img {
-      max-width: 60%;
+        h2 {
+            font-size: 1.75rem;
+        }
+
+        p {
+            font-size: 1rem;
+        }
+
+        img {
+            display: none; // Hide image on tablet to save space
+        }
     }
-  }
 
-  .signup-form {
-    padding: 2rem;
+    .signup-form {
+        padding: 2.5rem;
+        border-radius: 0 0 12px 12px;
+    }
   }
 }
 
-@media (max-width: 576px) {
-  .signup-form {
-    padding: 1.5rem;
-  }
+// Mobile Layout (max-width: 576px)
+@media (max-width: $breakpoint-sm) {
+    .signup-page {
+        padding: 1rem 0.5rem;
+    }
+    
+    .signup-card {
+        box-shadow: none; // Remove shadow on very small screens for a cleaner edge-to-edge look
+        border-radius: 0; // Go full-width/height (optional)
+        max-width: 100%;
+        margin: 0;
 
-  .form-row.two-col,
-  .form-row.three-col {
-    grid-template-columns: 1fr;
-  }
+        .signup-info, .signup-form {
+            padding: 2rem 1.25rem;
+        }
+    }
+    
+    // Crucial fix: Stack multi-column form rows on mobile
+    .form-row {
+        &.two-col,
+        &.three-col {
+            grid-template-columns: 1fr; // Single column layout
+            gap: 0.75rem; // Slightly smaller gap
+        }
+        
+        // Fix for the Title & Full Name row
+        &.two-col:first-child {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .signup-form {
+        .form-header {
+            text-align: center; // Center header on mobile
+            margin-bottom: 2rem;
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    }
 }

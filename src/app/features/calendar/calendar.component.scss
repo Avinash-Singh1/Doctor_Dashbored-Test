@@ -430,3 +430,100 @@ $cancelled-color-scss: #EF4444;
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+
+.week-switch-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* space between buttons and label */
+  margin-left: 1rem;
+
+  .icon-nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s ease-in-out;
+
+    mat-icon {
+      font-size: 20px;
+    }
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  .current-week-label {
+    font-weight: 500;
+    font-size: 1rem;
+    min-width: 160px;
+    text-align: center;
+  }
+}
+
+
+.day-switch-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem; /* spacing between buttons and date */
+  margin-left: 1rem;
+
+  /* Navigation buttons */
+  .icon-nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s ease-in-out;
+
+    mat-icon {
+      font-size: 22px;
+      color: #374151; /* neutral gray text */
+    }
+
+    &:hover {
+      background-color: rgba(59, 130, 246, 0.1); /* light blue hover */
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  /* Center date label */
+  .current-day-label {
+    font-weight: 500;
+    font-size: 1rem;
+    text-align: center;
+    min-width: 220px;
+    color: #111827;
+    letter-spacing: 0.3px;
+  }
+}
+
+/* Optional: Add responsiveness for smaller screens */
+@media (max-width: 640px) {
+  .day-switch-group {
+    gap: 0.5rem;
+
+    .current-day-label {
+      font-size: 0.875rem;
+      min-width: 160px;
+    }
+
+    .icon-nav-button mat-icon {
+      font-size: 20px;
+    }
+  }
+}

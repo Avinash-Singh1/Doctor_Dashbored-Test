@@ -1,17 +1,35 @@
-<div class="day-view">
-  <h3>{{ today | date:'fullDate' }}</h3>
+<div class="day-view-wrapper">
+  <div class="day-header">
+    <h3>{{ selectedDateStr }}</h3>
+    <span class="appt-count">
+      {{ selectedDateAppointments.length }} 
+      {{ selectedDateAppointments.length === 1 ? 'Appointment' : 'Appointments' }}
+    </span>
+  </div>
 
-  <div class="hour-slot" *ngFor="let hour of hours">
-    <div class="hour-label">{{ hour }}:00</div>
-    <div class="hour-events">
-      <ng-container *ngIf="getAppointmentsForHour(hour).length; else noEvents">
-        <div *ngFor="let appt of getAppointmentsForHour(hour)" class="event">
-          <span class="sub-heading">{{ appt.fullName }}</span> –
-          <span>{{ appt.reason }}</span>
-          ({{ appt.consultationType }})
+  <div class="day-appointments-container">
+    <div *ngIf="selectedDateAppointments.length === 0" class="no-appointments">
+      No appointments for this day.
+    </div>
+
+    <div 
+      class="appointment-card" 
+      *ngFor="let appt of selectedDateAppointments"
+      (click)="openAppointments()"
+    >
+      <div class="time">{{ appt.date | date:'hh:mm a' }}</div>
+
+      <div class="details">
+        <div class="patient">{{ appt.patientDetails.fullName || appt.fullName }}</div>
+        <div class="doctor">{{ appt.doctorDetails.fullName }}</div>
+        <div class="consultation-type" [ngClass]="{
+          'clinic': appt.consultationType === 'in_clinic',
+          'video': appt.consultationType === 'video'
+        }">
+          <mat-icon>{{ appt.consultationType === 'in_clinic' ? 'location_on' : 'videocam' }}</mat-icon>
+          <span>{{ appt.consultationType | titlecase }}</span>
         </div>
-      </ng-container>
-      <ng-template #noEvents>No events</ng-template>
+      </div>
     </div>
   </div>
 </div>

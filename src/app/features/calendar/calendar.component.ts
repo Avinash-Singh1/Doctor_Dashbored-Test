@@ -11,24 +11,15 @@ import { AuthService } from '../../core/services/auth.service';
 import { CryptoProvider } from '../../core/services/crypto.service'; 
 
 // ------------------- PLACEHOLDER / MOCK IMPORTS -------------------
-// NOTE: These mock classes simulate your actual services (ApiService, AuthService, LocalStorageService). 
-// You must ensure your actual services correctly handle HttpClient and Bearer tokens.
-@Injectable({
-  providedIn: 'root', // or remove this if you’re listing it in `providers`
-})
+@Injectable({ providedIn: 'root' })
 class ApiService {
-  private Token:any;
-  // Hardcoded token from the user's request. WARNING: This should be managed securely 
-  // (e.g., retrieved from a secure Auth Service) in a real application.
-  constructor(   private crypto: CryptoProvider){
-     this.Token = this.crypto.decryptObj(localStorage.getItem('authToken'));
+  private Token: any;
+  constructor(private crypto: CryptoProvider) {
+    this.Token = this.crypto.decryptObj(localStorage.getItem('authToken'));
   }
 
-  
-  // FIX: Perform an actual API request using fetch and return data via Subject
   post(endpoint: string, payload: any): Subject<any> {
     const result$ = new Subject<any>();
-
     fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -37,28 +28,21 @@ class ApiService {
       },
       body: JSON.stringify(payload)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Throw an error for non-2xx status codes
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      // Push successful data to the Subject
-      result$.next(data);
-      result$.complete();
-    })
-    .catch(error => {
-      // Push error to the Subject's error channel
-      result$.error(error);
-      result$.complete(); 
-    });
-
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        result$.next(data);
+        result$.complete();
+      })
+      .catch(error => {
+        result$.error(error);
+        result$.complete();
+      });
     return result$;
   }
 }
-
 
 class LocalStorageService {
   getItem(key: string): string | null {
@@ -68,48 +52,32 @@ class LocalStorageService {
 }
 
 const APP_CONSTANTS = {
-  PROFILE_STATUS: {
-    APPROVE: 'APPROVED',
-    PENDING: 'PENDING',
-    DEACTIVATE: 'DEACTIVATE',
-    DELETE: 'DELETE',
-    REJECT: 'REJECT',
-  },
+  PROFILE_STATUS: { APPROVE: 'APPROVED', PENDING: 'PENDING', DEACTIVATE: 'DEACTIVATE', DELETE: 'DELETE', REJECT: 'REJECT' },
 };
 
 const API_ENDPOINTS = {
-  doctor: {
-    getCalendarData: 'http://localhost:8080/api/v1/doctor/get-calender',
-  },
+  doctor: { getCalendarData: 'http://localhost:8080/api/v1/doctor/get-calender' },
 };
 
 declare var moment: any;
 // ------------------- END PLACEHOLDER / MOCK IMPORTS -------------------
 
-// FIX: Define a single Appointment interface that includes all required fields 
-// by the component's views and its own template logic.
 export interface Appointment {
-  // Required fields for type compatibility with child view components:
-  id: string; 
-  doctorName: string; 
-  
-  // Fields mapped from the API response and used in the side panel:
-  _id: string; 
+  id: string;
+  doctorName: string;
+  _id: string;
   date: string;
   fullName: string;
   reason: string | null;
-  status: number; // 0, 1, 2...
+  status: number;
   consultationType: 'in_clinic' | 'video';
   doctorDetails: { fullName: string; phone: string; };
   patientDetails: { fullName: string; phone: string; email: string; profilePic?: string; isverified?: number; };
-
 }
-
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  // MatIconModule is kept to replace the missing svg-icon component
   imports: [CommonModule, DatePipe, MatIconModule, NectarDayViewComponent, NectarMonthViewComponent, NectarWeekViewComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
@@ -123,8 +91,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
   viewmode: 'day' | 'week' | 'month' = 'month';
   today: Date = new Date();
   todayDate: Date = new Date();
+  currentWeekStart: Date = this.getStartOfWeek(new Date());
   scheduleDay: string = "Today's Schedule";
-  isLoading: boolean = false; 
+  isLoading: boolean = false;
 
   appointmentConstant = [
     { status: 0, label: 'PENDING', icon: 'hourglass_empty' },
@@ -132,8 +101,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     { status: 2, label: 'CANCELLED', icon: 'cancel' }
   ];
 
-  // FIX: Use the unified Appointment interface
-  appointments: Appointment[] = []; 
+  appointments: Appointment[] = [];
   isSubmenuOpen = false;
 
   constructor(
@@ -150,104 +118,93 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.auth.hasValidToken()) {
-      if (typeof this.auth.clearToken === 'function') {
-        this.auth.clearToken();
-      }
+      if (typeof this.auth.clearToken === 'function') this.auth.clearToken();
       this.router.navigate(['/auth/login']);
       return;
     }
+
     this.auth.isLoggedIn$().pipe(takeUntil(this.destroy$)).subscribe((isLogged) => {
       if (!isLogged && !this.router.url.startsWith('/auth/login')) {
         this.router.navigate(['/auth/login']);
       }
     });
+
     window.addEventListener('storage', this.onStorageEvent);
-
     const approvalStatus = this.localStorage.getItem("approvalStatus");
-    const isApproved = approvalStatus === APP_CONSTANTS.PROFILE_STATUS.APPROVE;
-    this.hideView = !isApproved;
+    this.hideView = approvalStatus !== APP_CONSTANTS.PROFILE_STATUS.APPROVE;
 
-    if (isApproved) {
-      // FIX: Call fetchAppointments with the current date to fetch the current month's data
-      this.fetchAppointments(this.todayDate);
-    }
+    if (!this.hideView) this.fetchAppointments(this.todayDate);
   }
 
-  /**
-   * Calculates the start and end dates of the month for the given date.
-   * @param date The reference date (e.g., today's date or a date after changing the month).
-   * @returns An object with startDate and endDate formatted as 'yyyy-MM-dd'.
-   */
+  // 🗓️ HELPER: Get start of week (Sunday)
+  private getStartOfWeek(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay(); // Sunday = 0
+    const diff = d.getDate() - day;
+    return new Date(d.setDate(diff));
+  }
+
+  // 🗓️ WEEK NAVIGATION
+  onChangeWeek(offset: number): void {
+    const newWeek = new Date(this.currentWeekStart);
+    newWeek.setDate(newWeek.getDate() + offset * 7);
+    this.currentWeekStart = this.getStartOfWeek(newWeek);
+    this.fetchAppointments(this.currentWeekStart);
+  }
+
+  // 🗓️ WEEK LABEL DISPLAY (e.g. “27 Oct – 2 Nov 2025”)
+  getWeekLabel(): string {
+    const start = new Date(this.currentWeekStart);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const startLabel = this.datepipe.transform(start, 'd MMM');
+    const endLabel = this.datepipe.transform(end, 'd MMM yyyy');
+    return `${startLabel} - ${endLabel}`;
+  }
+
   private getStartAndEndDateOfMonth(date: Date): { startDate: string, endDate: string } {
-    // Clone the date to avoid modifying the component's state
-    const referenceDate = new Date(date);
-    
-    // Calculate the first day of the month (YYYY, MM, 1)
-    const startOfMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
-    
-    // Calculate the last day of the month (YYYY, MM + 1, 0)
-    const endOfMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
-
-    // Format the dates as 'yyyy-MM-dd' for the API
-    const startDateFormatted = this.datepipe.transform(startOfMonth, 'yyyy-MM-dd') || '';
-    const endDateFormatted = this.datepipe.transform(endOfMonth, 'yyyy-MM-dd') || '';
-
+    const ref = new Date(date);
+    const startOfMonth = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    const endOfMonth = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
     return {
-      startDate: startDateFormatted,
-      endDate: endDateFormatted
+      startDate: this.datepipe.transform(startOfMonth, 'yyyy-MM-dd') || '',
+      endDate: this.datepipe.transform(endOfMonth, 'yyyy-MM-dd') || ''
     };
   }
 
-
-  // FIX: Implement the stringify method to replace the deprecated 'stringify' pipe
   stringify(obj: any): string {
     return JSON.stringify(obj);
   }
 
-  // FIX: Implement the filtering method to replace the missing 'filterAppointment' pipe
   getAppointmentsByStatus(status: number): Appointment[] {
-    // Determine the date string for filtering the right-hand panel
     const selectedDateString = this.datepipe.transform(this.todayDate, 'yyyy-MM-dd');
-    
-    return this.appointments.filter(a => 
-      a.status === status && 
-      // Compare only the date part, ignoring time
+    return this.appointments.filter(a =>
+      a.status === status &&
       this.datepipe.transform(a.date, 'yyyy-MM-dd') === selectedDateString
     );
   }
 
   fetchAppointments(date: Date): void {
     this.isLoading = true;
-    this.appointments = []; 
+    this.appointments = [];
 
-    // FIX: Dynamically generate startDate and endDate for the API payload
     const { startDate, endDate } = this.getStartAndEndDateOfMonth(date);
+    const payload = { startDate, endDate };
 
-    const payload = {
-      startDate: startDate,
-      endDate: endDate
-    };
-    
-    this.apiService
-      .post(API_ENDPOINTS.doctor.getCalendarData, payload)
+    this.apiService.post(API_ENDPOINTS.doctor.getCalendarData, payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (apiRes: any) => {
           this.isLoading = false;
-          console.log('API Response:', apiRes);
           const fetchedAppointments = (apiRes.result || [])
             .map((item: any) => item.data)
             .flat()
-            // FIX: Map the raw API data to the required Appointment interface
             .map((raw: any) => ({
               ...raw,
-              id: raw._id, // Mapping _id to id for component compatibility
-              // Using non-optional access here since we rely on it being present for typing/display
-              doctorName: raw.doctorDetails.fullName || 'N/A', 
-            } as Appointment)); 
-          
+              id: raw._id,
+              doctorName: raw.doctorDetails.fullName || 'N/A',
+            } as Appointment));
           this.appointments = fetchedAppointments;
-          console.log("appointment variable values: ",this.appointments);
         },
         error: (error: any) => {
           this.isLoading = false;
@@ -265,58 +222,45 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.fetchAppointments(this.todayDate);
       return;
     }
-    this.monthdetails = new Date(
-      this.monthdetails.setMonth(this.monthdetails.getMonth() + value)
-    );
-    // Fetch data for the new month based on the updated monthdetails
+    this.monthdetails = new Date(this.monthdetails.setMonth(this.monthdetails.getMonth() + value));
     this.fetchAppointments(this.monthdetails);
   }
 
   onChangingMode(mode: 'day' | 'week' | 'month') {
     this.viewmode = mode;
-    if (mode !== 'month') {
+    if (mode === 'week') {
+      this.currentWeekStart = this.getStartOfWeek(new Date());
+    } else if (mode !== 'month') {
       this.today = new Date();
       this.todayDate = new Date();
     }
-    // Refetch data based on the new view mode's date (will fetch the corresponding month's data)
     this.fetchAppointments(this.todayDate);
   }
 
   onChangeSchedule(res: number = 0): void {
     if (this.hideView) return;
-    
-    // Using native Date object manipulation
     const newDate = new Date(this.todayDate);
     newDate.setDate(newDate.getDate() + res);
     this.todayDate = newDate;
-
-    // Fetch data for the newly selected day's month
     this.fetchAppointments(this.todayDate);
   }
-  
-  // The rest of the methods are unchanged
+
   onMenuClick() {
     const sideMenu = document.getElementById('sideMenu');
-    if (sideMenu) {
-      sideMenu.classList.toggle('mobileMenu');
-    }
+    if (sideMenu) sideMenu.classList.toggle('mobileMenu');
   }
 
   settingtoggleSubmenu(event: Event) {
     event.preventDefault();
     this.isSubmenuOpen = !this.isSubmenuOpen;
   }
-  
+
   private onStorageEvent = (ev: StorageEvent) => {
     const relevantKeys = ['authToken', 'authUser', 'deviceId'];
     if (ev.key === null || relevantKeys.includes(ev.key)) {
       if (!this.auth.hasValidToken()) {
-        if (typeof this.auth.clearToken === 'function') {
-          this.auth.clearToken();
-        }
-        if (!this.router.url.startsWith('/auth/login')) {
-          this.router.navigate(['/auth/login']);
-        }
+        if (typeof this.auth.clearToken === 'function') this.auth.clearToken();
+        if (!this.router.url.startsWith('/auth/login')) this.router.navigate(['/auth/login']);
       }
     }
   };
@@ -326,4 +270,22 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     window.removeEventListener('storage', this.onStorageEvent);
   }
+
+  onChangeDay(direction: number): void {
+  const newDate = new Date(this.today);
+  newDate.setDate(newDate.getDate() + direction);
+  this.today = newDate;
+}
+
+// onChangingMonth(value: number): void {
+//   if (value === 0) {
+//     this.today = new Date(); // resets current day
+//     this.currentWeekStart = this.getStartOfWeek(new Date());
+//   } else {
+//     const newDate = new Date(this.monthdetails);
+//     newDate.setMonth(newDate.getMonth() + value);
+//     this.monthdetails = newDate;
+//   }
+// }
+
 }

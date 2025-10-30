@@ -20,6 +20,30 @@
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
+
+      <!-- Week Navigation (only visible in WEEK view) -->
+      <div class="week-switch-group" *ngIf="viewmode === 'week'">
+        <button class="icon-nav-button" (click)="onChangeWeek(-1)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="current-week-label">{{ getWeekLabel() }}</span>
+        <button class="icon-nav-button" (click)="onChangeWeek(1)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <!-- Day Navigation (only visible in DAY view) -->
+      <div class="day-switch-group" *ngIf="viewmode === 'day'">
+        <button class="icon-nav-button" (click)="onChangeDay(-1)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="current-day-label">{{ today | date: 'EEEE, d MMMM yyyy' }}</span>
+        <button class="icon-nav-button" (click)="onChangeDay(1)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+
     </div>
 
     <!-- View Mode Toggle (Segmented Control) -->
@@ -43,9 +67,24 @@
   <div class="content-layout" *ngIf="!hideView">
     <!-- Calendar View Area -->
     <div class="calendar-panel">
-      <nectar-month-view *ngIf="viewmode == 'month'" [appointments]="appointments" [today]="today"></nectar-month-view>
-      <nectar-week-view *ngIf="viewmode == 'week'" [appointments]="appointments" [today]="today"></nectar-week-view>
-      <nectar-day-view *ngIf="viewmode == 'day'" [appointments]="appointments" [today]="today"></nectar-day-view>
+      <!-- Inside .calendar-panel -->
+    <nectar-month-view *ngIf="viewmode == 'month'" 
+      [appointments]="appointments" 
+      [today]="today">
+    </nectar-month-view>
+
+    <!-- WEEK VIEW WITH CURRENT WEEK START -->
+    <nectar-week-view *ngIf="viewmode == 'week'"
+      [appointments]="appointments"
+      [today]="today"
+      [currentWeekStart]="currentWeekStart">
+    </nectar-week-view>
+
+    <nectar-day-view *ngIf="viewmode == 'day'" 
+      [appointments]="appointments" 
+      [today]="today">
+    </nectar-day-view>
+
       
       <!-- Loading Overlay for Calendar View -->
       <div class="loading-overlay" *ngIf="isLoading">

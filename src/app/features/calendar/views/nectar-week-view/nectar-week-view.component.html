@@ -1,22 +1,33 @@
-<table class="week-table">
-  <thead>
-    <tr>
-      <th *ngFor="let day of weekDays">
-        {{ day | date:'EEE d' }}
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td *ngFor="let day of weekDays">
-        <ng-container *ngIf="getAppointmentsForDay(day).length; else noEvents">
-          <div *ngFor="let appt of getAppointmentsForDay(day)" class="event">
-            <span class="sub-heading">{{ appt.fullName }}</span>
-            <div>{{ appt.reason }}</div>
+<div class="d-flex flex-column week-view">
+  <table class="calendar-table table">
+    <thead>
+      <tr class="font-400">
+        <th *ngFor="let day of dayHeaders">{{ day }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          *ngFor="let day of weekDays"
+          class="calendar-day"
+          [ngClass]="{
+            today: (day.date | date:'dd/MM/yyyy') === (today | date:'dd/MM/yyyy'),
+            'event-appointment': day.appointmentsCount > 0
+          }"
+          [attr.data-patient-list]="day.details | json"
+          (click)="openAppointments(day, $event)"
+        >
+          <div class="calendar-day-header d-flex flex-column justify-content-between h-100">
+            <div class="d-flex justify-content-end">
+              <strong>{{ day.date | date:"d MMM" }}</strong>
+            </div>
+            <div class="d-flex w-fit">
+              <span class="fs-10">{{ day.appointmentsCount > 0 ? day.appointmentsCount : '' }}</span>
+              <span *ngIf="day.appointmentsCount > 0" class="fs-10"> APPTS</span>
+            </div>
           </div>
-        </ng-container>
-        <ng-template #noEvents>No events</ng-template>
-      </td>
-    </tr>
-  </tbody>
-</table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
