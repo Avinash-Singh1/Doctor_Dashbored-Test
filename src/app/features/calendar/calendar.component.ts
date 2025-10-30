@@ -8,14 +8,19 @@ import { NectarDayViewComponent } from './views/nectar-day-view/nectar-day-view.
 import { NectarMonthViewComponent } from './views/nectar-month-view/nectar-month-view.component';
 import { NectarWeekViewComponent } from './views/nectar-week-view/nectar-week-view.component';
 import { AuthService } from '../../core/services/auth.service';
+import { CryptoProvider } from '../../core/services/crypto.service'; 
 
 // ------------------- PLACEHOLDER / MOCK IMPORTS -------------------
 // NOTE: These mock classes simulate your actual services (ApiService, AuthService, LocalStorageService). 
 // You must ensure your actual services correctly handle HttpClient and Bearer tokens.
 class ApiService {
+  private Token:any;
   // Hardcoded token from the user's request. WARNING: This should be managed securely 
   // (e.g., retrieved from a secure Auth Service) in a real application.
-  private hardcodedToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGYwYjdjYTM4MzNlYzhlMGRlOWViNjUiLCJ1c2VyVHlwZSI6MiwiZnVsbE5hbWUiOiJNci4gQXZpbmFzaC1UZXN0IiwiaWF0IjoxNzYxMzgyNDQ5LCJleHAiOjE3NjE5ODcyNDl9.tBr1-dJ7MRwkn4nvSxA3PsH3vihx2OrC9SJ79F2KYD4';
+  constructor(   private crypto: CryptoProvider){
+     this.Token = this.crypto.decryptObj(localStorage.getItem('authToken'));
+  }
+
   
   // FIX: Perform an actual API request using fetch and return data via Subject
   post(endpoint: string, payload: any): Subject<any> {
@@ -25,7 +30,7 @@ class ApiService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.hardcodedToken}`
+        'Authorization': `Bearer ${this.Token}`
       },
       body: JSON.stringify(payload)
     })
