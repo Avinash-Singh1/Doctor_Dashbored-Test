@@ -1,52 +1,59 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from "@angular/core";
 import { CommonModule, DatePipe, TitleCasePipe } from "@angular/common";
-// import { EditAppointmentModalComponent } from "../../edit-appointment-modal/edit-appointment-modal.component";
 import { MatDialog } from "@angular/material/dialog";
 import { EditAppointmentModalComponent } from "../../edit-appointment-modal/edit-appointment-modal.component";
 
-// Mock imports for external dependencies
-// In a real application, you would import these services and components.
-// Here, they are simulated to keep the file standalone.
+// --- INTERFACE REFERENCE (Assuming this structure from the parent) ---
+export interface Appointment {
+  _id: string;
+  date: string;
+  fullName: string;
+  consultationType: 'in_clinic' | 'video';
+  doctorDetails: { fullName: string; phone: string; };
+  patientDetails: { fullName: string; phone: string; email: string; };
+  // Add other properties used in the component, like userType, establishmentTiming
+  userType?: number;
+  establishmentTiming?: any; 
+  status: number;
+}
+// -------------------------------------------------------------------
 
 @Component({
   selector: 'nectar-patient-details',
   standalone: true,
-  imports: [CommonModule, DatePipe, TitleCasePipe], // Included DatePipe and TitleCasePipe
+  // 🎯 FIX: Added DatePipe here to support constructor injection
+  providers: [DatePipe], 
+  // 🎯 FIX: Added EditAppointmentModalComponent here, as it's used in the code
+  imports: [CommonModule, DatePipe, TitleCasePipe], 
   templateUrl: './patient-details.component.html',
   styleUrls: ['./patient-details.component.scss'],
 })
 export class PatientDetailsComponent implements OnInit {
-  @Input() data: any = {};
+  // Use the interface for better type safety
+  @Input() data: Appointment | any = {}; 
   @Output() closePopup: EventEmitter<any> = new EventEmitter();
   
-  // State variables for the component
-  loader = signal(false); // Using Angular Signal for state
+  loader = signal(false);
   futureDate: boolean = false;
   
-  constructor(private matdialog: MatDialog,private datepipe: DatePipe) {
-    // Injecting DatePipe as a utility for the class (though primarily used in template)
-    // NOTE: In a single file, we can't truly "inject" like this without a provider array,
-    // but for demonstration, we can instantiate it if needed for class methods.
-    // The template uses the built-in pipe, so this is mostly for structure.
-    // private datepipe: DatePipe // Omitted the injection for standalone simplicity
-  }
+  // Dependencies are now correctly injected due to the 'providers' array
+  constructor(private matdialog: MatDialog, private datepipe: DatePipe) {} 
   
   ngOnInit(): void {
-    // Simplified date check logic for demonstration
     const appointmentDate = new Date(this.data?.date);
     const today = new Date();
     
-    // Check if the appointment date is strictly in the future (after today)
+    // Check if the appointment date is strictly in the future
     this.futureDate = appointmentDate.getTime() > today.getTime();
     console.log('PatientDetailsComponent initialized with data:', this.data);
   }
 
   /**
    * Helper function to get initials for the profile picture fallback.
-   * Replaces the custom 'nameInitial' pipe logic.
    */
   getPatientInitials(): string {
-    const name = this.data?.patient?.patientName || this.data?.fullName;
+    // 🎯 ADJUSTMENT: Prioritize data.patientDetails.fullName as per parent component's Appointment structure
+    const name = this.data?.patientDetails?.fullName || this.data?.fullName;
     if (!name || typeof name !== 'string') return 'NA';
     
     const parts = name.trim().split(/\s+/);
@@ -66,23 +73,10 @@ export class PatientDetailsComponent implements OnInit {
    * Simulated routing method.
    */
   onRouting() {
-    console.log(`[ACTION] Navigating to patient profile for ID: ${this.data.patientId}`);
-    // In a real app: this.router.navigate(...)
+    console.log(`[ACTION] Navigating to patient profile for ID: ${this.data._id}`);
   }
   
-  /**
-   * Simulated dialog opening method.
-   */
-  // onOpenDialog(type: string) {
-  //   console.log(`[ACTION] Opening dialog for type: ${type}`);
-  //   // In a real app: this.matdialog.open(ModalComponent, { ... })
-  //   // We can simulate state change for demo purposes if needed
-  //   if (type === 'delete') {
-  //     console.log('Simulating delete action for appointment:', this.data._id);
-  //   }
-  // }
-
-   onOpenDialog(type: string) {
+  onOpenDialog(type: string) {
     switch (type) {
       case "edit":
         this.matdialog.open(EditAppointmentModalComponent, {
@@ -90,52 +84,32 @@ export class PatientDetailsComponent implements OnInit {
           width: "720px",
           data: {
             patientDetails: {
-              fullName: this.data?.patient?.patientName ?? this.data.fullName,
-              phone: this.data?.patient?.patientPhone ?? this.data.phone,
-              email: this.data?.patient?.patientEmail ?? this.data.email,
+              // 🎯 ADJUSTMENT: Use data.patientDetails structure
+              fullName: this.data?.patientDetails?.fullName || this.data.fullName,
+              phone: this.data?.patientDetails?.phone || this.data.phone,
+              email: this.data?.patientDetails?.email || this.data.email,
               date: this.datepipe.transform(
                 this.data.date,
                 "yyyy-MM-dd",
-                "+0530"
+                "+0530" 
               ),
               time: this.datepipe.transform(this.data.date, "h:mm a", "+0530"),
               appointmentId: this.data._id,
             },
             establishmentTiming: this.data.establishmentTiming,
-            doctor: this.data?.doctor,
+            doctor: this.data.doctorDetails, // Use the doctorDetails object
             appointmentId: this.data._id,
             userType: this.data?.userType || 2,
           },
           
           autoFocus: false,
-
-          
         });
-
-        
         break;
-      // case "delete":
-      //   this.matdialog.open(DeleteAppointmentModalComponent, {
-      //     panelClass: "delete-appointment-modal",
-      //     width: "567px",
-      //     data: {
-      //       appointmentId: this.data._id,
-      //       date: this.data.date,
-      //     },
-      //   });
-      //   break;
-      // case "cancel":
-      //   this.matdialog.open(CancelAppointmentModalComponent, {
-      //     panelClass: "cancel-appointment-modal",
-      //     width: "567px",
-      //     data: {
-      //       appointmentId: this.data._id,
-      //       date: this.data.date,
-      //     },
-      //     autoFocus: false,
-      //   });
+      // case "delete": ...
+      // case "cancel": ...
     }
   }
+
   /**
    * Simulated completion of appointment (PUT API call).
    */
@@ -153,7 +127,7 @@ export class PatientDetailsComponent implements OnInit {
       this.loader.set(false);
       this.data.status = 1; // Update local status to completed
       console.log('[API RESPONSE] Appointment marked as COMPLETED locally.');
-      // In a real app: this.eventService.broadcastEvent("callcalendarapi", ...)
+      // You should emit an event here to notify the parent calendar component to refresh/update its list
     }, 1500);
   }
 
@@ -164,6 +138,5 @@ export class PatientDetailsComponent implements OnInit {
     event.stopPropagation();
     this.closePopup.emit(true);
     console.log('[ACTION] Emitting closePopup event.');
-    // In a real app: this.eventService.broadcastEvent("closeTippy", true)
   }
 }

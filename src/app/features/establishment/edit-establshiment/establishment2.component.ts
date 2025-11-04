@@ -267,7 +267,7 @@ export class EstablishmentComponent2 implements OnInit, OnDestroy {
       Authorization: token ? `Bearer ${token}` : '',
     });
 
-    const url = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`;
+    const url = `${environment.baseUrl}/doctor/doctor-establishment-list?size=100`;
 
     this.http.get<any>(url, { headers }).pipe(
       catchError((err) => {

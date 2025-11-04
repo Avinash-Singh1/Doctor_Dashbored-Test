@@ -1,6 +1,6 @@
 // src/app/features/calendar/calendar.component.ts
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, OnDestroy, Inject, Injectable } from '@angular/core'; 
+import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
+import { Component, OnInit, OnDestroy, Inject, Injectable, ViewContainerRef } from '@angular/core'; 
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
@@ -10,6 +10,9 @@ import { NectarWeekViewComponent } from './views/nectar-week-view/nectar-week-vi
 import { AuthService } from '../../core/services/auth.service';
 import { CryptoProvider } from '../../core/services/crypto.service'; 
 import { environment } from '../../../environments/environment';
+import { PatientDetailsComponent } from './views/patient-details/patient-details.component';
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
 // ------------------- PLACEHOLDER / MOCK IMPORTS -------------------
 @Injectable({ providedIn: 'root' })
 class ApiService {
@@ -56,7 +59,7 @@ const APP_CONSTANTS = {
 };
 
 const API_ENDPOINTS = {
-  doctor: { getCalendarData: `${environment.baseUrl2}/api/v1/doctor/get-calender` },
+  doctor: { getCalendarData: `${environment.baseUrl}/doctor/get-calender` },
 };
 
 declare var moment: any;
@@ -109,7 +112,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private apiService: ApiService,
     private localStorage: LocalStorageService,
-    @Inject(DatePipe) private datepipe: DatePipe
+    @Inject(DatePipe) private datepipe: DatePipe,
+    private containerRef: ViewContainerRef,
+    @Inject(DOCUMENT) private _document: Document
   ) {
     if (typeof moment === 'undefined') {
       console.warn("Moment.js is not defined. Using native Date for now.");
@@ -139,9 +144,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
   // 🗓️ HELPER: Get start of week (Sunday)
   private getStartOfWeek(date: Date): Date {
     const d = new Date(date);
-    const day = d.getDay(); // Sunday = 0
-    const diff = d.getDate() - day;
-    return new Date(d.setDate(diff));
+    return new Date(d.setDate(d.getDate() - d.getDay())); // Sunday as start
+  }
+
+  private getMonthRange(date: Date): { startDate: string, endDate: string } {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return {
+      startDate: this.datepipe.transform(start, 'yyyy-MM-dd')!,
+      endDate: this.datepipe.transform(end, 'yyyy-MM-dd')!
+    };
   }
 
   // 🗓️ WEEK NAVIGATION
@@ -184,28 +196,61 @@ export class CalendarComponent implements OnInit, OnDestroy {
     );
   }
 
-  fetchAppointments(date: Date): void {
+  fetchAppointments(date: Date, forceDayPayload = false): void {
     this.isLoading = true;
     this.appointments = [];
 
-    const { startDate, endDate } = this.getStartAndEndDateOfMonth(date);
-    const payload = { startDate, endDate };
+    let payload: any;
+
+    // ✅ If forceDayPayload is true → always send { today: ... }
+    if (forceDayPayload) {
+      payload = { today: this.datepipe.transform(date, 'yyyy-MM-dd') };
+    }
+    else {
+      switch (this.viewmode) {
+        case 'day':
+          payload = { today: this.datepipe.transform(date, 'yyyy-MM-dd') };
+          break;
+
+        case 'week':
+          const start = this.getStartOfWeek(date);
+          const end = new Date(start);
+          end.setDate(start.getDate() + 6);
+          payload = {
+            startDate: this.datepipe.transform(start, 'yyyy-MM-dd'),
+            endDate: this.datepipe.transform(end, 'yyyy-MM-dd')
+          };
+          break;
+
+        default: // month
+          payload = this.getMonthRange(date);
+          break;
+      }
+    }
+
+
+    console.log('📦 Sending payload:', payload);
 
     this.apiService.post(API_ENDPOINTS.doctor.getCalendarData, payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (apiRes: any) => {
           this.isLoading = false;
-          const fetchedAppointments = (apiRes.result || [])
+
+          const fetchedAppointments = (apiRes.data || [])
             .map((item: any) => item.data)
             .flat()
             .map((raw: any) => ({
               ...raw,
               id: raw._id,
-              doctorName: raw.doctorDetails.fullName || 'N/A',
+              doctorName: raw.doctorDetails?.fullName || 'N/A',
+              status: raw.status === -1 ? 2 : raw.status // ✅ convert -1 → Cancelled
             } as Appointment));
+
           this.appointments = fetchedAppointments;
+          console.log('✅ Normalized Appointments:', this.appointments);
         },
+
         error: (error: any) => {
           this.isLoading = false;
           this.appointments = [];
@@ -214,17 +259,36 @@ export class CalendarComponent implements OnInit, OnDestroy {
       });
   }
 
-  onChangingMonth(value: number) {
-    if (!value) {
-      this.monthdetails = new Date();
-      this.viewmode = 'day';
-      this.todayDate = new Date();
-      this.fetchAppointments(this.todayDate);
-      return;
-    }
-    this.monthdetails = new Date(this.monthdetails.setMonth(this.monthdetails.getMonth() + value));
-    this.fetchAppointments(this.monthdetails);
+  // onChangingMonth(value: number) {
+  //   if (!value) {
+  //     this.monthdetails = new Date();
+  //     this.viewmode = 'day';
+  //     this.todayDate = new Date();
+  //     this.fetchAppointments(this.todayDate);
+  //     return;
+  //   }
+  //   this.monthdetails = new Date(this.monthdetails.setMonth(this.monthdetails.getMonth() + value));
+  //   this.fetchAppointments(this.monthdetails);
+  // }
+
+  onChangingMonth(value: number): void {
+  if (!value) {
+    this.monthdetails = new Date(); // reset to current month
+    this.viewmode = 'day';
+    this.todayDate = new Date();
+    this.fetchAppointments(this.todayDate);
+    return;
   }
+
+  // Move month pointer forward/backward
+  const newMonth = new Date(this.monthdetails);
+  newMonth.setMonth(newMonth.getMonth() + value);
+  this.monthdetails = newMonth;
+
+  // Fetch appointments for new month
+  this.fetchAppointments(this.monthdetails);
+}
+
 
   onChangingMode(mode: 'day' | 'week' | 'month') {
     this.viewmode = mode;
@@ -237,13 +301,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.fetchAppointments(this.todayDate);
   }
 
-  onChangeSchedule(res: number = 0): void {
-    if (this.hideView) return;
-    const newDate = new Date(this.todayDate);
-    newDate.setDate(newDate.getDate() + res);
-    this.todayDate = newDate;
-    this.fetchAppointments(this.todayDate);
-  }
+onChangeSchedule(res: number = 0): void {
+  if (this.hideView) return;
+  const newDate = new Date(this.todayDate);
+  newDate.setDate(newDate.getDate() + res);
+  this.todayDate = newDate;
+
+  // ✅ Always send { today: "YYYY-MM-DD" } payload
+  this.fetchAppointments(this.todayDate, true);
+}
+
 
   onMenuClick() {
     const sideMenu = document.getElementById('sideMenu');
@@ -287,5 +354,101 @@ export class CalendarComponent implements OnInit, OnDestroy {
 //     this.monthdetails = newDate;
 //   }
 // }
+
+// src/app/features/calendar/calendar.component.ts
+
+// ... existing code ...
+
+tooltips: any[] = [];
+
+onEventMouseOver(event: MouseEvent): void {
+  // Clear any existing tooltips before creating new ones to prevent clutter
+  // NOTE: You should have a way to destroy old tooltips, e.g., on list change or mouseout.
+  // For now, let's just create it on hover if it hasn't been initialized.
+  
+  const target = event.currentTarget as HTMLElement;
+  
+  // The tippy instance automatically handles show/hide on 'mouseenter'
+  // But we want to ensure the Tippy instance itself is only initialized ONCE.
+  // The reference function implies tippy is used, which has an 'onShow' callback 
+  // to prevent re-initialization, but since your reference runs for ALL cells, 
+  // running it *per* mouseover is unusual.
+
+  // Let's adopt a common pattern: initialize tippy only once.
+  if (target.getAttribute('data-tippy-initialized')) {
+    return; // Already initialized, tippy handles the show/hide
+  }
+  
+  target.setAttribute('data-tippy-initialized', 'true');
+  
+  // Call the function to create and attach the tippy instance
+  this.attachTooltips(target);
+}
+
+// src/app/features/calendar/calendar.component.ts
+
+// ... existing code ...
+
+attachTooltips(cell: HTMLElement): void {
+  // Ensure the element has the required data attribute
+  const detailsAttr = cell.attributes.getNamedItem("data-details");
+  if (!detailsAttr) return;
+
+  try {
+    // 1. Create the Angular component instance
+    const component = this.containerRef.createComponent(PatientDetailsComponent);
+    
+    // 2. Pass data to the component instance
+    component.instance.data = JSON.parse(detailsAttr.value);
+    
+    // 3. Manually detect changes to render the content
+    component.changeDetectorRef.detectChanges();
+    
+    // 4. Attach tippy to the cell
+    const tippyInstance = tippy(cell, {
+      content: component.location.nativeElement, // Use the rendered component's native element
+      placement: "top",
+      trigger: "mouseenter", // Tippy default, matches your handler
+      arrow: false,
+      interactive: true,
+      offset: [0, 0],
+      zIndex: 8,
+      appendTo: () => this._document.body,
+      popperOptions: {
+        modifiers: [
+          {
+            name: "flip",
+            options: {
+              fallbackPlacements: ["bottom", "left", "right"],
+            },
+          },
+          {
+            name: "offset",
+            options: {
+              offset: [0, 10],
+            },
+          },
+        ],
+      },
+      // IMPORTANT: Destroy the Angular component when the tooltip is hidden/destroyed
+      onDestroy: () => {
+        component.destroy();
+        console.log('🗑️ PatientDetailsComponent destroyed');
+      }
+    });
+
+    // Save the tippy instance (or its popper reference) if needed for global destruction/management
+    this.tooltips.push(tippyInstance);
+    
+    // Manually show the tooltip since the event already happened (optional, tippy handles it on 'mouseenter')
+    // tippyInstance.show(); 
+
+  } catch (e) {
+    console.error("Error creating tooltip or parsing data-details:", e);
+    cell.removeAttribute('data-tippy-initialized'); // Allow retry
+  }
+}
+
+
 
 }

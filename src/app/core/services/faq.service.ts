@@ -31,10 +31,16 @@ interface AddApiResponse {
   result: ApiFaqItem;
 }
 
+// const API_BASE = `${environment.baseUrl2}/api/v1`;
+// const API_ENDPOINTS = {
+//   LIST: '/faq/all-faq', // GET
+//   CRUD: '/faq',         // POST, DELETE (via path), PUT (unconfirmed, but common)
+// };
+
 // --- API Configuration ---
-const API_BASE = `${environment.baseUrl2}/api/v1`;
+const API_BASE = `${environment.baseUrl}`;
 const API_ENDPOINTS = {
-  LIST: '/faq/all-faq', // GET
+  LIST: '/faq/list', // GET
   CRUD: '/faq',         // POST, DELETE (via path), PUT (unconfirmed, but common)
 };
 const USER_TYPE = 2;
@@ -85,6 +91,22 @@ export class FaqService {
    * Fetches the FAQ list for the current user.
    */
   public getFaqs(): Observable<FaqItem[]> {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    // ... (Token handling logic remains the same)
+    try {
+      const rawToken = localStorage.getItem('authToken');
+      if (rawToken) {
+        const token = this.crypto.decryptObj(rawToken);
+        if (token) {
+          headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read/decrypt auth token for profile fetch', e);
+    }
+
     const userId = this.getUserId();
     if (!userId) {
       return throwError(() => new Error('User context missing. Cannot fetch FAQs.'));
@@ -93,7 +115,7 @@ export class FaqService {
     const url = `${API_BASE}${API_ENDPOINTS.LIST}?id=${encodeURIComponent(userId)}&userType=${USER_TYPE}`;
 
     return this.http
-      .get<ListApiResponse>(url)
+      .get<ListApiResponse>(url,{ headers })
       .pipe(
         map((res) => {
           const rows = res?.result?.data ?? [];

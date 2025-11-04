@@ -18,7 +18,7 @@ export class MedicalVerificationService {
   private readonly API_BASE = 'http://localhost:3000';
   private readonly API_BASE2 = 'http://localhost:8080';
   // Profile endpoint (from your request)
-  private readonly PROFILE_API = `${environment.baseUrl2}/api/v1/setting/profile`;
+  private readonly PROFILE_API = `${environment.baseUrl}/doctor/profile`;
   // Profile update endpoint
   private readonly UPDATE_PROFILE_API = `${environment.baseUrl}/doctor/update-profile`;
 

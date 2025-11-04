@@ -65,7 +65,7 @@ export class DoctorEstablishmentComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  private readonly API_URL = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`;
+  private readonly API_URL = `${environment.baseUrl}/doctor/doctor-establishment-list?size=100`;
   private readonly DELETE_URL = `${environment.baseUrl2}/api/v1/doctor/doctor-delete-establishment2`;
   private readonly TOKEN:any;
 

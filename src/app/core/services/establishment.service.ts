@@ -48,7 +48,7 @@ interface EstablishmentPayload {
 export class EstablishmentService {
   // Constants (Moved from Component)
   private readonly API_BASE = 'http://localhost:3000';
-  private readonly LIST_URL = `${environment.baseUrl2}/api/v1/doctor/doctor-establishment-list?size=100`; // Existing check URL
+  private readonly LIST_URL = `${environment.baseUrl}/doctor/doctor-establishment-list?size=100`; // Existing check URL
   // private readonly LIST_URL = 'http://localhost:8080/api/v1/doctor/doctor-establishment-list?size=100'; // Existing check URL
   private readonly SUBMIT_URL = `${environment.baseUrl}/doctor/doctor-add-establishment`;
   private readonly DRAFT_PREFIX = 'establishmentDraft::';

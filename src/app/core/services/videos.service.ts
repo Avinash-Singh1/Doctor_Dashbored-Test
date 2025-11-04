@@ -17,7 +17,7 @@ export interface VideoItem {
 }
 
 // --- API Endpoints Configuration ---
-const API_BASE = `${environment.baseUrl2}/api/v1`;
+const API_BASE = `${environment.baseUrl}`;
 const API_ENDPOINTS = {
   LIST: '/video/list', // GET
   CRUD: '/video',     // POST, PUT, DELETE

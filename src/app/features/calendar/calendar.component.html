@@ -68,10 +68,13 @@
     <!-- Calendar View Area -->
     <div class="calendar-panel">
       <!-- Inside .calendar-panel -->
-    <nectar-month-view *ngIf="viewmode == 'month'" 
-      [appointments]="appointments" 
-      [today]="today">
-    </nectar-month-view>
+    <nectar-month-view
+  *ngIf="viewmode === 'month'"
+  [appointments]="appointments"
+  [today]="today"
+  [currentMonth]="monthdetails">
+</nectar-month-view>
+
 
     <!-- WEEK VIEW WITH CURRENT WEEK START -->
     <nectar-week-view *ngIf="viewmode == 'week'"
@@ -134,9 +137,12 @@
                 "
               >
                 <div
-                  class="appointment-item"
-                  [attr.data-details]="stringify(item)"
-                >
+                class="appointment-item"
+                [attr.data-details]="stringify(item)"
+                (mouseover)="onEventMouseOver($event)"
+              >
+  
+
                   <!-- Time & Type Column -->
                   <div class="time-column">
                     <span class="appointment-time">{{ item.date | date : "h:mm a" }}</span>
