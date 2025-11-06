@@ -40,7 +40,7 @@ export class UserMenuComponent implements OnInit, OnDestroy {
     });
 
 
-    console.log("User from localStorage in UserMenuComponent:", this.currentUser);
+    // console.log("User from localStorage in UserMenuComponent:", this.currentUser);
   }
 
   private applyUser(user: AuthUser): void {

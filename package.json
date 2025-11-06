@@ -23,6 +23,7 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@ng-select/ng-select": "^10.0.4",
+    "@ngneat/svg-icon": "^8.0.0",
     "apexcharts": "^5.3.4",
     "bootstrap": "^5.3.8",
     "crypto-js": "^4.2.0",

@@ -5,4 +5,5 @@ export const environment = {
   baseUrl2:'https://api.nectarplus.health',
   apiUrl: 'https://doctorapi.nectarplus.health/',
   featureXEnabled: true,
+  DOCTOR_SLOT_TIME: 15,
 };

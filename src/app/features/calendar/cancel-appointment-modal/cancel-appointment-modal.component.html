@@ -1,0 +1,69 @@
+<div class="cancel-appointment-container">
+  <div class="modal-header">
+    <h2>Cancel Appointment</h2>
+  </div>
+
+  <form [formGroup]="cancelAppointmentForm" (ngSubmit)="onSubmit()">
+    <div class="modal-body">
+
+      <!-- Reason Dropdown -->
+      <div class="form-group">
+        <label>Reason <span class="required">*</span></label>
+        <select class="form-select" formControlName="reason">
+          <option value="" disabled selected>Select a reason</option>
+          <option *ngFor="let option of options" [value]="option.id">
+            {{ option.label }}
+          </option>
+        </select>
+        <div
+          class="error-text"
+          *ngIf="cancelAppointmentForm.get('reason')?.errors?.['required'] && (submitted || cancelAppointmentForm.get('reason')?.touched)">
+          Please select a reason.
+        </div>
+      </div>
+
+      <!-- Notify Options -->
+      <div class="form-group">
+        <label>Notify Patient Via <span class="required">*</span></label>
+        <div class="notify-options">
+          <label class="notify-option">
+            <input
+              type="checkbox"
+              [value]="1"
+              (change)="onCheckboxChange($event)"
+              checked
+            />
+            <span>SMS</span>
+          </label>
+
+          <label class="notify-option">
+            <input
+              type="checkbox"
+              [value]="2"
+              (change)="onCheckboxChange($event)"
+              checked
+            />
+            <span>Email</span>
+          </label>
+        </div>
+
+        <div
+          class="error-text"
+          *ngIf="cancelAppointmentForm.get('mode')?.errors?.['required'] && (submitted || cancelAppointmentForm.get('mode')?.touched)">
+          Please select at least one notification method.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="matdialogRef.close()">
+        Close
+      </button>
+      <button class="btn-danger" type="submit">
+        Cancel Appointment
+      </button>
+    </div>
+  </form>
+</div>

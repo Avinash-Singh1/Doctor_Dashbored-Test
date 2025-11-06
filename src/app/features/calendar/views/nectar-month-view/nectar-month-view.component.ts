@@ -137,7 +137,7 @@ export class NectarMonthViewComponent implements OnInit, OnChanges {
                 time: this.datePipe.transform(a.date, 'hh:mm a') || '',
                 phone: a.patientDetails.phone,
                 email: a.patientDetails.email || '',
-                status: a.status || '',
+                status: a.status,
                 doctorDetails:a.doctorDetails || '',
                 isverified: a.patientDetails.isverified,
               }))
@@ -168,6 +168,7 @@ export class NectarMonthViewComponent implements OnInit, OnChanges {
     hideAll();
 
     const componentRef: ComponentRef<NectarPatientListComponent> = this.vcr.createComponent(NectarPatientListComponent);
+    console.log("NectarPatientListComponent: ",day);
     componentRef.instance.patientList = day.details;
     componentRef.changeDetectorRef.detectChanges();
 

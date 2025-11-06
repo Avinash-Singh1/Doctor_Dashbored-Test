@@ -4,11 +4,17 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angula
 import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { MatInputModule } from "@angular/material/input";
 import { MatDatepickerModule, MatCalendarCellCssClasses } from "@angular/material/datepicker";
-import { MatNativeDateModule } from "@angular/material/core";
+import { MatNativeDateModule, provideNativeDateAdapter } from "@angular/material/core";
 import { MatFormFieldModule } from "@angular/material/form-field";
-import { NgSelectModule } from "@ng-select/ng-select";  // ✅ Real NgSelect import
-import * as moment from 'moment';
-import { provideNativeDateAdapter } from "@angular/material/core";
+import { NgSelectModule } from "@ng-select/ng-select";
+// --- FIX: Using default import for moment to allow direct function call ---
+import moment from 'moment'; // Changed import
+import { Observable, of } from 'rxjs'; // Added for mock API return type
+import { environment } from "../../../../environments/environment";
+import { ApiService } from "../../../core/services/api.service";
+// import { EventService } from "../../../core/services/event.service";
+// import { LocalStorageService } from "../../../core/services/storage.service";
+import { APP_CONSTANTS } from "../../../config/app.constant";
 // Custom Pipe
 @Pipe({ name: 'avaliableSlot', standalone: true })
 export class AvailableSlotPipe implements PipeTransform {
@@ -17,18 +23,15 @@ export class AvailableSlotPipe implements PipeTransform {
   }
 }
 
-// ------------------- MOCK SERVICES -------------------
-const APP_CONSTANTS = {
-  USER_TYPES: { HOSPITAL: 3, DOCTOR: 2 },
+// ------------------- MOCK SERVICES & CONSTANTS (Updated) -------------------
+// Mock API Endpoints (Required by reference onSubmit)
+const API_ENDPOINTS = {
+    doctor: { getCalendarData: '/doctor/calendar' },
+    hospital: { getCalendarData: '/hospital/calendar', rescheduleAppointment: '/api/v1/hospital/appointment' },
 };
-const environment = {
-  DOCTOR_SLOT_TIME: 15,
-};
-class ApiService {
-  post(endpoint: string, payload: any): any { return []; }
-  postParams(endpoint: string, payload: any, params: any): any { return []; }
-  get(endpoint: string, payload: any): any { return []; }
-}
+// const APP_CONSTANTS = {
+//   USER_TYPES: { HOSPITAL: 3, DOCTOR: 2 },
+// };
 class EventService {
   broadcastEvent(name: string, data: any) { console.log(`[EventService] Broadcast: ${name}`, data); }
 }
@@ -52,13 +55,13 @@ type DayCodeKey = '0' | '1' | '2' | '3' | '4' | '5' | '6';
     MatDatepickerModule,
     MatNativeDateModule,
     MatFormFieldModule,
-    NgSelectModule,           // ✅ Real NgSelectModule added
+    NgSelectModule,
     AvailableSlotPipe,
     
   ],
   templateUrl: "./edit-appointment-modal.component.html",
   styleUrls: ["./edit-appointment-modal.component.scss"],
-  providers: [DatePipe, ApiService, EventService, LocalStorageService,provideNativeDateAdapter()]
+  providers: [DatePipe, ApiService, EventService, LocalStorageService, provideNativeDateAdapter()]
 })
 export class EditAppointmentModalComponent implements OnInit {
   heading:any="Edit Appointment";
@@ -66,7 +69,8 @@ export class EditAppointmentModalComponent implements OnInit {
   timingArray: { label: string | null }[] = [];
   submitted = false;
   today: Date = new Date();
-  maxDate = moment.default(this.today).endOf("M").add(2, "M").toDate();
+  // Fixed moment call: Removed .default
+  maxDate = moment(this.today).endOf("M").add(2, "M").toDate(); 
   dayCode: Record<DayCodeKey, string> = {
     '0': "sun", '1': "mon", '2': "tue", '3': "wed", '4': "thu", '5': "fri", '6': "sat",
   };
@@ -124,22 +128,59 @@ export class EditAppointmentModalComponent implements OnInit {
       time: [null, Validators.required],
       timespend: [{ value: 15, disabled: true }],
       notes: ["", Validators.required],
-      appointmentId: [],
+      appointmentId: [this.data.appointmentId], // Initialize appointmentId
     });
   }
 
   get control(): { [key: string]: any } { return this.editAppointmentForm.controls; }
 
+  /**
+   * 🚀 MODIFIED onSubmit: Implements time parsing and API call similar to the reference code.
+   */
   onSubmit() {
     this.submitted = true;
     if (this.editAppointmentForm.valid) {
-      const payload = { date: this.control["date"].value, notes: this.control["notes"].value };
-      console.log("Reschedule Payload:", payload);
-      this.eventService.broadcastEvent("callcalendarapi", this.control["date"].value);
-      this.matdialogRef.close();
+      const timeString = this.control["time"].value;
+      const timeComponents = timeString.split(":");
+      let hour = parseInt(timeComponents[0], 10);
+      let minute = parseInt(timeComponents[1].split(" ")[0], 10); // Safely get minutes before AM/PM
+
+      // Adjust the hour value for AM/PM (Logic copied from reference)
+      if (timeString.indexOf("PM") !== -1 && hour < 12) {
+        hour += 12;
+      } else if (timeString.indexOf("AM") !== -1 && hour === 12) {
+        hour = 0;
+      }
+
+      const payload = {
+        date: new Date(
+          new Date(this.control["date"].value).setHours(hour, minute, 0, 0)
+        ).toISOString(),
+        notes: this.control["notes"].value,
+      };
+
+      // API Call Logic (Copied from reference)
+      this.apiService
+        .postParams(`${environment.baseUrl2}${API_ENDPOINTS.hospital.rescheduleAppointment}`, payload, {
+          appointmentId: this.data.appointmentId,
+        })
+        .subscribe({
+          next: (res: any) => {
+            this.eventService.broadcastEvent(
+              "callcalendarapi",
+              this.control["date"].value
+            );
+            this.matdialogRef.close();
+          },
+          error: (error: any) => {
+            console.log(error);
+          },
+        });
     }
+    // alert("I am inside sumit function")
   }
 
+  // Rest of the methods remain unchanged for this request
   getTodayAppointment(date: Date) {
     this.generateList(date);
     this.date = date;

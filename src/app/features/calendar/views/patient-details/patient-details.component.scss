@@ -1,66 +1,44 @@
 @use "sass:color";
 
-/* --- SCSS Variables for Professional Theme (Indigo/Healthcare) --- */
-$primary-color: #4F46E5; // Indigo 600 - Primary accent
-$primary-light: #EEF2FF; // Indigo 50 - Light background for emphasis
-$text-dark: #1F2937; // Dark gray for main text
-$text-medium: #4B5563; // Medium gray for details
-$text-light: #9CA3AF; // Light gray for subtle info (like ID)
-$border-color: #E5E7EB; // Light border color
-$error-color: #EF4444; // Rose 500 - Cancelled status
-$warning-color: #F59E0B; // Amber 500 - Pending status
-$success-color: #10B981; // Emerald 500 - Completed status
+/* --- Theme Colors --- */
+$primary-color: #4F46E5;
+$primary-light: #EEF2FF;
+$text-dark: #1F2937;
+$text-medium: #4B5563;
+$text-light: #9CA3AF;
+$border-color: #E5E7EB;
+$error-color: #EF4444;
+$warning-color: #F59E0B;
+$success-color: #10B981;
 
 /* --- Base Styles --- */
 :host {
   display: block;
   padding: 16px;
   font-family: 'Inter', sans-serif;
-  background-color: #FAFAFA; // Soft background for context
+  background-color: #FAFAFA;
 }
 
 .patient-details-card {
   width: 100%;
-  max-width: 400px; // Optimized width
+  max-width: 400px;
   margin: 0 auto;
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); // Modern, soft shadow
-  overflow: hidden; // Ensures inner elements respect card rounding
-}
-
-/* --- Utility Classes --- */
-.font-600 { font-weight: 600; }
-.font-500 { font-weight: 500; }
-.font-400 { font-weight: 400; }
-
-.line-clamp-2, .line-clamp-1 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+              0 4px 6px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-.line-clamp-1 { -webkit-line-clamp: 1; }
-.line-clamp-2 { -webkit-line-clamp: 2; }
 
-.subheader-label {
-  font-weight: 700;
-  font-size: 18px;
-  color: $text-dark;
-}
-.patient-id {
-  font-size: 13px;
-  color: $text-light;
-  font-weight: 500;
-}
-.icon-sm {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+  /* Conditional background for statuses */
+  &.status-completed {
+    border: 2px solid $success-color;
+  }
+  &.status-cancelled {
+    border: 2px solid $error-color;
+  }
 }
 
-
-/* --- 1. Header (Patient Info and Icons) --- */
+/* --- Header --- */
 .patient-details-header {
   display: flex;
   justify-content: space-between;
@@ -68,6 +46,7 @@ $success-color: #10B981; // Emerald 500 - Completed status
   padding: 20px 24px;
   border-bottom: 1px solid $border-color;
 }
+
 .patient-info-container {
   display: flex;
   align-items: center;
@@ -79,11 +58,7 @@ $success-color: #10B981; // Emerald 500 - Completed status
     &:hover { opacity: 0.85; }
   }
 }
-.name-id-group {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-}
+
 .profile-pic {
   width: 56px;
   height: 56px;
@@ -100,13 +75,32 @@ $success-color: #10B981; // Emerald 500 - Completed status
     color: $primary-color;
   }
 }
+
 .profile-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Icons Group */
+.name-id-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.subheader-label {
+  font-weight: 700;
+  font-size: 18px;
+  color: $text-dark;
+}
+
+.patient-id {
+  font-size: 13px;
+  color: $text-light;
+  font-weight: 500;
+}
+
+/* --- Icons --- */
 .icons {
   display: flex;
   gap: 4px;
@@ -120,6 +114,9 @@ $success-color: #10B981; // Emerald 500 - Completed status
   border-radius: 50%;
   transition: background-color 0.2s, color 0.2s;
   color: $text-medium;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background-color: $border-color;
@@ -127,28 +124,16 @@ $success-color: #10B981; // Emerald 500 - Completed status
   }
 }
 
-
-/* --- 2. Contact and Status Section --- */
+/* --- Contact & Status Section --- */
 .contact-status-section {
   padding: 16px 24px 20px;
   border-bottom: 1px solid $border-color;
-}
 
-.profile-status {
-  padding-bottom: 12px;
-  .status-text {
+  span {
+    display: block;
     font-size: 14px;
-    padding: 4px 10px;
-    border-radius: 9999px; // Pill shape
-    font-weight: 700;
-  }
-  &.complete .status-text {
-    background-color: #D1FAE5;
-    color: $success-color;
-  }
-  &.incomplete .status-text {
-    background-color: #FEF3C7;
-    color: $warning-color;
+    color: $text-medium;
+    margin-bottom: 12px;
   }
 }
 
@@ -158,89 +143,86 @@ $success-color: #10B981; // Emerald 500 - Completed status
   gap: 12px;
 
   @media (min-width: 480px) {
-    grid-template-columns: repeat(2, 1fr); // Two columns on wider screens
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
 }
+
 .detail-row {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
   color: $text-medium;
-  svg { color: $text-light; }
-}
-
-
-/* --- 3. Appointment Details --- */
-.appointment-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  background-color: $primary-light; // Light indigo background to highlight details
-}
-.appointment-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 70%;
-}
-.location-detail {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: $text-medium;
-  font-weight: 500;
-  svg {
-    color: $primary-color; // Icon uses primary color
+  svg-icon {
+    width: 18px;
+    height: 18px;
+    color: $text-light;
   }
 }
-.appointment-time-block {
-  text-align: right;
-  line-height: 1.2;
-  flex-shrink: 0;
-  .time-main {
-    display: block;
-    font-size: 20px;
-    font-weight: 700;
+
+/* --- Location & Doctor --- */
+.location {
+  padding: 12px 24px;
+  background-color: $primary-light;
+  border-bottom: 1px solid $border-color;
+  span {
+    color: $text-medium;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  svg-icon {
     color: $primary-color;
   }
-  .duration-subtext {
-    font-size: 12px;
-    color: $text-medium;
-    font-weight: 400;
-  }
 }
 
+/* --- Appointment Info --- */
+.appointment {
+  padding: 16px 24px;
+  background-color: $primary-light;
+  align-items: center;
 
-/* --- 4. Cancellation Reason --- */
+  .subheader-label {
+    color: $primary-color;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .font-400 {
+    color: $text-medium;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  border-bottom: 1px solid $border-color;
+}
+
+/* --- Cancel Reason --- */
 .cancel-reason {
   padding: 16px 24px;
-  background-color: #FEF2F2; // Light Red background for warning
+  background-color: #FEF2F2;
   border-top: 1px solid $border-color;
   color: $text-dark;
-  .cancel-reason-header {
+
+  p:first-child {
+    color: $error-color;
     font-weight: 700;
     font-size: 14px;
     margin-bottom: 4px;
-    color: $error-color;
   }
-  .cancel-reason-text {
+  p:last-child {
     font-size: 14px;
     color: $text-medium;
-    margin: 0;
   }
 }
 
-
-/* --- 5. Button Group --- */
+/* --- Button Group --- */
 .buttongroup {
   display: flex;
   width: 100%;
 
-  .action-button {
+  button {
     padding: 16px 10px;
     border: none;
     cursor: pointer;
@@ -249,42 +231,61 @@ $success-color: #10B981; // Emerald 500 - Completed status
     font-size: 14px;
     transition: background-color 0.2s, opacity 0.2s;
     flex-grow: 1;
+    color: #fff;
 
     &.opacity-50 {
       cursor: default;
       pointer-events: none;
+      opacity: 0.5;
     }
 
-    &.pending-button {
+    &.pending {
       background-color: $warning-color;
-      color: #fff;
-      border-right: 1px solid rgba(0, 0, 0, 0.1);
       &:hover { background-color: color.adjust($warning-color, $lightness: -5%); }
     }
-    &.cancelled-button {
+
+    &.cancelled {
       background-color: $error-color;
-      color: #fff;
       &:hover { background-color: color.adjust($error-color, $lightness: -5%); }
     }
-    &.completed-button {
+
+    &.completed {
       background-color: $success-color;
-      color: #fff;
       &:hover { background-color: color.adjust($success-color, $lightness: -5%); }
+      img {
+        width: 18px;
+        height: 18px;
+      }
+      span {
+        font-size: 14px;
+        color: #fff;
+      }
     }
   }
 
-  // Two button specific layout
-  &.two-buttons {
-    .action-button {
-      flex-basis: 50%;
-      &:first-child { border-radius: 0 0 0 16px; }
-      &:last-child { border-radius: 0 0 16px 0; }
-    }
+  .w-50 { width: 50%; }
+  .w-100 { width: 100%; }
+
+  .border-style {
+    border-radius: 0 0 16px 16px;
   }
-  // Single button specific layout
-  &.one-button {
-    .action-button {
-      border-radius: 0 0 16px 16px;
-    }
-  }
+}
+
+/* --- Loader --- */
+.loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid $border-color;
+  border-top: 3px solid $primary-color;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+button[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
 }

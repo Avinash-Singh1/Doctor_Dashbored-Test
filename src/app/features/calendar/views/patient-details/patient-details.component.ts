@@ -2,6 +2,14 @@ import { Component, EventEmitter, Input, OnInit, Output, signal } from "@angular
 import { CommonModule, DatePipe, TitleCasePipe } from "@angular/common";
 import { MatDialog } from "@angular/material/dialog";
 import { EditAppointmentModalComponent } from "../../edit-appointment-modal/edit-appointment-modal.component";
+import { ApiService } from "../../../../core/services/api.service";
+import { environment } from "../../../../../environments/environment";
+import { EventService } from "../../../../core/services/event.service";
+import { CancelAppointmentModalComponent } from "../../cancel-appointment-modal/cancel-appointment-modal.component";
+
+const API_ENDPOINTS = {
+  hospital: { changeAppointmentStatus: `${environment.baseUrl2}/api/v1/hospital/appointment`},
+};
 
 // --- INTERFACE REFERENCE (Assuming this structure from the parent) ---
 export interface Appointment {
@@ -37,7 +45,7 @@ export class PatientDetailsComponent implements OnInit {
   futureDate: boolean = false;
   
   // Dependencies are now correctly injected due to the 'providers' array
-  constructor(private matdialog: MatDialog, private datepipe: DatePipe) {} 
+  constructor(private matdialog: MatDialog, private datepipe: DatePipe, private apiService: ApiService,private eventService: EventService) {} 
   
   ngOnInit(): void {
     const appointmentDate = new Date(this.data?.date);
@@ -105,31 +113,89 @@ export class PatientDetailsComponent implements OnInit {
           autoFocus: false,
         });
         break;
-      // case "delete": ...
-      // case "cancel": ...
+      // case "delete":
+      //   this.matdialog.open(DeleteAppointmentModalComponent, {
+      //     panelClass: "delete-appointment-modal",
+      //     width: "567px",
+      //     data: {
+      //       appointmentId: this.data._id,
+      //       date: this.data.date,
+      //     },
+      //   });
+      //   break;
+      case "cancel":
+        this.matdialog.open(CancelAppointmentModalComponent, {
+          panelClass: "cancel-appointment-modal",
+          width: "567px",
+          data: {
+            appointmentId: this.data._id,
+            date: this.data.date,
+          },
+          autoFocus: false,
+        });
     }
   }
 
   /**
    * Simulated completion of appointment (PUT API call).
    */
-  onComplete() {
-    if (this.futureDate) {
-      console.log('[ACTION] Cannot complete a future appointment.');
-      return;
-    }
+  // onComplete() {
+  //   if (this.futureDate) {
+  //     console.log('[ACTION] Cannot complete a future appointment.');
+  //     return;
+  //   }
 
-    this.loader.set(true);
-    console.log(`[ACTION] Simulating API call to complete appointment ID: ${this.data._id}`);
+  //   this.loader.set(true);
+  //   console.log(`[ACTION] Simulating API call to complete appointment ID: ${this.data._id}`);
     
-    // Simulate API delay
-    setTimeout(() => {
-      this.loader.set(false);
-      this.data.status = 1; // Update local status to completed
-      console.log('[API RESPONSE] Appointment marked as COMPLETED locally.');
-      // You should emit an event here to notify the parent calendar component to refresh/update its list
-    }, 1500);
+  //   // Simulate API delay
+  //   setTimeout(() => {
+  //     this.loader.set(false);
+  //     this.data.status = 1; // Update local status to completed
+  //     console.log('[API RESPONSE] Appointment marked as COMPLETED locally.');
+  //     // You should emit an event here to notify the parent calendar component to refresh/update its list
+  //   }, 1500);
+  // }
+
+  // new 
+  onComplete() {
+  const appointmentDate = new Date(this?.data?.date);
+  const currentDate = new Date();
+
+  // 🚫 If appointment is in the future, stop here
+  if (appointmentDate > currentDate) {
+    console.log('[ACTION] Cannot complete a future appointment.');
+    return;
   }
+
+  this.loader.set(true);
+
+  this.apiService
+    .putParams(
+      API_ENDPOINTS.hospital.changeAppointmentStatus,
+      { status: 1 },
+      {
+        appointmentId: this.data._id,
+      }
+    )
+    .subscribe({
+      next: (res: any) => {
+        this.loader.set(false);
+        this.data.status = 1;
+
+        // Broadcast event so parent components (e.g. calendar) refresh data
+        this.eventService.broadcastEvent("callcalendarapi", this.data?.date);
+        console.log('[SUCCESS] Appointment marked as COMPLETED.');
+      },
+      error: (error: any) => {
+        this.loader.set(false);
+        console.error('[ERROR] Failed to complete appointment:', error);
+      },
+    });
+}
+
+  // new 
+
 
   /**
    * Emits the close event for the popup/tippy.

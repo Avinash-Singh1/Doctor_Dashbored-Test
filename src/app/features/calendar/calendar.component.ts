@@ -229,7 +229,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     }
 
 
-    console.log('📦 Sending payload:', payload);
+    // console.log('📦 Sending payload:', payload);
 
     this.apiService.post(API_ENDPOINTS.doctor.getCalendarData, payload)
       .pipe(takeUntil(this.destroy$))
@@ -248,7 +248,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
             } as Appointment));
 
           this.appointments = fetchedAppointments;
-          console.log('✅ Normalized Appointments:', this.appointments);
+          // console.log('✅ Normalized Appointments:', this.appointments);
         },
 
         error: (error: any) => {
