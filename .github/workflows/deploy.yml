@@ -1,0 +1,77 @@
+name: Deploy Angular App to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - production  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Build Angular app
+        run: npm run build:prod
+
+      - name: Archive production build
+        run: tar -czf dist.tar.gz dist/
+
+      - name: Copy build files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "dist.tar.gz"
+          target: "/var/www/doctor-dashboard"
+
+      - name: Deploy and restart app on VPS
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /var/www/doctor-dashboard
+
+            echo "🔧 Cleaning up old deployment..."
+            rm -rf dist.old
+            if [ -d "dist" ]; then
+              mv dist dist.old
+            fi
+
+            echo "📦 Extracting new build..."
+            tar -xzf dist.tar.gz
+            rm dist.tar.gz
+
+            # If Angular output folder is nested (dist/doctor-dashboard/browser)
+            if [ -d "dist/doctor-dashboard/browser" ]; then
+              mv dist/doctor-dashboard/browser dist
+            elif [ -d "dist/doctor-dashboard" ]; then
+              mv dist/doctor-dashboard dist
+            fi
+
+            echo "🚀 Restarting PM2 process..."
+            if pm2 list | grep -q "doctor-dashboard"; then
+              pm2 restart doctor-dashboard
+            else
+              pm2 start npx --name "doctor-dashboard" -- http-server dist -p 9000
+              pm2 save
+            fi
+
+            echo "✅ Deployment complete!"
