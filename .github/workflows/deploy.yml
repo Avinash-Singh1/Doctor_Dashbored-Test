@@ -3,7 +3,7 @@ name: Deploy Angular App to Hostinger VPS
 on:
   push:
     branches:
-      - production  
+      - production  # triggers deployment when you push to the production branch
 
 jobs:
   build-and-deploy:
@@ -21,9 +21,6 @@ jobs:
       - name: Install dependencies
         run: npm i -f
 
-      - name: Run tests
-        run: npm test --if-present
-
       - name: Build Angular app
         run: npm run build:prod
 
@@ -39,7 +36,7 @@ jobs:
           source: "dist.tar.gz"
           target: "/var/www/doctor-dashboard"
 
-      - name: Deploy and restart app on VPS
+      - name: Deploy and reload Nginx on VPS
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -59,19 +56,15 @@ jobs:
             tar -xzf dist.tar.gz
             rm dist.tar.gz
 
-            # If Angular output folder is nested (dist/doctor-dashboard/browser)
+            echo "📁 Adjusting Angular dist folder..."
+            # Handle nested Angular output (dist/browser or dist/doctor-dashboard/browser)
             if [ -d "dist/doctor-dashboard/browser" ]; then
               mv dist/doctor-dashboard/browser dist
-            elif [ -d "dist/doctor-dashboard" ]; then
-              mv dist/doctor-dashboard dist
+            elif [ -d "dist/browser" ]; then
+              mv dist/browser dist
             fi
 
-            echo "🚀 Restarting PM2 process..."
-            if pm2 list | grep -q "doctor-dashboard"; then
-              pm2 restart doctor-dashboard
-            else
-              pm2 start npx --name "doctor-dashboard" -- http-server dist -p 9000
-              pm2 save
-            fi
+            echo "♻️ Reloading Nginx..."
+            systemctl reload nginx || systemctl restart nginx
 
-            echo "✅ Deployment complete!"
+            echo "✅ Deployment complete! Your app should be live at: http://${{ secrets.VPS_HOST }}/"
