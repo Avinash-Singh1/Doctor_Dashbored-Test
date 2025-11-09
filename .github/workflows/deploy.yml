@@ -3,7 +3,7 @@ name: Deploy Angular App to Hostinger VPS
 on:
   push:
     branches:
-      - production  # triggers deployment when you push to the production branch
+      - production
 
 jobs:
   build-and-deploy:
@@ -19,7 +19,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm i -f
+        run: npm ci
 
       - name: Build Angular app
         run: npm run build:prod
@@ -57,17 +57,11 @@ jobs:
             rm dist.tar.gz
 
             echo "📁 Adjusting Angular dist folder..."
+            # Move the correct Angular output up
             if [ -d "dist/doctor-dashboard/browser" ]; then
               mv dist/doctor-dashboard/browser dist
             elif [ -d "dist/browser" ]; then
               mv dist/browser dist
-            fi
-
-            echo "🧩 Checking Node.js and npm..."
-            if ! command -v npm &> /dev/null; then
-              echo "⚙️ Installing Node.js 20..."
-              curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-              apt-get install -y nodejs
             fi
 
             echo "🚀 Starting app with PM2 on port 9000..."
@@ -78,7 +72,8 @@ jobs:
             if pm2 list | grep -q "doctor-dashboard"; then
               pm2 restart doctor-dashboard
             else
-              pm2 start "http-server dist -p 9000" --name "doctor-dashboard"
+              # Serve the correct folder with index.html inside it
+              pm2 start "http-server dist/browser -p 9000 --proxy http://localhost:9000?" --name "doctor-dashboard"
               pm2 save
             fi
 
