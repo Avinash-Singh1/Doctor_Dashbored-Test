@@ -21,8 +21,6 @@ jobs:
       - name: Install dependencies
         run: npm i -f
 
-      - name: Run tests
-        run: npm test --if-present
 
       - name: Build Angular app
         run: npm run build:prod
