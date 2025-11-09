@@ -57,23 +57,24 @@ jobs:
             rm dist.tar.gz
 
             echo "📁 Adjusting Angular dist folder..."
-            # Handle nested Angular output (dist/browser or dist/doctor-dashboard/browser)
             if [ -d "dist/doctor-dashboard/browser" ]; then
               mv dist/doctor-dashboard/browser dist
             elif [ -d "dist/browser" ]; then
               mv dist/browser dist
             fi
 
-            echo "🚀 Starting app with PM2 on port 9000..."
-            # Install PM2 and http-server if missing
-            if ! command -v pm2 &> /dev/null; then
-              npm install -g pm2
-            fi
-            if ! command -v http-server &> /dev/null; then
-              npm install -g http-server
+            echo "🧩 Checking Node.js and npm..."
+            if ! command -v npm &> /dev/null; then
+              echo "⚙️ Installing Node.js 20..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+              apt-get install -y nodejs
             fi
 
-            # Start or restart the Angular app
+            echo "🚀 Starting app with PM2 on port 9000..."
+            if ! command -v pm2 &> /dev/null; then
+              npm install -g pm2 http-server
+            fi
+
             if pm2 list | grep -q "doctor-dashboard"; then
               pm2 restart doctor-dashboard
             else
